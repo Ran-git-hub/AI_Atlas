@@ -17,14 +17,14 @@ export function SearchBar() {
           </div>
 
           {/* Search input */}
-          <div className="flex-1 relative">
+          <div className="flex-1 min-w-0 relative sm:max-w-xl">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-slate-500" />
             </div>
             <input
               type="text"
-              placeholder="Search AI applications..."
-              className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-800/60 backdrop-blur-md border border-slate-700/50 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+              placeholder="Search ..."
+              className="w-full h-10 pl-10 pr-4 rounded-lg bg-slate-800/60 backdrop-blur-md border border-slate-700/50 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
             />
           </div>
 

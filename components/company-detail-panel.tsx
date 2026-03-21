@@ -1,8 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { X, ExternalLink, MapPin, Building2, Calendar } from "lucide-react"
 import type { CompanyWithCoords } from "@/lib/types"
-import Image from "next/image"
 
 interface CompanyDetailPanelProps {
   company: CompanyWithCoords
@@ -10,6 +10,8 @@ interface CompanyDetailPanelProps {
 }
 
 export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps) {
+  const [logoError, setLogoError] = useState(false)
+  
   return (
     <div className="fixed right-0 top-0 h-full w-full max-w-md z-40 animate-in slide-in-from-right duration-300">
       <div className="h-full bg-slate-900/80 backdrop-blur-xl border-l border-cyan-500/20 overflow-y-auto">
@@ -30,19 +32,16 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
         <div className="p-6 space-y-6">
           {/* Company Logo and Name */}
           <div className="flex items-start gap-4">
-            <div className="relative w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0">
-              {company.logo_url ? (
-                <Image
+            <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
+              {company.logo_url && !logoError ? (
+                <img
                   src={company.logo_url}
                   alt={company.name}
-                  fill
-                  className="object-contain p-2"
-                  unoptimized
+                  className="w-full h-full object-contain p-2"
+                  onError={() => setLogoError(true)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Building2 className="h-8 w-8 text-slate-600" />
-                </div>
+                <Building2 className="h-8 w-8 text-slate-600" />
               )}
             </div>
             <div className="flex-1 min-w-0">

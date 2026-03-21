@@ -23,7 +23,7 @@ export function SearchBar() {
             </div>
             <input
               type="text"
-              placeholder="搜索 AI 应用案例..."
+              placeholder="Search AI applications..."
               className="w-full h-11 pl-11 pr-4 rounded-xl bg-slate-800/60 backdrop-blur-md border border-slate-700/50 text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
             />
           </div>

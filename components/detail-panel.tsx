@@ -72,7 +72,7 @@ export function DetailPanel({ caseData, onClose }: DetailPanelProps) {
 
           {/* Description */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">简介</h3>
+            <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">About</h3>
             <p className="text-slate-300 leading-relaxed">{caseData.description}</p>
           </div>
 
@@ -83,7 +83,7 @@ export function DetailPanel({ caseData, onClose }: DetailPanelProps) {
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 font-medium transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20"
           >
-            <span>访问官网</span>
+            <span>Visit Website</span>
             <ExternalLink className="h-4 w-4" />
           </a>
         </div>

@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Global AI Applications Atlas',
+  description: 'Explore leading AI applications worldwide and discover how artificial intelligence is transforming the world',
   generator: 'v0.app',
   icons: {
     icon: [

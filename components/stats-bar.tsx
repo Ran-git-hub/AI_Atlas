@@ -9,21 +9,21 @@ export function StatsBar() {
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4 text-cyan-400" />
           <span className="text-sm text-slate-300">
-            <span className="font-semibold text-white">12</span> 案例
+            <span className="font-semibold text-white">50</span> Cases
           </span>
         </div>
         <div className="w-px h-4 bg-slate-700" />
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-cyan-400" />
           <span className="text-sm text-slate-300">
-            <span className="font-semibold text-white">8</span> 国家
+            <span className="font-semibold text-white">25</span> Countries
           </span>
         </div>
         <div className="w-px h-4 bg-slate-700" />
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-cyan-400" />
           <span className="text-sm text-slate-300">
-            <span className="font-semibold text-white">6</span> 类别
+            <span className="font-semibold text-white">15</span> Categories
           </span>
         </div>
       </div>

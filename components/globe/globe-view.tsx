@@ -106,56 +106,40 @@ export function GlobeView({ companies, onCompanyClick }: GlobeViewProps) {
         </div>
       `}
 
-      // HTML elements layer for company markers
+      // HTML elements layer for company markers with hover and click
       htmlElementsData={markersReady ? companies : []}
       htmlLat="lat"
       htmlLng="lng"
       htmlAltitude={0.02}
       htmlElement={(d: any) => {
         const container = document.createElement("div")
+        container.className = "company-marker"
         container.style.cssText = `
           cursor: pointer;
           transform: translate(-50%, -50%);
+          pointer-events: auto;
+          position: relative;
         `
-        container.innerHTML = `
-          <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-          ">
-            <div style="
-              width: 6px;
-              height: 6px;
-              background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%);
-              border-radius: 50%;
-              box-shadow: 0 0 6px 2px rgba(34, 211, 238, 0.5);
-              animation: pulse 3s ease-in-out infinite;
-            "></div>
-          </div>
-          <style>
-            @keyframes pulse {
-              0%, 100% { transform: scale(1); opacity: 0.9; }
-              50% { transform: scale(1.2); opacity: 1; }
-            }
-          </style>
+        
+        // Create marker dot
+        const dot = document.createElement("div")
+        dot.style.cssText = `
+          width: 10px;
+          height: 10px;
+          background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%);
+          border-radius: 50%;
+          box-shadow: 0 0 8px 3px rgba(34, 211, 238, 0.6);
+          animation: pulse 3s ease-in-out infinite;
+          transition: transform 0.2s ease;
         `
-        container.onclick = () => {
-          onCompanyClick(d)
-        }
-        return container
-      }}
-
-      // Labels layer for tooltips
-      labelsData={companies}
-      labelLat="lat"
-      labelLng="lng"
-      labelText={() => ""}
-      labelSize={0}
-      labelDotRadius={0}
-      labelAltitude={0.025}
-      labelLabel={(d: any) => `
-        <div style="
+        
+        // Create tooltip
+        const tooltip = document.createElement("div")
+        tooltip.style.cssText = `
+          position: absolute;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
           background: rgba(2, 10, 24, 0.95);
           backdrop-filter: blur(12px);
           border: 1px solid rgba(34, 211, 238, 0.5);
@@ -165,8 +149,14 @@ export function GlobeView({ companies, onCompanyClick }: GlobeViewProps) {
           font-family: system-ui, sans-serif;
           min-width: 200px;
           max-width: 280px;
-          box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
-        ">
+          box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.2s ease, visibility 0.2s ease;
+          z-index: 1000;
+          white-space: nowrap;
+        `
+        tooltip.innerHTML = `
           <div style="font-weight: 600; font-size: 14px; color: #22d3ee; margin-bottom: 4px;">${d.name}</div>
           <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${d.city}, ${d.headquarters_country}</div>
           <div style="
@@ -177,8 +167,32 @@ export function GlobeView({ companies, onCompanyClick }: GlobeViewProps) {
             color: #22d3ee;
             display: inline-block;
           ">${d.industry}</div>
-        </div>
-      `}
+        `
+        
+        container.appendChild(dot)
+        container.appendChild(tooltip)
+        
+        // Hover events
+        container.addEventListener("mouseenter", () => {
+          tooltip.style.opacity = "1"
+          tooltip.style.visibility = "visible"
+          dot.style.transform = "scale(1.5)"
+        })
+        
+        container.addEventListener("mouseleave", () => {
+          tooltip.style.opacity = "0"
+          tooltip.style.visibility = "hidden"
+          dot.style.transform = "scale(1)"
+        })
+        
+        // Click event
+        container.addEventListener("click", (e) => {
+          e.stopPropagation()
+          onCompanyClick(d)
+        })
+        
+        return container
+      }}
     />
   )
 }

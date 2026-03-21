@@ -82,7 +82,7 @@ interface HomeClientProps {
   companies: CompanyWithCoords[]
 }
 
-export function HomeClient({ companies }: HomeClientProps) {
+export function HomeClient({ companies = [] }: HomeClientProps) {
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
 
@@ -95,11 +95,12 @@ export function HomeClient({ companies }: HomeClientProps) {
     setSelectedCompany(null)
   }, [])
 
-  // Calculate stats from the data
-  const totalCompanies = companies.length
-  const uniqueCountries = new Set(companies.map(c => c.headquarters_country))
+  // Calculate stats from the data with safety check
+  const safeCompanies = companies || []
+  const totalCompanies = safeCompanies.length
+  const uniqueCountries = new Set(safeCompanies.map(c => c.headquarters_country))
   const totalCountries = uniqueCountries.size
-  const uniqueIndustries = new Set(companies.map(c => c.industry))
+  const uniqueIndustries = new Set(safeCompanies.map(c => c.industry))
   const totalIndustries = uniqueIndustries.size
 
   return (
@@ -126,7 +127,7 @@ export function HomeClient({ companies }: HomeClientProps) {
 
       {/* 3D Globe */}
       <div className="absolute inset-0">
-        <GlobeView companies={companies} onCompanyClick={handleCompanyClick} />
+        <GlobeView companies={safeCompanies} onCompanyClick={handleCompanyClick} />
       </div>
 
       {/* Instructions */}

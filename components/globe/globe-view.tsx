@@ -173,16 +173,63 @@ export function GlobeView({ onMarkerClick }: GlobeViewProps) {
           ${d.properties?.NAME || d.properties?.ADMIN || "Unknown"}
         </div>
       `}
-      // Points layer for AI cases
-      pointsData={aiCases}
-      pointLat="lat"
-      pointLng="lng"
-      pointColor={() => "#22d3ee"}
-      pointAltitude={0.02}
-      pointRadius={0.4}
-      pointsMerge={false}
-      onPointClick={handlePointClick}
-      pointLabel={(d: any) => `
+      // HTML elements layer for 2D AI case markers
+      htmlElementsData={aiCases}
+      htmlLat="lat"
+      htmlLng="lng"
+      htmlAltitude={0.01}
+      htmlElement={(d: any) => {
+        const container = document.createElement("div")
+        container.style.cssText = `
+          cursor: pointer;
+          transform: translate(-50%, -50%);
+        `
+        container.innerHTML = `
+          <div style="
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.6) 40%, transparent 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 12px 4px rgba(34, 211, 238, 0.5), 0 0 24px 8px rgba(34, 211, 238, 0.2);
+            animation: pulse 2s ease-in-out infinite;
+            position: relative;
+          ">
+            <div style="
+              position: absolute;
+              inset: -4px;
+              border-radius: 50%;
+              border: 1px solid rgba(34, 211, 238, 0.4);
+              animation: ripple 2s ease-out infinite;
+            "></div>
+          </div>
+          <style>
+            @keyframes pulse {
+              0%, 100% { transform: scale(1); opacity: 1; }
+              50% { transform: scale(1.2); opacity: 0.8; }
+            }
+            @keyframes ripple {
+              0% { transform: scale(1); opacity: 0.6; }
+              100% { transform: scale(2.5); opacity: 0; }
+            }
+          </style>
+        `
+        container.onclick = () => {
+          const caseData = aiCases.find(c => c.id === d.id)
+          if (caseData) {
+            onMarkerClick(caseData)
+          }
+        }
+        return container
+      }}
+      // Labels layer for tooltips
+      labelsData={aiCases}
+      labelLat="lat"
+      labelLng="lng"
+      labelText={() => ""}
+      labelSize={0}
+      labelDotRadius={0}
+      labelAltitude={0.015}
+      labelLabel={(d: any) => `
         <div style="
           background: rgba(2, 10, 24, 0.95);
           backdrop-filter: blur(12px);

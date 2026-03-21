@@ -85,6 +85,8 @@ interface HomeClientProps {
 export function HomeClient({ countries }: HomeClientProps) {
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
+  
+  console.log("[v0] Client: countries received:", countries)
 
   const handleCountryClick = useCallback((country: CountryData) => {
     setSelectedCountry(country)

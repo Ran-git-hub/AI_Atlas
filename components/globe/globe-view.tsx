@@ -20,6 +20,8 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
   const [isClient, setIsClient] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [geoJsonData, setGeoJsonData] = useState<{ features: any[] }>({ features: [] })
+  
+  console.log("[v0] GlobeView: countries prop:", countries)
 
   useEffect(() => {
     setIsClient(true)
@@ -106,10 +108,17 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
 
       // HTML elements layer for country markers with company counts
       htmlElementsData={countries}
-      htmlLat="lat"
-      htmlLng="lng"
+      htmlLat={(d: any) => {
+        console.log("[v0] htmlLat for:", d.country, "lat:", d.lat)
+        return d.lat
+      }}
+      htmlLng={(d: any) => {
+        console.log("[v0] htmlLng for:", d.country, "lng:", d.lng)
+        return d.lng
+      }}
       htmlAltitude={0.02}
       htmlElement={(d: any) => {
+        console.log("[v0] Creating HTML element for:", d.country, "with", d.companies?.length, "companies")
         const container = document.createElement("div")
         container.style.cssText = `
           cursor: pointer;

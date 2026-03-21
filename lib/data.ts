@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Company, CountryData, COUNTRY_COORDINATES } from "./types"
 
 export async function getCompanies(): Promise<Company[]> {
+  console.log("[v0] getCompanies: Starting fetch...")
   const supabase = await createClient()
   
   const { data, error } = await supabase
@@ -9,8 +10,11 @@ export async function getCompanies(): Promise<Company[]> {
     .select("*")
     .order("headquarters_country")
   
+  console.log("[v0] getCompanies: data =", data)
+  console.log("[v0] getCompanies: error =", error)
+  
   if (error) {
-    console.error("Error fetching companies:", error)
+    console.error("[v0] Error fetching companies:", error)
     return []
   }
   
@@ -18,7 +22,9 @@ export async function getCompanies(): Promise<Company[]> {
 }
 
 export async function getCompaniesByCountry(): Promise<CountryData[]> {
+  console.log("[v0] getCompaniesByCountry: Starting...")
   const companies = await getCompanies()
+  console.log("[v0] getCompaniesByCountry: Got", companies.length, "companies")
   
   // Group companies by country
   const countryMap = new Map<string, Company[]>()

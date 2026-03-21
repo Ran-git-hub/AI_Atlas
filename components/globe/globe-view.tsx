@@ -10,17 +10,43 @@ const Globe = dynamic(() => import("react-globe.gl"), { ssr: false })
 interface GlobeViewProps {
   companies: CompanyWithCoords[]
   onCompanyClick: (company: CompanyWithCoords) => void
+  isPanelOpen?: boolean
 }
 
 // GeoJSON URL for countries
 const COUNTRIES_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
 
-export function GlobeView({ companies, onCompanyClick }: GlobeViewProps) {
+export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: GlobeViewProps) {
   const globeRef = useRef<any>(null)
   const [isClient, setIsClient] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [geoJsonData, setGeoJsonData] = useState<{ features: any[] }>({ features: [] })
   const [markersReady, setMarkersReady] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  
+  // Function to pause/resume rotation
+  const pauseRotation = useCallback(() => {
+    if (globeRef.current?.controls()) {
+      globeRef.current.controls().autoRotate = false
+      setIsPaused(true)
+    }
+  }, [])
+  
+  const resumeRotation = useCallback(() => {
+    if (globeRef.current?.controls()) {
+      globeRef.current.controls().autoRotate = true
+      setIsPaused(false)
+    }
+  }, [])
+  
+  // Pause/resume rotation based on panel state
+  useEffect(() => {
+    if (isPanelOpen) {
+      pauseRotation()
+    } else if (!isPaused) {
+      resumeRotation()
+    }
+  }, [isPanelOpen, isPaused, pauseRotation, resumeRotation])
   
   // Ensure markers render after globe is ready
   useEffect(() => {
@@ -172,22 +198,25 @@ export function GlobeView({ companies, onCompanyClick }: GlobeViewProps) {
         container.appendChild(dot)
         container.appendChild(tooltip)
         
-        // Hover events
+        // Hover events - pause rotation on hover
         container.addEventListener("mouseenter", () => {
           tooltip.style.opacity = "1"
           tooltip.style.visibility = "visible"
           dot.style.transform = "scale(1.5)"
+          pauseRotation()
         })
         
         container.addEventListener("mouseleave", () => {
           tooltip.style.opacity = "0"
           tooltip.style.visibility = "hidden"
           dot.style.transform = "scale(1)"
+          resumeRotation()
         })
         
-        // Click event
+        // Click event - pause rotation and open panel
         container.addEventListener("click", (e) => {
           e.stopPropagation()
+          pauseRotation()
           onCompanyClick(d)
         })
         

@@ -127,7 +127,11 @@ export function HomeClient({ companies = [] }: HomeClientProps) {
 
       {/* 3D Globe */}
       <div className="absolute inset-0">
-        <GlobeView companies={safeCompanies} onCompanyClick={handleCompanyClick} />
+        <GlobeView 
+          companies={safeCompanies} 
+          onCompanyClick={handleCompanyClick} 
+          isPanelOpen={!!selectedCompany}
+        />
       </div>
 
       {/* Instructions */}

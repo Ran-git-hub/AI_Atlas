@@ -186,30 +186,18 @@ export function GlobeView({ onMarkerClick }: GlobeViewProps) {
         `
         container.innerHTML = `
           <div style="
-            width: 12px;
-            height: 12px;
-            background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.6) 40%, transparent 70%);
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%);
             border-radius: 50%;
-            box-shadow: 0 0 12px 4px rgba(34, 211, 238, 0.5), 0 0 24px 8px rgba(34, 211, 238, 0.2);
-            animation: pulse 2s ease-in-out infinite;
-            position: relative;
+            box-shadow: 0 0 4px 1px rgba(34, 211, 238, 0.6);
+            animation: pulse 3s ease-in-out infinite;
           ">
-            <div style="
-              position: absolute;
-              inset: -4px;
-              border-radius: 50%;
-              border: 1px solid rgba(34, 211, 238, 0.4);
-              animation: ripple 2s ease-out infinite;
-            "></div>
           </div>
           <style>
             @keyframes pulse {
-              0%, 100% { transform: scale(1); opacity: 1; }
-              50% { transform: scale(1.2); opacity: 0.8; }
-            }
-            @keyframes ripple {
-              0% { transform: scale(1); opacity: 0.6; }
-              100% { transform: scale(2.5); opacity: 0; }
+              0%, 100% { transform: scale(1); opacity: 0.9; }
+              50% { transform: scale(1.15); opacity: 1; }
             }
           </style>
         `

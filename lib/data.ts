@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { Company, CountryData, COUNTRY_COORDINATES } from "./types"
+import { Company, CompanyWithCoords, CITY_COORDINATES } from "./types"
 
 export async function getCompanies(): Promise<Company[]> {
   const supabase = await createClient()
@@ -7,7 +7,7 @@ export async function getCompanies(): Promise<Company[]> {
   const { data, error } = await supabase
     .from("AI_Atlas_Companies")
     .select("*")
-    .order("headquarters_country")
+    .order("name")
   
   if (error) {
     console.error("Error fetching companies:", error)
@@ -17,49 +17,32 @@ export async function getCompanies(): Promise<Company[]> {
   return data || []
 }
 
-export async function getCompaniesByCountry(): Promise<CountryData[]> {
+export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
   const companies = await getCompanies()
   
-  // Group companies by country
-  const countryMap = new Map<string, Company[]>()
-  
-  for (const company of companies) {
-    const country = company.headquarters_country
-    if (!countryMap.has(country)) {
-      countryMap.set(country, [])
-    }
-    countryMap.get(country)!.push(company)
-  }
-  
-  // Convert to CountryData array with coordinates
-  const countryData: CountryData[] = []
-  
-  for (const [country, companiesList] of countryMap) {
-    const coords = COUNTRY_COORDINATES[country] || { lat: 0, lng: 0 }
-    countryData.push({
-      country,
+  return companies.map(company => {
+    const coords = CITY_COORDINATES[company.city] || { lat: 0, lng: 0 }
+    return {
+      ...company,
       lat: coords.lat,
-      lng: coords.lng,
-      companies: companiesList
-    })
-  }
-  
-  return countryData
+      lng: coords.lng
+    }
+  })
 }
 
-export async function getCompaniesForCountry(country: string): Promise<Company[]> {
+export async function getCompanyById(id: string): Promise<Company | null> {
   const supabase = await createClient()
   
   const { data, error } = await supabase
     .from("AI_Atlas_Companies")
     .select("*")
-    .eq("headquarters_country", country)
-    .order("name")
+    .eq("id", id)
+    .single()
   
   if (error) {
-    console.error("Error fetching companies for country:", error)
-    return []
+    console.error("Error fetching company:", error)
+    return null
   }
   
-  return data || []
+  return data
 }

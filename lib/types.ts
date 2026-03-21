@@ -7,37 +7,91 @@ export interface Company {
   website_url: string
   logo_url: string
   headquarters_country: string
+  city: string
   created_at: string
 }
 
-// Country data with coordinates for the globe
-export interface CountryData {
-  country: string
+// Company with coordinates for the globe
+export interface CompanyWithCoords extends Company {
   lat: number
   lng: number
-  companies: Company[]
 }
 
-// Country coordinates mapping
-export const COUNTRY_COORDINATES: Record<string, { lat: number; lng: number }> = {
-  "USA": { lat: 37.0902, lng: -95.7129 },
-  "UK": { lat: 51.5074, lng: -0.1278 },
-  "Israel": { lat: 31.0461, lng: 34.8516 },
-  "China/Hong Kong": { lat: 22.3193, lng: 114.1694 },
-  "China": { lat: 35.8617, lng: 104.1954 },
+// City coordinates mapping
+export const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  // USA
+  "Salt Lake City": { lat: 40.7608, lng: -111.8910 },
+  "Santa Clara": { lat: 37.3541, lng: -121.9552 },
+  "New York": { lat: 40.7128, lng: -74.0060 },
+  "Scottsdale": { lat: 33.4942, lng: -111.9261 },
+  "Boston": { lat: 42.3601, lng: -71.0589 },
+  "San Francisco": { lat: 37.7749, lng: -122.4194 },
+  "Seattle": { lat: 47.6062, lng: -122.3321 },
+  "Austin": { lat: 30.2672, lng: -97.7431 },
+  "Los Angeles": { lat: 34.0522, lng: -118.2437 },
+  "Chicago": { lat: 41.8781, lng: -87.6298 },
+  "Mountain View": { lat: 37.3861, lng: -122.0839 },
+  "Palo Alto": { lat: 37.4419, lng: -122.1430 },
+  "Menlo Park": { lat: 37.4530, lng: -122.1817 },
+  
+  // UK
+  "London": { lat: 51.5074, lng: -0.1278 },
+  "Oxford": { lat: 51.7520, lng: -1.2577 },
+  "Cambridge": { lat: 52.2053, lng: 0.1218 },
+  "Edinburgh": { lat: 55.9533, lng: -3.1883 },
+  "Manchester": { lat: 53.4808, lng: -2.2426 },
+  
+  // Israel
+  "Tel Aviv": { lat: 32.0853, lng: 34.7818 },
+  "Jerusalem": { lat: 31.7683, lng: 35.2137 },
+  "Haifa": { lat: 32.7940, lng: 34.9896 },
+  
+  // China/Hong Kong
   "Hong Kong": { lat: 22.3193, lng: 114.1694 },
-  "Germany": { lat: 51.1657, lng: 10.4515 },
-  "France": { lat: 46.2276, lng: 2.2137 },
-  "Canada": { lat: 56.1304, lng: -106.3468 },
-  "Japan": { lat: 36.2048, lng: 138.2529 },
-  "South Korea": { lat: 35.9078, lng: 127.7669 },
-  "India": { lat: 20.5937, lng: 78.9629 },
-  "Australia": { lat: -25.2744, lng: 133.7751 },
+  "Beijing": { lat: 39.9042, lng: 116.4074 },
+  "Shanghai": { lat: 31.2304, lng: 121.4737 },
+  "Shenzhen": { lat: 22.5431, lng: 114.0579 },
+  "Hangzhou": { lat: 30.2741, lng: 120.1551 },
+  
+  // Germany
+  "Berlin": { lat: 52.5200, lng: 13.4050 },
+  "Munich": { lat: 48.1351, lng: 11.5820 },
+  "Frankfurt": { lat: 50.1109, lng: 8.6821 },
+  
+  // France
+  "Paris": { lat: 48.8566, lng: 2.3522 },
+  
+  // Canada
+  "Toronto": { lat: 43.6532, lng: -79.3832 },
+  "Montreal": { lat: 45.5017, lng: -73.5673 },
+  "Vancouver": { lat: 49.2827, lng: -123.1207 },
+  
+  // Japan
+  "Tokyo": { lat: 35.6762, lng: 139.6503 },
+  "Osaka": { lat: 34.6937, lng: 135.5023 },
+  
+  // South Korea
+  "Seoul": { lat: 37.5665, lng: 126.9780 },
+  
+  // India
+  "Bangalore": { lat: 12.9716, lng: 77.5946 },
+  "Mumbai": { lat: 19.0760, lng: 72.8777 },
+  "Delhi": { lat: 28.7041, lng: 77.1025 },
+  
+  // Australia
+  "Sydney": { lat: -33.8688, lng: 151.2093 },
+  "Melbourne": { lat: -37.8136, lng: 144.9631 },
+  
+  // Singapore
   "Singapore": { lat: 1.3521, lng: 103.8198 },
-  "Brazil": { lat: -14.2350, lng: -51.9253 },
-  "UAE": { lat: 23.4241, lng: 53.8478 },
-  "Saudi Arabia": { lat: 23.8859, lng: 45.0792 },
-  "Netherlands": { lat: 52.1326, lng: 5.2913 },
-  "Sweden": { lat: 60.1282, lng: 18.6435 },
-  "Switzerland": { lat: 46.8182, lng: 8.2275 },
+  
+  // Netherlands
+  "Amsterdam": { lat: 52.3676, lng: 4.9041 },
+  
+  // Sweden
+  "Stockholm": { lat: 59.3293, lng: 18.0686 },
+  
+  // Switzerland
+  "Zurich": { lat: 47.3769, lng: 8.5417 },
+  "Geneva": { lat: 46.2044, lng: 6.1432 },
 }

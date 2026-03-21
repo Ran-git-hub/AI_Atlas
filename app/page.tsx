@@ -1,8 +1,8 @@
-import { getCompaniesByCountry } from "@/lib/data"
+import { getCompaniesWithCoords } from "@/lib/data"
 import { HomeClient } from "@/components/home-client"
 
 export default async function Home() {
-  const countries = await getCompaniesByCountry()
+  const companies = await getCompaniesWithCoords()
   
-  return <HomeClient countries={countries} />
+  return <HomeClient companies={companies} />
 }

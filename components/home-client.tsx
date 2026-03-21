@@ -3,10 +3,10 @@
 import { useState, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { SearchBar } from "@/components/search-bar"
-import { CountryDetailPanel } from "@/components/country-detail-panel"
+import { CompanyDetailPanel } from "@/components/company-detail-panel"
 import { StatsBar } from "@/components/stats-bar"
 import { Instructions } from "@/components/instructions"
-import type { CountryData } from "@/lib/types"
+import type { CompanyWithCoords } from "@/lib/types"
 
 // Fixed star positions to avoid hydration mismatch
 const STAR_POSITIONS = [
@@ -79,27 +79,28 @@ const GlobeView = dynamic(
 )
 
 interface HomeClientProps {
-  countries: CountryData[]
+  companies: CompanyWithCoords[]
 }
 
-export function HomeClient({ countries }: HomeClientProps) {
-  const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null)
+export function HomeClient({ companies }: HomeClientProps) {
+  const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
 
-  const handleCountryClick = useCallback((country: CountryData) => {
-    setSelectedCountry(country)
+  const handleCompanyClick = useCallback((company: CompanyWithCoords) => {
+    setSelectedCompany(company)
     setShowInstructions(false)
   }, [])
 
   const handleClosePanel = useCallback(() => {
-    setSelectedCountry(null)
+    setSelectedCompany(null)
   }, [])
 
   // Calculate stats from the data
-  const totalCompanies = countries.reduce((sum, c) => sum + c.companies.length, 0)
-  const totalCountries = countries.length
-  const allIndustries = new Set(countries.flatMap(c => c.companies.map(co => co.industry)))
-  const totalIndustries = allIndustries.size
+  const totalCompanies = companies.length
+  const uniqueCountries = new Set(companies.map(c => c.headquarters_country))
+  const totalCountries = uniqueCountries.size
+  const uniqueIndustries = new Set(companies.map(c => c.industry))
+  const totalIndustries = uniqueIndustries.size
 
   return (
     <main className="relative w-full h-screen overflow-hidden bg-[#020a18]">
@@ -125,7 +126,7 @@ export function HomeClient({ countries }: HomeClientProps) {
 
       {/* 3D Globe */}
       <div className="absolute inset-0">
-        <GlobeView countries={countries} onCountryClick={handleCountryClick} />
+        <GlobeView companies={companies} onCompanyClick={handleCompanyClick} />
       </div>
 
       {/* Instructions */}
@@ -138,13 +139,15 @@ export function HomeClient({ countries }: HomeClientProps) {
         totalIndustries={totalIndustries}
       />
 
-      {/* Country detail panel */}
-      <CountryDetailPanel countryData={selectedCountry} onClose={handleClosePanel} />
+      {/* Company detail panel */}
+      {selectedCompany && (
+        <CompanyDetailPanel company={selectedCompany} onClose={handleClosePanel} />
+      )}
 
       {/* Overlay when panel is open */}
-      {selectedCountry && (
+      {selectedCompany && (
         <div 
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden"
           onClick={handleClosePanel}
         />
       )}

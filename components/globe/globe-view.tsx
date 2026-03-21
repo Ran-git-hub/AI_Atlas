@@ -2,20 +2,20 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import dynamic from "next/dynamic"
-import type { CountryData } from "@/lib/types"
+import type { CompanyWithCoords } from "@/lib/types"
 
 // Dynamically import Globe to avoid SSR issues
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false })
 
 interface GlobeViewProps {
-  countries: CountryData[]
-  onCountryClick: (country: CountryData) => void
+  companies: CompanyWithCoords[]
+  onCompanyClick: (company: CompanyWithCoords) => void
 }
 
 // GeoJSON URL for countries
 const COUNTRIES_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
 
-export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
+export function GlobeView({ companies, onCompanyClick }: GlobeViewProps) {
   const globeRef = useRef<any>(null)
   const [isClient, setIsClient] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -24,11 +24,11 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
   
   // Ensure markers render after globe is ready
   useEffect(() => {
-    if (countries.length > 0 && isClient) {
+    if (companies.length > 0 && isClient) {
       const timer = setTimeout(() => setMarkersReady(true), 500)
       return () => clearTimeout(timer)
     }
-  }, [countries, isClient])
+  }, [companies, isClient])
 
   useEffect(() => {
     setIsClient(true)
@@ -63,13 +63,6 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
       globeRef.current.pointOfView({ lat: 20, lng: 0, altitude: 2.2 })
     }
   }, [isClient])
-
-  const handlePointClick = useCallback((point: any) => {
-    const countryData = countries.find(c => c.country === point.country)
-    if (countryData) {
-      onCountryClick(countryData)
-    }
-  }, [countries, onCountryClick])
 
   if (!isClient) {
     return (
@@ -113,8 +106,8 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
         </div>
       `}
 
-      // HTML elements layer for country markers with company counts
-      htmlElementsData={markersReady ? countries : []}
+      // HTML elements layer for company markers
+      htmlElementsData={markersReady ? companies : []}
       htmlLat="lat"
       htmlLng="lng"
       htmlAltitude={0.02}
@@ -124,50 +117,37 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
           cursor: pointer;
           transform: translate(-50%, -50%);
         `
-        const companyCount = d.companies?.length || 0
         container.innerHTML = `
           <div style="
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
           ">
             <div style="
-              width: 8px;
-              height: 8px;
-              background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.6) 50%, transparent 100%);
+              width: 6px;
+              height: 6px;
+              background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%);
               border-radius: 50%;
-              box-shadow: 0 0 8px 2px rgba(34, 211, 238, 0.5);
-              animation: pulse 2.5s ease-in-out infinite;
+              box-shadow: 0 0 6px 2px rgba(34, 211, 238, 0.5);
+              animation: pulse 3s ease-in-out infinite;
             "></div>
-            <div style="
-              background: rgba(2, 10, 24, 0.9);
-              backdrop-filter: blur(8px);
-              border: 1px solid rgba(34, 211, 238, 0.4);
-              border-radius: 12px;
-              padding: 2px 8px;
-              font-size: 10px;
-              font-weight: 600;
-              color: #22d3ee;
-              font-family: system-ui, sans-serif;
-              white-space: nowrap;
-            ">${companyCount} ${companyCount === 1 ? 'company' : 'companies'}</div>
           </div>
           <style>
             @keyframes pulse {
               0%, 100% { transform: scale(1); opacity: 0.9; }
-              50% { transform: scale(1.15); opacity: 1; }
+              50% { transform: scale(1.2); opacity: 1; }
             }
           </style>
         `
         container.onclick = () => {
-          onCountryClick(d)
+          onCompanyClick(d)
         }
         return container
       }}
 
       // Labels layer for tooltips
-      labelsData={countries}
+      labelsData={companies}
       labelLat="lat"
       labelLng="lng"
       labelText={() => ""}
@@ -183,20 +163,20 @@ export function GlobeView({ countries, onCountryClick }: GlobeViewProps) {
           padding: 12px 16px;
           color: white;
           font-family: system-ui, sans-serif;
-          min-width: 160px;
+          min-width: 200px;
+          max-width: 280px;
           box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
         ">
-          <div style="font-weight: 600; font-size: 14px; color: #22d3ee; margin-bottom: 4px;">${d.country}</div>
-          <div style="font-size: 12px; color: #94a3b8;">${d.companies?.length || 0} AI ${d.companies?.length === 1 ? 'Company' : 'Companies'}</div>
+          <div style="font-weight: 600; font-size: 14px; color: #22d3ee; margin-bottom: 4px;">${d.name}</div>
+          <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${d.city}, ${d.headquarters_country}</div>
           <div style="
             font-size: 11px; 
-            margin-top: 8px; 
             padding: 3px 8px;
             background: rgba(34, 211, 238, 0.15);
             border-radius: 4px;
             color: #22d3ee;
             display: inline-block;
-          ">Click to view details</div>
+          ">${d.industry}</div>
         </div>
       `}
     />

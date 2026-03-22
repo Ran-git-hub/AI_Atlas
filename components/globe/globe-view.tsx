@@ -1,25 +1,71 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MouseEvent as ReactMouseEvent } from "react"
 import dynamic from "next/dynamic"
-import type { CompanyWithCoords } from "@/lib/types"
+import {
+  companySearchHaystack,
+  useCaseSearchHaystack,
+} from "@/lib/search-match"
+import { useCaseDisplayName, type CompanyWithCoords, type UseCaseWithCoords } from "@/lib/types"
+
+const SEA_GREEN = "#3cb371"
+const SEA_GREEN_RGB = "60, 179, 113"
 
 // Dynamically import Globe to avoid SSR issues
 const Globe = dynamic(() => import("react-globe.gl"), { ssr: false })
 
+export interface GlobeFlyTo {
+  lat: number
+  lng: number
+  altitude?: number
+}
+
 interface GlobeViewProps {
   companies: CompanyWithCoords[]
+  useCases: UseCaseWithCoords[]
   onCompanyClick: (company: CompanyWithCoords) => void
+  onUseCaseClick: (useCase: UseCaseWithCoords) => void
   isPanelOpen?: boolean
+  /** Debounced substring; empty = no search highlight */
+  highlightSearchQuery?: string
+  /** When false, company markers ignore search dimming (full color). */
+  searchScopeCompany?: boolean
+  /** When false, use case markers ignore search dimming (full color). */
+  searchScopeUseCase?: boolean
+  /** Fly camera when nonce increases (e.g. after picking from search) */
+  flyTo?: GlobeFlyTo | null
+  flyToNonce?: number
+  /** Bumps HTML marker refresh when detail panel opens (react-globe can skip updates otherwise) */
+  selectionRevision?: string
+  /** Outer ring / selection halo only when this company id matches */
+  selectedCompanyId?: string | null
+  /** Outer ring / selection halo only when this use case id matches */
+  selectedUseCaseId?: string | null
 }
 
 // GeoJSON URL for countries
 const COUNTRIES_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
 const GLOBE_ROTATION_SPEED = 0.3
 const PRAGUE_VIEW = { lat: 50.0755, lng: 14.4378, altitude: 2.2 }
+const FLY_ALTITUDE = 1.85
+const FLY_MS = 1400
 
-export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: GlobeViewProps) {
+export function GlobeView({
+  companies,
+  useCases,
+  onCompanyClick,
+  onUseCaseClick,
+  isPanelOpen = false,
+  highlightSearchQuery = "",
+  searchScopeCompany = true,
+  searchScopeUseCase = true,
+  flyTo = null,
+  flyToNonce = 0,
+  selectionRevision = "",
+  selectedCompanyId = null,
+  selectedUseCaseId = null,
+}: GlobeViewProps) {
   const globeRef = useRef<any>(null)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const controlsListenersRef = useRef<{
@@ -29,6 +75,7 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
   } | null>(null)
   const isPanelOpenRef = useRef(isPanelOpen)
   const userPausedRef = useRef(false)
+  const flyToNonceRef = useRef(flyToNonce)
   const [isClient, setIsClient] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [geoJsonData, setGeoJsonData] = useState<{ features: any[] }>({ features: [] })
@@ -48,13 +95,13 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
     }
   }, [])
 
-  /** Initial load: face Prague + auto-rotate unless panel open or user paused blank-toggle. */
+  /** Face Prague (instant) + auto-rotate unless panel open or user paused blank-toggle. */
   const applyPragueViewAndRotation = useCallback(() => {
     const globe = globeRef.current
     const controls = globe?.controls()
-    if (!controls) return
+    if (!globe || !controls) return
     controls.autoRotateSpeed = GLOBE_ROTATION_SPEED
-    globe.pointOfView(PRAGUE_VIEW)
+    globe.pointOfView(PRAGUE_VIEW, 0)
     controls.autoRotate = !(isPanelOpenRef.current || userPausedRef.current)
   }, [])
 
@@ -62,6 +109,7 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
     const target = event.target as HTMLElement | null
     if (!target) return
     if (target.closest(".company-marker")) return
+    if (target.closest(".use-case-marker")) return
     if (!isPanelOpenRef.current) {
       setIsUserPaused((prev) => !prev)
     }
@@ -74,6 +122,10 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
   useEffect(() => {
     userPausedRef.current = isUserPaused
   }, [isUserPaused])
+
+  useEffect(() => {
+    flyToNonceRef.current = flyToNonce
+  }, [flyToNonce])
 
   // Pause/resume rotation based on panel state + user toggle state
   useEffect(() => {
@@ -96,13 +148,13 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
     }
   }, [])
   
-  // Ensure markers render after globe is ready
+  // Markers layer: delay when there is data (globe init); short delay when empty so Prague POV still reapplies.
   useEffect(() => {
-    if (companies.length > 0 && isClient) {
-      const timer = setTimeout(() => setMarkersReady(true), 500)
-      return () => clearTimeout(timer)
-    }
-  }, [companies, isClient])
+    if (!isClient) return
+    const delay = companies.length > 0 || useCases.length > 0 ? 500 : 80
+    const timer = setTimeout(() => setMarkersReady(true), delay)
+    return () => clearTimeout(timer)
+  }, [companies, useCases, isClient])
 
   useEffect(() => {
     setIsClient(true)
@@ -137,9 +189,11 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
       if (cancelled) return
       const globe = globeRef.current
       const controls = globe?.controls()
-      if (!controls) return
+      if (!globe || !controls) return
       controls.autoRotateSpeed = GLOBE_ROTATION_SPEED
-      globe.pointOfView(PRAGUE_VIEW)
+      if (flyToNonceRef.current < 1) {
+        globe.pointOfView(PRAGUE_VIEW, 0)
+      }
       controls.autoRotate = !(isPanelOpenRef.current || userPausedRef.current)
     }
     const run = () => {
@@ -189,6 +243,81 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
     })
   }, [applyPragueViewAndRotation, pauseRotation, resumeRotation])
 
+  // New object refs when search / panel / selection changes so react-globe.gl refreshes HTML markers.
+  const htmlElementsData = useMemo(() => {
+    if (!markersReady) return []
+    const q = highlightSearchQuery.trim().toLowerCase()
+    const companyMarkers = companies.map((c) => ({
+      kind: "company" as const,
+      ...c,
+      _globeSearchKey: q,
+      _globeSearchScopeCompany: searchScopeCompany,
+      _globeSearchScopeUseCase: searchScopeUseCase,
+      _globeUiRev: selectionRevision,
+      _globeSelected:
+        Boolean(selectedCompanyId) && String(c.id) === String(selectedCompanyId),
+    }))
+    const useCaseMarkers = useCases.map((u) => ({
+      kind: "use_case" as const,
+      ...u,
+      _globeSearchKey: q,
+      _globeSearchScopeCompany: searchScopeCompany,
+      _globeSearchScopeUseCase: searchScopeUseCase,
+      _globeUiRev: selectionRevision,
+      _globeSelected:
+        Boolean(selectedUseCaseId) && String(u.id) === String(selectedUseCaseId),
+    }))
+    return [...companyMarkers, ...useCaseMarkers]
+  }, [
+    markersReady,
+    companies,
+    useCases,
+    highlightSearchQuery,
+    searchScopeCompany,
+    searchScopeUseCase,
+    selectionRevision,
+    selectedCompanyId,
+    selectedUseCaseId,
+  ])
+
+  // HTML markers attaching often resets POV — re-aim at Prague (unless user already flew via search).
+  useEffect(() => {
+    if (!isClient || !markersReady) return
+    const schedule = () => {
+      if (flyToNonceRef.current > 0) return
+      applyPragueViewAndRotation()
+    }
+    const raf = requestAnimationFrame(schedule)
+    const t1 = window.setTimeout(schedule, 120)
+    const t2 = window.setTimeout(schedule, 520)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [isClient, markersReady, applyPragueViewAndRotation])
+
+  // GeoJSON polygons finishing load can nudge the camera — align to Prague once.
+  useEffect(() => {
+    if (!isClient || geoJsonData.features.length === 0) return
+    const t = window.setTimeout(() => {
+      if (flyToNonceRef.current > 0) return
+      applyPragueViewAndRotation()
+    }, 150)
+    return () => clearTimeout(t)
+  }, [isClient, geoJsonData.features.length, applyPragueViewAndRotation])
+
+  useEffect(() => {
+    if (!isClient || !flyTo || flyToNonce < 1) return
+    const id = window.setTimeout(() => {
+      globeRef.current?.pointOfView(
+        { lat: flyTo.lat, lng: flyTo.lng, altitude: flyTo.altitude ?? FLY_ALTITUDE },
+        FLY_MS
+      )
+    }, 80)
+    return () => clearTimeout(id)
+  }, [isClient, flyTo, flyToNonce])
+
   if (!isClient) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-[#020a18]">
@@ -201,7 +330,11 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
   }
 
   return (
-    <div ref={globeContainerRef} className="h-full w-full" onClickCapture={handleBlankAreaClickCapture}>
+    <div
+      ref={globeContainerRef}
+      className="relative z-0 isolate h-full w-full"
+      onClickCapture={handleBlankAreaClickCapture}
+    >
       <Globe
         ref={globeRef}
         onGlobeReady={handleGlobeReady}
@@ -233,80 +366,145 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
         </div>
       `}
 
-        // HTML elements layer for company markers with hover and click
-        htmlElementsData={markersReady ? companies : []}
+        // HTML markers: glow dot + hover tooltip; search dims non-matches
+        htmlElementsData={htmlElementsData}
         htmlLat="lat"
         htmlLng="lng"
         htmlAltitude={0.02}
         htmlElement={(d: any) => {
+          const q = (d._globeSearchKey as string) ?? ""
+          const isCompany = d.kind === "company"
+          const scopeCompany = d._globeSearchScopeCompany !== false
+          const scopeUseCase = d._globeSearchScopeUseCase !== false
+          const inSearchScope = isCompany ? scopeCompany : scopeUseCase
+          const label = isCompany
+            ? String(d.name)
+            : useCaseDisplayName(d as UseCaseWithCoords)
+          const haystack = isCompany
+            ? companySearchHaystack(d as CompanyWithCoords)
+            : useCaseSearchHaystack(d as UseCaseWithCoords)
+          const searchApplies = q.length > 0 && inSearchScope
+          const isMatch = !searchApplies || haystack.includes(q)
+          const isSelected = d._globeSelected === true
+
           const container = document.createElement("div")
-          container.className = "company-marker"
+          container.className = isCompany ? "company-marker" : "use-case-marker"
           container.style.cssText = `
-          cursor: pointer;
-          transform: translate(-50%, -50%);
-          pointer-events: auto;
-          position: relative;
-        `
-          
-          // Create marker dot
-          const dot = document.createElement("div")
-          dot.style.cssText = `
-          width: 8px;
-          height: 8px;
-          background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%);
-          border-radius: 50%;
-          box-shadow: 0 0 6px 2px rgba(34, 211, 238, 0.55);
-          animation: pulse 3s ease-in-out infinite;
-          transition: transform 0.2s ease;
-        `
-          
-          // Create tooltip
-          const tooltip = document.createElement("div")
-          tooltip.style.cssText = `
-          position: absolute;
-          bottom: 20px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(2, 10, 24, 0.95);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(34, 211, 238, 0.5);
-          border-radius: 10px;
-          padding: 12px 16px;
-          color: white;
-          font-family: system-ui, sans-serif;
-          min-width: 200px;
-          max-width: 280px;
-          box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
-          opacity: 0;
-          visibility: hidden;
-          transition: opacity 0.2s ease, visibility 0.2s ease;
-          z-index: 1000;
-          white-space: nowrap;
-        `
-          tooltip.innerHTML = `
-          <div style="font-weight: 600; font-size: 14px; color: #22d3ee; margin-bottom: 4px;">${d.name}</div>
-          <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${d.city}, ${d.headquarters_country}</div>
-          <div style="
-            font-size: 11px; 
-            padding: 3px 8px;
-            background: rgba(34, 211, 238, 0.15);
-            border-radius: 4px;
-            color: #22d3ee;
-            display: inline-block;
-          ">${d.industry}</div>
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            pointer-events: auto;
+            position: relative;
+            z-index: 1;
+            opacity: ${searchApplies && !isMatch ? "0.22" : "1"};
+            filter: ${searchApplies && !isMatch ? "grayscale(0.85)" : "none"};
+            transition: opacity 0.25s ease, filter 0.25s ease;
           `
-          
+
+          const dot = document.createElement("div")
+          const cyanIdle = "none"
+          const cyanSelected =
+            "0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 14px 4px rgba(34, 211, 238, 0.45)"
+          const greenIdle = "none"
+          const greenSelected = `0 0 0 2px rgba(${SEA_GREEN_RGB}, 0.95), 0 0 14px 4px rgba(${SEA_GREEN_RGB}, 0.4)`
+          const dotGlow = isCompany
+            ? isSelected
+              ? cyanSelected
+              : cyanIdle
+            : isSelected
+              ? greenSelected
+              : greenIdle
+          const dotSize =
+            searchApplies && isMatch ? "10px" : isSelected ? "10px" : "8px"
+          const dotGradient = isCompany
+            ? "radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%)"
+            : `radial-gradient(circle, ${SEA_GREEN} 0%, rgba(${SEA_GREEN_RGB}, 0.85) 50%, transparent 100%)`
+          const selectionRing = isCompany
+            ? "outline: 2px solid rgba(255,255,255,0.85); outline-offset: 4px;"
+            : `outline: 2px solid rgba(${SEA_GREEN_RGB},0.9); outline-offset: 4px;`
+          dot.style.cssText = `
+            width: ${dotSize};
+            height: ${dotSize};
+            background: ${dotGradient};
+            border-radius: 50%;
+            box-shadow: ${dotGlow};
+            animation: ${searchApplies && !isMatch ? "none" : "pulse 3s ease-in-out infinite"};
+            transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
+            ${isSelected ? selectionRing : "outline: none;"}
+          `
+
+          const tooltip = document.createElement("div")
+          const borderRgb = isCompany ? "34, 211, 238" : SEA_GREEN_RGB
+          const titleRgb = isCompany ? "#22d3ee" : SEA_GREEN
+          tooltip.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(2, 10, 24, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(${borderRgb}, 0.5);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: white;
+            font-family: system-ui, sans-serif;
+            min-width: 200px;
+            max-width: 280px;
+            box-shadow: 0 0 20px rgba(${borderRgb}, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 2;
+            white-space: nowrap;
+          `
+
+          if (isCompany) {
+            tooltip.innerHTML = `
+            <div style="font-weight: 600; font-size: 14px; color: ${titleRgb}; margin-bottom: 4px;">${d.name}</div>
+            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${d.city}, ${d.headquarters_country}</div>
+            <div style="
+              font-size: 11px;
+              padding: 3px 8px;
+              background: rgba(34, 211, 238, 0.15);
+              border-radius: 4px;
+              color: #22d3ee;
+              display: inline-block;
+            ">${d.industry}</div>
+          `
+          } else {
+            const loc =
+              [d.city, d.country].filter(Boolean).join(", ") ||
+              (d.location ? String(d.location) : "")
+            const sub = loc
+              ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${loc}</div>`
+              : ""
+            const badge =
+              d.sector || d.industry
+                ? `<div style="
+              font-size: 11px;
+              padding: 3px 8px;
+              background: rgba(${SEA_GREEN_RGB}, 0.18);
+              border-radius: 4px;
+              color: ${titleRgb};
+              display: inline-block;
+            ">${d.sector || d.industry}</div>`
+                : `<div style="font-size: 11px; color: #64748b;">Use case</div>`
+            tooltip.innerHTML = `
+            <div style="font-weight: 600; font-size: 14px; color: ${titleRgb}; margin-bottom: 4px;">${label}</div>
+            ${sub}
+            ${badge}
+          `
+          }
+
           container.appendChild(dot)
           container.appendChild(tooltip)
-          
-          // Hover events - pause rotation on hover
+
           container.addEventListener("mouseenter", () => {
             tooltip.style.opacity = "1"
             tooltip.style.visibility = "visible"
             dot.style.transform = "scale(1.5)"
             pauseRotation()
           })
-          
+
           container.addEventListener("mouseleave", () => {
             tooltip.style.opacity = "0"
             tooltip.style.visibility = "hidden"
@@ -315,14 +513,23 @@ export function GlobeView({ companies, onCompanyClick, isPanelOpen = false }: Gl
               resumeRotation()
             }
           })
-          
-          // Click event - pause rotation and open panel
+
           container.addEventListener("click", (e) => {
             e.stopPropagation()
             pauseRotation()
-            onCompanyClick(d)
+            const {
+              kind: _k,
+              _globeSearchKey: _q,
+              _globeUiRev: _r,
+              _globeSearchScopeCompany: _sc,
+              _globeSearchScopeUseCase: _su,
+              _globeSelected: _sel,
+              ...rest
+            } = d
+            if (isCompany) onCompanyClick(rest as CompanyWithCoords)
+            else onUseCaseClick(rest as UseCaseWithCoords)
           })
-          
+
           return container
         }}
       />

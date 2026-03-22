@@ -1,8 +1,11 @@
-import { getCompaniesWithCoords } from "@/lib/data"
+import { getCompaniesWithCoords, getUseCasesWithCoords } from "@/lib/data"
 import { HomeClient } from "@/components/home-client"
 
 export default async function Home() {
-  const companies = await getCompaniesWithCoords()
-  
-  return <HomeClient companies={companies} />
+  const [companies, useCases] = await Promise.all([
+    getCompaniesWithCoords(),
+    getUseCasesWithCoords(),
+  ])
+
+  return <HomeClient companies={companies} useCases={useCases} />
 }

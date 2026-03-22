@@ -13,8 +13,13 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
   const [logoError, setLogoError] = useState(false)
   
   return (
-    <div className="fixed right-0 top-0 h-full w-full max-w-md z-40 animate-in slide-in-from-right duration-300">
-      <div className="h-full bg-slate-900/80 backdrop-blur-xl border-l border-cyan-500/20 overflow-y-auto">
+    <div
+      data-company-detail-panel
+      className="fixed right-0 top-[var(--app-top-bar-height)] bottom-0 w-full max-w-md z-40 animate-in slide-in-from-right duration-300"
+      style={{ top: "var(--app-top-bar-height, 4.75rem)" }}
+    >
+      <div className="flex h-full flex-col overflow-hidden border-l border-cyan-500/20 bg-slate-900/85 backdrop-blur-xl">
+        <div className="detail-panel-scroll min-h-0 flex-1 overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md border-b border-cyan-500/10">
           <div className="flex items-center justify-between p-4">
@@ -114,6 +119,7 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
               Coordinates: {company.lat.toFixed(4)}, {company.lng.toFixed(4)}
             </p>
           </div>
+        </div>
         </div>
       </div>
     </div>

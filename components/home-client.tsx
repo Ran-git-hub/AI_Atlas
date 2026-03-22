@@ -1,12 +1,18 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
-import { SearchBar } from "@/components/search-bar"
+import { SearchBar, type UnifiedSearchHit } from "@/components/search-bar"
 import { CompanyDetailPanel } from "@/components/company-detail-panel"
+import { UseCaseDetailPanel } from "@/components/use-case-detail-panel"
 import { StatsBar } from "@/components/stats-bar"
 import { Instructions } from "@/components/instructions"
-import type { CompanyWithCoords } from "@/lib/types"
+import {
+  companyMatchesQuery,
+  useCaseMatchesQuery,
+} from "@/lib/search-match"
+import { useCaseDisplayName, type CompanyWithCoords, type UseCaseWithCoords } from "@/lib/types"
+import type { GlobeFlyTo } from "@/components/globe/globe-view"
 
 // Fixed star positions to avoid hydration mismatch
 const STAR_POSITIONS = [
@@ -80,23 +86,99 @@ const GlobeView = dynamic(
 
 interface HomeClientProps {
   companies: CompanyWithCoords[]
+  useCases: UseCaseWithCoords[]
 }
 
-export function HomeClient({ companies = [] }: HomeClientProps) {
+export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
+  const [selectedUseCase, setSelectedUseCase] = useState<UseCaseWithCoords | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [flyTo, setFlyTo] = useState<GlobeFlyTo | null>(null)
+  const [flyToNonce, setFlyToNonce] = useState(0)
+  const [searchIncludeCompany, setSearchIncludeCompany] = useState(true)
+  const [searchIncludeUseCase, setSearchIncludeUseCase] = useState(true)
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedSearch(searchQuery.trim()), 280)
+    return () => clearTimeout(t)
+  }, [searchQuery])
+
+  const safeCompanies = companies || []
+  const safeUseCases = useCases || []
+  const detailOpen = !!(selectedCompany || selectedUseCase)
 
   const handleCompanyClick = useCallback((company: CompanyWithCoords) => {
+    setSelectedUseCase(null)
     setSelectedCompany(company)
+    setShowInstructions(false)
+  }, [])
+
+  const handleUseCaseClick = useCallback((useCase: UseCaseWithCoords) => {
+    setSelectedCompany(null)
+    setSelectedUseCase(useCase)
     setShowInstructions(false)
   }, [])
 
   const handleClosePanel = useCallback(() => {
     setSelectedCompany(null)
+    setSelectedUseCase(null)
   }, [])
 
-  // Calculate stats from the data with safety check
-  const safeCompanies = companies || []
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("")
+    setDebouncedSearch("")
+  }, [])
+
+  const searchResults = useMemo(() => {
+    if (!debouncedSearch) return []
+    const q = debouncedSearch.toLowerCase()
+    const hits: UnifiedSearchHit[] = []
+    if (searchIncludeCompany) {
+      for (const c of safeCompanies) {
+        if (companyMatchesQuery(c, q)) hits.push({ type: "company", item: c })
+      }
+    }
+    if (searchIncludeUseCase) {
+      for (const u of safeUseCases) {
+        if (useCaseMatchesQuery(u, q)) hits.push({ type: "use_case", item: u })
+      }
+    }
+    hits.sort((a, b) => {
+      const la =
+        a.type === "company" ? a.item.name : useCaseDisplayName(a.item)
+      const lb =
+        b.type === "company" ? b.item.name : useCaseDisplayName(b.item)
+      return la.localeCompare(lb, undefined, { sensitivity: "base" })
+    })
+    return hits
+  }, [
+    debouncedSearch,
+    safeCompanies,
+    safeUseCases,
+    searchIncludeCompany,
+    searchIncludeUseCase,
+  ])
+
+  const showSearchNoResults =
+    debouncedSearch.length > 0 && searchResults.length === 0
+
+  const handleSearchSelectHit = useCallback((hit: UnifiedSearchHit) => {
+    setShowInstructions(false)
+    if (hit.type === "company") {
+      setSelectedUseCase(null)
+      setSelectedCompany(hit.item)
+      setFlyTo({ lat: hit.item.lat, lng: hit.item.lng, altitude: 1.85 })
+      setFlyToNonce((n) => n + 1)
+    } else {
+      setSelectedCompany(null)
+      setSelectedUseCase(hit.item)
+      setFlyTo({ lat: hit.item.lat, lng: hit.item.lng, altitude: 1.85 })
+      setFlyToNonce((n) => n + 1)
+    }
+  }, [])
+
   const totalCompanies = safeCompanies.length
   const uniqueCountries = new Set(safeCompanies.map(c => c.headquarters_country))
   const totalCountries = uniqueCountries.size
@@ -104,7 +186,7 @@ export function HomeClient({ companies = [] }: HomeClientProps) {
   const totalIndustries = uniqueIndustries.size
 
   return (
-    <main className="relative w-full h-screen overflow-hidden bg-[#020a18]">
+    <main className="relative w-full h-screen bg-[#020a18]">
       {/* Stars background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {STAR_POSITIONS.map((star, i) => (
@@ -123,14 +205,35 @@ export function HomeClient({ companies = [] }: HomeClientProps) {
       </div>
 
       {/* Search bar */}
-      <SearchBar />
+      <SearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        onClear={handleClearSearch}
+        results={searchResults}
+        showNoResults={showSearchNoResults}
+        onSelectHit={handleSearchSelectHit}
+        includeCompany={searchIncludeCompany}
+        includeUseCase={searchIncludeUseCase}
+        onIncludeCompanyChange={setSearchIncludeCompany}
+        onIncludeUseCaseChange={setSearchIncludeUseCase}
+      />
 
-      {/* 3D Globe */}
-      <div className="absolute inset-0">
-        <GlobeView 
-          companies={safeCompanies} 
-          onCompanyClick={handleCompanyClick} 
-          isPanelOpen={!!selectedCompany}
+      {/* 3D Globe — z-0 so search UI (higher z-index) always paints above marker glows */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <GlobeView
+          companies={safeCompanies}
+          useCases={safeUseCases}
+          onCompanyClick={handleCompanyClick}
+          onUseCaseClick={handleUseCaseClick}
+          isPanelOpen={detailOpen}
+          highlightSearchQuery={debouncedSearch}
+          searchScopeCompany={searchIncludeCompany}
+          searchScopeUseCase={searchIncludeUseCase}
+          flyTo={flyTo}
+          flyToNonce={flyToNonce}
+          selectedCompanyId={selectedCompany?.id ?? null}
+          selectedUseCaseId={selectedUseCase?.id ?? null}
+          selectionRevision={`${selectedCompany?.id ?? "none"}|${selectedUseCase?.id ?? "none"}|${debouncedSearch}|${searchIncludeCompany}|${searchIncludeUseCase}|${detailOpen}`}
         />
       </div>
 
@@ -142,6 +245,7 @@ export function HomeClient({ companies = [] }: HomeClientProps) {
         totalCompanies={totalCompanies}
         totalCountries={totalCountries}
         totalIndustries={totalIndustries}
+        totalUseCases={safeUseCases.length}
       />
 
       {/* Company detail panel */}
@@ -149,10 +253,14 @@ export function HomeClient({ companies = [] }: HomeClientProps) {
         <CompanyDetailPanel company={selectedCompany} onClose={handleClosePanel} />
       )}
 
+      {selectedUseCase && (
+        <UseCaseDetailPanel useCase={selectedUseCase} onClose={handleClosePanel} />
+      )}
+
       {/* Overlay when panel is open */}
-      {selectedCompany && (
-        <div 
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden"
+      {detailOpen && (
+        <div
+          className="fixed inset-x-0 bottom-0 top-[var(--app-top-bar-height)] z-[35] bg-black/30 backdrop-blur-sm md:hidden"
           onClick={handleClosePanel}
         />
       )}

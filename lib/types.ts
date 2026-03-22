@@ -17,6 +17,43 @@ export interface CompanyWithCoords extends Company {
   lng: number
 }
 
+// Use cases from AI_Atlas_Use_Cases (coordinates from DB; names may vary per column)
+export interface UseCaseFieldEntry {
+  key: string
+  label: string
+  value: string
+}
+
+export interface UseCase {
+  id: string
+  title?: string | null
+  name?: string | null
+  description?: string | null
+  sector?: string | null
+  industry?: string | null
+  city?: string | null
+  country?: string | null
+  location?: string | null
+  company_name?: string | null
+  website_url?: string | null
+  reference_url?: string | null
+  url?: string | null
+  image_url?: string | null
+  created_at?: string | null
+}
+
+export interface UseCaseWithCoords extends UseCase {
+  lat: number
+  lng: number
+  /** One entry per DB column (stable order) for the detail panel */
+  fieldEntries: UseCaseFieldEntry[]
+}
+
+export function useCaseDisplayName(u: UseCase): string {
+  const t = u.title?.trim() || u.name?.trim()
+  return t || "Use case"
+}
+
 // City coordinates mapping
 export const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   // USA

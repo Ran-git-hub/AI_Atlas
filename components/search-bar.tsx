@@ -40,6 +40,39 @@ const GREEN = "#3cb371"
 const RECENT_HITS_STORAGE_KEY = "ai-atlas:recent-search-hits:v1"
 const MAX_RECENT_HITS = 5
 
+function TechLobsterIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {/* Futuristic robot antenna */}
+      <path d="M12 3.1v2.1" />
+      <circle cx="12" cy="2.2" r="0.9" />
+      {/* Robot head shell */}
+      <rect x="5" y="6.2" width="14" height="10.8" rx="3.2" />
+      {/* Visor */}
+      <rect x="7.5" y="9" width="9" height="4.2" rx="2.1" />
+      {/* Eyes */}
+      <circle cx="10.1" cy="11.1" r="0.85" />
+      <circle cx="13.9" cy="11.1" r="0.85" />
+      {/* Side modules */}
+      <path d="M5 10.5H3.4" />
+      <path d="M20.6 10.5H19" />
+      {/* Neck / base */}
+      <path d="M9.2 17.2v2.1" />
+      <path d="M14.8 17.2v2.1" />
+      <path d="M8.2 20.2h7.6" />
+    </svg>
+  )
+}
+
 function hitLabel(hit: UnifiedSearchHit): string {
   return hit.type === "company"
     ? hit.item.name
@@ -193,8 +226,8 @@ export function SearchBar({
         <div ref={rootRef} className="flex w-full max-w-[min(94vw,52rem)] flex-col gap-1.5 pointer-events-auto">
           <div className="flex w-full items-center gap-3 sm:gap-4">
             <div className="flex shrink-0 items-center gap-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm">
-                <Globe className="h-5 w-5 text-cyan-400" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/60 backdrop-blur-sm">
+                <TechLobsterIcon className="h-[1.72rem] w-[1.72rem] text-cyan-300" />
               </div>
               <span className="hidden font-semibold text-white sm:inline whitespace-nowrap">
                 AI Atlas

@@ -80,15 +80,15 @@ export function InteractionTips() {
       <button
         type="button"
         onClick={toggleCollapsed}
-        className={`group absolute inset-0 flex flex-col items-start justify-center rounded-xl text-slate-300 transition-all duration-300 hover:text-cyan-300 ${
+        className={`group absolute inset-0 flex flex-col items-center justify-center rounded-xl text-slate-300 transition-all duration-300 hover:text-cyan-300 ${
           collapsed
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
         }`}
         aria-label="Expand interaction tips"
       >
-        <Lightbulb className="absolute left-3 top-3 h-5 w-5" />
-        <span className={`${toggleButtonClass} ml-2`}>
+        <Lightbulb className="absolute left-1/2 top-4 h-5 w-5 -translate-x-1/2 text-cyan-300" />
+        <span className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${toggleButtonClass}`}>
           <ChevronLeft className="h-4 w-4 rotate-180" />
         </span>
         <span

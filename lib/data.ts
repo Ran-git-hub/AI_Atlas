@@ -140,11 +140,26 @@ export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
   const companies = await getCompanies()
   
   return companies.map(company => {
-    const coords = CITY_COORDINATES[company.city] || { lat: 0, lng: 0 }
+    const raw = company as Company & {
+      lat?: number | string | null
+      lng?: number | string | null
+      latitude?: number | string | null
+      longitude?: number | string | null
+    }
+    const toFinite = (v: unknown): number | null => {
+      if (v === null || v === undefined || v === "") return null
+      const n = typeof v === "number" ? v : Number(v)
+      return Number.isFinite(n) ? n : null
+    }
+    const dbLat = toFinite(raw.lat ?? raw.latitude)
+    const dbLng = toFinite(raw.lng ?? raw.longitude)
+    const mapped = CITY_COORDINATES[company.city] || null
+    const lat = dbLat ?? mapped?.lat ?? 0
+    const lng = dbLng ?? mapped?.lng ?? 0
     return {
       ...company,
-      lat: coords.lat,
-      lng: coords.lng
+      lat,
+      lng
     }
   })
 }

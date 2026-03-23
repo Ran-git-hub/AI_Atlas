@@ -77,6 +77,9 @@ export const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   "Cambridge": { lat: 52.2053, lng: 0.1218 },
   "Edinburgh": { lat: 55.9533, lng: -3.1883 },
   "Manchester": { lat: 53.4808, lng: -2.2426 },
+
+  // Norway
+  "Moss": { lat: 59.4344, lng: 10.6577 },
   
   // Israel
   "Tel Aviv": { lat: 32.0853, lng: 34.7818 },

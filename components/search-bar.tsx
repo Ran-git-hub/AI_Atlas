@@ -52,23 +52,13 @@ function TechLobsterIcon({ className }: { className?: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {/* Futuristic robot antenna */}
-      <path d="M12 3.1v2.1" />
-      <circle cx="12" cy="2.2" r="0.9" />
-      {/* Robot head shell */}
-      <rect x="5" y="6.2" width="14" height="10.8" rx="3.2" />
-      {/* Visor */}
-      <rect x="7.5" y="9" width="9" height="4.2" rx="2.1" />
-      {/* Eyes */}
-      <circle cx="10.1" cy="11.1" r="0.85" />
-      <circle cx="13.9" cy="11.1" r="0.85" />
-      {/* Side modules */}
-      <path d="M5 10.5H3.4" />
-      <path d="M20.6 10.5H19" />
-      {/* Neck / base */}
-      <path d="M9.2 17.2v2.1" />
-      <path d="M14.8 17.2v2.1" />
-      <path d="M8.2 20.2h7.6" />
+      {/* Globe outline */}
+      <circle cx="12" cy="12" r="8.4" />
+      {/* Connected light nodes (minimal) */}
+      <path d="M7.3 8.4 13 6.8 16.7 14.8 7.3 8.4Z" />
+      <circle cx="7.3" cy="8.4" r="0.9" />
+      <circle cx="13" cy="6.8" r="0.9" />
+      <circle cx="16.7" cy="14.8" r="0.9" />
     </svg>
   )
 }
@@ -227,7 +217,7 @@ export function SearchBar({
           <div className="flex w-full items-center gap-3 sm:gap-4">
             <div className="flex shrink-0 items-center gap-2">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/60 backdrop-blur-sm">
-                <TechLobsterIcon className="h-[1.72rem] w-[1.72rem] text-cyan-300" />
+                <TechLobsterIcon className="h-[1.98rem] w-[1.98rem] text-cyan-300" />
               </div>
               <span className="hidden font-semibold text-white sm:inline whitespace-nowrap">
                 AI Atlas

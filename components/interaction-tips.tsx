@@ -92,8 +92,8 @@ export function InteractionTips() {
           <ChevronLeft className="h-4 w-4 rotate-180" />
         </span>
         <span
-          className={`pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-600/50 bg-slate-900/85 px-2 py-1 text-xs text-slate-100 shadow-md backdrop-blur-md transition-opacity duration-200 ${
-            isTouchLike ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          className={`pointer-events-none absolute left-full top-1/2 ml-2 hidden -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-600/50 bg-slate-900/85 px-2 py-1 text-xs text-slate-100 shadow-md backdrop-blur-md transition-opacity duration-200 md:block ${
+            isTouchLike ? "opacity-0" : "opacity-0 group-hover:opacity-100"
           }`}
         >
           Show tips

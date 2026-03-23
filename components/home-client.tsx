@@ -10,6 +10,14 @@ import { StatsJumpPanel, type StatsJumpKind } from "@/components/stats-jump-pane
 import { Instructions } from "@/components/instructions"
 import { InteractionTips } from "@/components/interaction-tips"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
   companyMatchesQuery,
   useCaseMatchesQuery,
 } from "@/lib/search-match"
@@ -135,37 +143,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     })
   }, [activeIndustry, filteredCompanies, safeUseCases])
 
-  const displayUseCases = useMemo(() => {
-    const companyCoordKeys = new Set(
-      filteredCompanies.map((c) => `${c.lat.toFixed(4)},${c.lng.toFixed(4)}`)
-    )
-
-    const hashString = (s: string): number => {
-      let h = 0
-      for (let i = 0; i < s.length; i++) {
-        h = (h * 31 + s.charCodeAt(i)) >>> 0
-      }
-      return h
-    }
-
-    return filteredUseCases.map((u) => {
-      const coordKey = `${u.lat.toFixed(4)},${u.lng.toFixed(4)}`
-      if (!companyCoordKeys.has(coordKey)) return u
-
-      // Stable tiny jitter for overlapping use-case markers, so they don't hide under company markers.
-      const h = hashString(u.id)
-      const angle = (h % 360) * (Math.PI / 180)
-      const radius = 0.12 + ((h % 17) / 17) * 0.08
-      const jitterLat = u.lat + Math.cos(angle) * radius
-      const jitterLng = u.lng + Math.sin(angle) * radius
-
-      return {
-        ...u,
-        lat: jitterLat,
-        lng: jitterLng,
-      }
-    })
-  }, [filteredCompanies, filteredUseCases])
+  const displayUseCases = useMemo(() => filteredUseCases, [filteredUseCases])
 
   const industryOptions = useMemo(() => {
     return Array.from(
@@ -298,6 +276,8 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     setStatsPanelOpen(false)
   }, [])
 
+  const footerLastUpdated = "2026-03-23"
+
   return (
     <main className="relative w-full h-screen bg-[#020a18]">
       {/* Stars background */}
@@ -329,6 +309,10 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
         includeUseCase={searchIncludeUseCase}
         onIncludeCompanyChange={setSearchIncludeCompany}
         onIncludeUseCaseChange={setSearchIncludeUseCase}
+        activeIndustry={activeIndustry}
+        industryOptions={industryOptions}
+        onIndustrySelect={handleIndustrySelect}
+        onResetFilters={handleResetFilters}
       />
 
       {/* 3D Globe — z-0 so search UI (higher z-index) always paints above marker glows */}
@@ -364,11 +348,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
         totalCountries={totalCountries}
         totalIndustries={totalIndustries}
         totalUseCases={displayUseCases.length}
-        activeIndustry={activeIndustry}
-        industryOptions={industryOptions}
-        onIndustrySelect={handleIndustrySelect}
         onStatClick={handleStatsClick}
-        onResetFilters={handleResetFilters}
       />
 
       {showNoLinkedUseCaseHint && (
@@ -387,6 +367,67 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
         onUseCaseSelect={handlePanelUseCaseSelect}
         onIndustrySelect={handlePanelIndustrySelect}
       />
+
+      {/* Footer metadata / attribution */}
+      <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 -translate-x-1/2">
+        <div className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300">
+          <span>Last updated: {footerLastUpdated}</span>
+          <span className="text-slate-600">|</span>
+          <span>© 2026 AI Atlas</span>
+          <span className="text-slate-600">|</span>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="-ml-2 px-2 py-1 text-sm text-slate-200 transition-colors hover:text-cyan-300"
+              >
+                About
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md border-slate-700 bg-slate-950/95 text-slate-100">
+              <DialogHeader>
+                <DialogTitle>About AI Atlas</DialogTitle>
+                <DialogDescription className="text-slate-400">
+                  Data transparency and attribution.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 text-sm text-slate-200">
+                <p>
+                  <span className="font-medium text-slate-100">Data sources:</span>{" "}
+                  Company websites, public announcements, and curated AI use-case records.
+                </p>
+                <p>
+                  <span className="font-medium text-slate-100">Method note:</span>{" "}
+                  Locations, categories, and links are best-effort and may contain inaccuracies.
+                </p>
+                <p>
+                  <span className="font-medium text-slate-100">Maintainer:</span>{" "}
+                  AI Atlas Team
+                </p>
+                <div className="space-y-1.5 rounded-md border border-slate-800/80 bg-slate-900/70 p-3 text-xs text-slate-400">
+                  <p className="font-medium uppercase tracking-wide text-slate-300">
+                    Disclaimer
+                  </p>
+                  <p>
+                    Information is provided for reference only and does not constitute
+                    professional advice.
+                  </p>
+                  <p>
+                    Data may be incomplete, delayed, or inaccurate; please verify with
+                    official sources.
+                  </p>
+                  <p>
+                    Company names, logos, and trademarks belong to their respective owners.
+                  </p>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Last updated: {footerLastUpdated} · © 2026 AI Atlas. All rights reserved.
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
 
       {/* Company detail panel */}
       {selectedCompany && (

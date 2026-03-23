@@ -223,6 +223,9 @@ const HIDDEN_USE_CASE_DETAIL_KEYS = new Set([
   "longitude",
   "published_at",
   "status",
+  "summary",
+  "source_name",
+  "confidence_score",
   "lat",
   "lng",
 ])
@@ -249,9 +252,24 @@ function buildUseCaseFieldEntries(
   row: Record<string, unknown>,
   companyNameById: Map<string, string>
 ): UseCaseFieldEntry[] {
+  const preferredOrder = new Map<string, number>([
+    ["title", 10],
+    ["content", 20],
+    ["url", 30],
+    ["id", 990],
+    ["created_at", 995],
+  ])
+
   return Object.keys(row)
     .filter((key) => !HIDDEN_USE_CASE_DETAIL_KEYS.has(normalizeUseCaseFieldKey(key)))
-    .sort((a, b) => a.localeCompare(b))
+    .sort((a, b) => {
+      const na = normalizeUseCaseFieldKey(a)
+      const nb = normalizeUseCaseFieldKey(b)
+      const ra = preferredOrder.get(na) ?? 100
+      const rb = preferredOrder.get(nb) ?? 100
+      if (ra !== rb) return ra - rb
+      return a.localeCompare(b)
+    })
     .map((key) => {
       if (normalizeUseCaseFieldKey(key) === "company_id") {
         const rawId = formatUseCaseCell(row[key])

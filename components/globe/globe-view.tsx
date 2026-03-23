@@ -51,6 +51,10 @@ const PRAGUE_VIEW = { lat: 50.0755, lng: 14.4378, altitude: 2.2 }
 const FLY_ALTITUDE = 1.85
 const FLY_MS = 1400
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
+}
+
 export function GlobeView({
   companies,
   useCases,
@@ -72,6 +76,7 @@ export function GlobeView({
     controls: { removeEventListener: (ev: string, fn: () => void) => void }
     onStart: () => void
     onEnd: () => void
+    onChange?: () => void
   } | null>(null)
   const isPanelOpenRef = useRef(isPanelOpen)
   const userPausedRef = useRef(false)
@@ -84,6 +89,7 @@ export function GlobeView({
   const [geoJsonData, setGeoJsonData] = useState<{ features: any[] }>({ features: [] })
   const [markersReady, setMarkersReady] = useState(false)
   const [isUserPaused, setIsUserPaused] = useState(false)
+  const [cameraAltitude, setCameraAltitude] = useState(PRAGUE_VIEW.altitude)
 
   // Function to pause/resume rotation
   const pauseRotation = useCallback(() => {
@@ -171,6 +177,9 @@ export function GlobeView({
       if (attached) {
         attached.controls.removeEventListener("start", attached.onStart)
         attached.controls.removeEventListener("end", attached.onEnd)
+        if (attached.onChange) {
+          attached.controls.removeEventListener("change", attached.onChange)
+        }
         controlsListenersRef.current = null
       }
     }
@@ -245,6 +254,9 @@ export function GlobeView({
     if (prev) {
       prev.controls.removeEventListener("start", prev.onStart)
       prev.controls.removeEventListener("end", prev.onEnd)
+      if (prev.onChange) {
+        prev.controls.removeEventListener("change", prev.onChange)
+      }
       controlsListenersRef.current = null
     }
 
@@ -253,14 +265,29 @@ export function GlobeView({
     const onStart = () => {
       pauseRotation()
     }
+    let rafId = 0
+    const onChange = () => {
+      if (rafId) return
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0
+        const pov = globeRef.current?.pointOfView?.()
+        if (pov && typeof pov.altitude === "number") {
+          setCameraAltitude((prev) =>
+            Math.abs(prev - pov.altitude) > 0.01 ? pov.altitude : prev
+          )
+        }
+      })
+    }
     const onEnd = () => {
       // Keep paused after a manual drag; users can explicitly toggle rotation via blank click.
       pauseRotation()
+      onChange()
     }
 
     controls.addEventListener("start", onStart)
     controls.addEventListener("end", onEnd)
-    controlsListenersRef.current = { controls, onStart, onEnd }
+    controls.addEventListener("change", onChange)
+    controlsListenersRef.current = { controls, onStart, onEnd, onChange }
 
     applyPragueViewAndRotation()
     requestAnimationFrame(() => {
@@ -268,35 +295,82 @@ export function GlobeView({
     })
   }, [applyPragueViewAndRotation, pauseRotation])
 
+  const jitteredUseCases = useMemo(() => {
+    // Larger offset when zoomed out (high altitude), smaller when zoomed in.
+    const zoomFactor = clamp(cameraAltitude / 1.8, 0.75, 2.8)
+    const zoomOutSpreadBoost = zoomFactor > 1 ? 1.5 : 1
+    const baseRadius = 0.06 + 0.12 * zoomFactor
+    const companyCoordKeys = new Set(companies.map((c) => `${c.lat.toFixed(4)},${c.lng.toFixed(4)}`))
+
+    const grouped = new Map<string, UseCaseWithCoords[]>()
+    for (const u of useCases) {
+      const key = `${u.lat.toFixed(4)},${u.lng.toFixed(4)}`
+      const arr = grouped.get(key)
+      if (arr) arr.push(u)
+      else grouped.set(key, [u])
+    }
+
+    const output: UseCaseWithCoords[] = []
+    const ringSlots = 8
+    for (const [key, arr] of grouped.entries()) {
+      const sorted = [...arr].sort((a, b) => String(a.id).localeCompare(String(b.id)))
+      const hasCompanyOnSameCoord = companyCoordKeys.has(key)
+      const needSpread = hasCompanyOnSameCoord || sorted.length > 1
+      if (!needSpread) {
+        output.push(sorted[0])
+        continue
+      }
+      for (let i = 0; i < sorted.length; i++) {
+        const u = sorted[i]
+        const layer = Math.floor(i / ringSlots)
+        const slot = i % ringSlots
+        const angle = (slot / ringSlots) * Math.PI * 2 + layer * 0.25
+        const radius =
+          (baseRadius * (1 + layer * 0.9) + (hasCompanyOnSameCoord ? 0.03 * zoomFactor : 0)) *
+          zoomOutSpreadBoost
+        output.push({
+          ...u,
+          lat: u.lat + Math.cos(angle) * radius,
+          lng: u.lng + Math.sin(angle) * radius,
+        })
+      }
+    }
+    return output
+  }, [useCases, companies, cameraAltitude])
+
   // New object refs when search / panel / selection changes so react-globe.gl refreshes HTML markers.
   const htmlElementsData = useMemo(() => {
     if (!markersReady) return []
     const q = highlightSearchQuery.trim().toLowerCase()
-    const companyMarkers = companies.map((c) => ({
-      kind: "company" as const,
-      ...c,
-      _globeSearchKey: q,
-      _globeSearchScopeCompany: searchScopeCompany,
-      _globeSearchScopeUseCase: searchScopeUseCase,
-      _globeUiRev: selectionRevision,
-      _globeSelected:
-        Boolean(selectedCompanyId) && String(c.id) === String(selectedCompanyId),
-    }))
-    const useCaseMarkers = useCases.map((u) => ({
-      kind: "use_case" as const,
-      ...u,
-      _globeSearchKey: q,
-      _globeSearchScopeCompany: searchScopeCompany,
-      _globeSearchScopeUseCase: searchScopeUseCase,
-      _globeUiRev: selectionRevision,
-      _globeSelected:
-        Boolean(selectedUseCaseId) && String(u.id) === String(selectedUseCaseId),
-    }))
+    const companyMarkers = searchScopeCompany
+      ? companies.map((c) => ({
+          kind: "company" as const,
+          ...c,
+          _globeSearchKey: q,
+          _globeSearchScopeCompany: searchScopeCompany,
+          _globeSearchScopeUseCase: searchScopeUseCase,
+          _globeUiRev: selectionRevision,
+          _globeSelected:
+            Boolean(selectedCompanyId) && String(c.id) === String(selectedCompanyId),
+        }))
+      : []
+    const useCaseMarkers = searchScopeUseCase
+      ? jitteredUseCases.map((u) => ({
+          kind: "use_case" as const,
+          ...u,
+          _globeSearchKey: q,
+          _globeSearchScopeCompany: searchScopeCompany,
+          _globeSearchScopeUseCase: searchScopeUseCase,
+          _globeUiRev: selectionRevision,
+          _globeSelected:
+            Boolean(selectedUseCaseId) && String(u.id) === String(selectedUseCaseId),
+        }))
+      : []
     return [...companyMarkers, ...useCaseMarkers]
   }, [
     markersReady,
     companies,
-    useCases,
+    jitteredUseCases,
     highlightSearchQuery,
     searchScopeCompany,
     searchScopeUseCase,
@@ -442,7 +516,7 @@ export function GlobeView({
               ? greenSelected
               : greenIdle
           const dotSize =
-            searchApplies && isMatch ? "10px" : isSelected ? "10px" : "8px"
+            searchApplies && isMatch ? "12px" : isSelected ? "12px" : "9.6px"
           const dotGradient = isCompany
             ? "radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%)"
             : `radial-gradient(circle, ${SEA_GREEN} 0%, rgba(${SEA_GREEN_RGB}, 0.85) 50%, transparent 100%)`

@@ -72,7 +72,7 @@ export function InteractionTips() {
 
   return (
     <aside
-      className={`pointer-events-auto fixed left-3 top-1/2 z-30 hidden h-44 -translate-y-1/2 overflow-visible rounded-xl border border-slate-600/45 bg-slate-900/45 shadow-lg shadow-black/20 backdrop-blur-xl transition-[width] duration-300 ease-out md:block ${
+      className={`pointer-events-auto fixed left-3 top-1/2 z-30 hidden h-48 -translate-y-1/2 overflow-visible rounded-xl border border-slate-600/45 bg-slate-900/45 shadow-lg shadow-black/20 backdrop-blur-xl transition-[width] duration-300 ease-out md:block ${
         collapsed ? "w-12" : "w-72"
       }`}
     >
@@ -80,15 +80,15 @@ export function InteractionTips() {
       <button
         type="button"
         onClick={toggleCollapsed}
-        className={`group absolute inset-0 flex flex-col items-center justify-center rounded-xl text-slate-300 transition-all duration-300 hover:text-cyan-300 ${
+        className={`group absolute inset-0 flex flex-col items-start justify-center rounded-xl text-slate-300 transition-all duration-300 hover:text-cyan-300 ${
           collapsed
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
         }`}
         aria-label="Expand interaction tips"
       >
-        <Lightbulb className="absolute top-3 h-5 w-5" />
-        <span className={toggleButtonClass}>
+        <Lightbulb className="absolute left-3 top-3 h-5 w-5" />
+        <span className={`${toggleButtonClass} ml-2`}>
           <ChevronLeft className="h-4 w-4 rotate-180" />
         </span>
         <span
@@ -110,8 +110,8 @@ export function InteractionTips() {
           transition: "clip-path 320ms ease-out, opacity 180ms ease-out",
         }}
       >
-        <div className="mb-3 flex items-center">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300">
+        <div className="mb-3 flex items-center justify-start">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300 underline decoration-slate-500/70 underline-offset-4">
             <Lightbulb className="h-5 w-5 text-cyan-300" />
             <span>Interaction Tips</span>
           </p>
@@ -128,6 +128,17 @@ export function InteractionTips() {
         </button>
 
         <div className="space-y-2 text-sm text-slate-200">
+          <div className="ml-1 flex items-center gap-2">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
+              <span className="text-slate-200">Company</span>
+            </span>
+            <span className="text-slate-500">/</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#3cb371]" />
+              <span className="text-slate-200">Use case</span>
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <Hand className="h-4 w-4 text-cyan-300" />
             <span>Drag to rotate the globe</span>

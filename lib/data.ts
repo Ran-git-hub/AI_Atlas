@@ -303,6 +303,7 @@ function rowToUseCaseWithCoords(
 
   return {
     id: String(id),
+    company_id: str(row.company_id),
     title: str(row.title ?? row.use_case_title ?? row.case_title),
     name: str(row.name ?? row.use_case_name),
     description: str(row.description ?? row.summary ?? row.details),

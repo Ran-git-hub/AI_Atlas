@@ -26,6 +26,7 @@ export interface UseCaseFieldEntry {
 
 export interface UseCase {
   id: string
+  company_id?: string | null
   title?: string | null
   name?: string | null
   description?: string | null

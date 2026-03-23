@@ -50,7 +50,7 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
                 <img
                   src={faviconUrl}
                   alt={company.name}
-                  className="w-full h-full object-contain p-2"
+                  className="w-full h-full object-contain rounded-md bg-white/95 p-2"
                   onError={() => setFaviconError(true)}
                 />
               ) : company.logo_url && !logoError ? (

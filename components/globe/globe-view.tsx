@@ -76,6 +76,9 @@ export function GlobeView({
   const isPanelOpenRef = useRef(isPanelOpen)
   const userPausedRef = useRef(false)
   const flyToNonceRef = useRef(flyToNonce)
+  const pointerDownRef = useRef<{ x: number; y: number } | null>(null)
+  const dragMovedRef = useRef(false)
+  const suppressBlankClickUntilRef = useRef(0)
   const [isClient, setIsClient] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [geoJsonData, setGeoJsonData] = useState<{ features: any[] }>({ features: [] })
@@ -106,6 +109,7 @@ export function GlobeView({
   }, [])
 
   const handleBlankAreaClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (Date.now() < suppressBlankClickUntilRef.current) return
     const target = event.target as HTMLElement | null
     if (!target) return
     if (target.closest(".company-marker")) return
@@ -113,6 +117,30 @@ export function GlobeView({
     if (!isPanelOpenRef.current) {
       setIsUserPaused((prev) => !prev)
     }
+  }, [])
+
+  const handlePointerDownCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    pointerDownRef.current = { x: event.clientX, y: event.clientY }
+    dragMovedRef.current = false
+  }, [])
+
+  const handlePointerMoveCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    const start = pointerDownRef.current
+    if (!start) return
+    const dx = event.clientX - start.x
+    const dy = event.clientY - start.y
+    if (Math.hypot(dx, dy) > 6) {
+      dragMovedRef.current = true
+    }
+  }, [])
+
+  const handlePointerUpCapture = useCallback(() => {
+    if (dragMovedRef.current) {
+      // Drag release often emits a click; suppress that click so blank-toggle won't flip unexpectedly.
+      suppressBlankClickUntilRef.current = Date.now() + 260
+    }
+    pointerDownRef.current = null
+    dragMovedRef.current = false
   }, [])
   
   useEffect(() => {
@@ -226,11 +254,8 @@ export function GlobeView({
       pauseRotation()
     }
     const onEnd = () => {
-      queueMicrotask(() => {
-        if (!isPanelOpenRef.current && !userPausedRef.current) {
-          resumeRotation()
-        }
-      })
+      // Keep paused after a manual drag; users can explicitly toggle rotation via blank click.
+      pauseRotation()
     }
 
     controls.addEventListener("start", onStart)
@@ -241,7 +266,7 @@ export function GlobeView({
     requestAnimationFrame(() => {
       applyPragueViewAndRotation()
     })
-  }, [applyPragueViewAndRotation, pauseRotation, resumeRotation])
+  }, [applyPragueViewAndRotation, pauseRotation])
 
   // New object refs when search / panel / selection changes so react-globe.gl refreshes HTML markers.
   const htmlElementsData = useMemo(() => {
@@ -334,6 +359,9 @@ export function GlobeView({
       ref={globeContainerRef}
       className="relative z-0 isolate h-full w-full"
       onClickCapture={handleBlankAreaClickCapture}
+      onMouseDownCapture={handlePointerDownCapture}
+      onMouseMoveCapture={handlePointerMoveCapture}
+      onMouseUpCapture={handlePointerUpCapture}
     >
       <Globe
         ref={globeRef}

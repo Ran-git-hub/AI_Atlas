@@ -236,7 +236,7 @@ export function SearchBar({
                                 <img
                                   src={faviconSrc}
                                   alt={company?.name ?? "Company logo"}
-                                  className="w-full h-full object-contain p-1"
+                                  className="w-full h-full rounded-sm bg-white/95 object-contain p-1"
                                   onError={() => {
                                     if (companyId) markCompanyImageBroken(companyId, faviconSrc)
                                   }}
@@ -289,27 +289,28 @@ export function SearchBar({
             ) : null}
           </div>
 
-          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "shrink-0 w-11 h-11 rounded-xl bg-slate-800/60 backdrop-blur-md border text-slate-400 hover:bg-slate-800/80",
-                  filterOpen || !includeCompany || !includeUseCase
-                    ? "border-cyan-500/40 text-cyan-300"
-                    : "border-slate-700/50 hover:text-cyan-400 hover:border-cyan-500/50"
-                )}
-                aria-label="Search scope filters"
+          <div className="flex items-center gap-2">
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "shrink-0 w-11 h-11 rounded-xl bg-slate-800/60 backdrop-blur-md border text-slate-400 hover:bg-slate-800/80",
+                    filterOpen || !includeCompany || !includeUseCase
+                      ? "border-cyan-500/40 text-cyan-300"
+                      : "border-slate-700/50 hover:text-cyan-400 hover:border-cyan-500/50"
+                  )}
+                  aria-label="Search scope filters"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="z-[20003] w-72 border-slate-700 bg-slate-900/95 backdrop-blur-md text-slate-100"
               >
-                <SlidersHorizontal className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="z-[20003] w-72 border-slate-700 bg-slate-900/95 backdrop-blur-md text-slate-100"
-            >
               <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">
                 Search in
               </p>
@@ -341,8 +342,9 @@ export function SearchBar({
               <p className="text-[11px] text-slate-500 mt-3 leading-relaxed">
                 At least one option must stay on. Globe highlights follow the same scope.
               </p>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
     </header>

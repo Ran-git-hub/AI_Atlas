@@ -6,7 +6,9 @@ import { SearchBar, type UnifiedSearchHit } from "@/components/search-bar"
 import { CompanyDetailPanel } from "@/components/company-detail-panel"
 import { UseCaseDetailPanel } from "@/components/use-case-detail-panel"
 import { StatsBar } from "@/components/stats-bar"
+import { StatsJumpPanel, type StatsJumpKind } from "@/components/stats-jump-panel"
 import { Instructions } from "@/components/instructions"
+import { InteractionTips } from "@/components/interaction-tips"
 import {
   companyMatchesQuery,
   useCaseMatchesQuery,
@@ -99,6 +101,9 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
   const [flyToNonce, setFlyToNonce] = useState(0)
   const [searchIncludeCompany, setSearchIncludeCompany] = useState(true)
   const [searchIncludeUseCase, setSearchIncludeUseCase] = useState(true)
+  const [activeIndustry, setActiveIndustry] = useState<string | null>(null)
+  const [statsPanelOpen, setStatsPanelOpen] = useState(false)
+  const [statsPanelKind, setStatsPanelKind] = useState<StatsJumpKind>("companies")
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(searchQuery.trim()), 280)
@@ -107,6 +112,73 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
 
   const safeCompanies = companies || []
   const safeUseCases = useCases || []
+  const filteredCompanies = useMemo(() => {
+    if (!activeIndustry) return safeCompanies
+    return safeCompanies.filter((c) => c.industry === activeIndustry)
+  }, [safeCompanies, activeIndustry])
+
+  const filteredUseCases = useMemo(() => {
+    if (!activeIndustry) return safeUseCases
+
+    const companyIdSet = new Set(filteredCompanies.map((c) => String(c.id)))
+    const normalize = (v: string | null | undefined) =>
+      (v ?? "").trim().toLowerCase().replace(/\s+/g, " ")
+    const companyNameSet = new Set(filteredCompanies.map((c) => normalize(c.name)))
+
+    return safeUseCases.filter((u) => {
+      const linkedById =
+        u.company_id && companyIdSet.has(String(u.company_id).trim())
+      const linkedByName =
+        normalize(u.company_name ?? undefined) &&
+        companyNameSet.has(normalize(u.company_name ?? undefined))
+      return Boolean(linkedById || linkedByName)
+    })
+  }, [activeIndustry, filteredCompanies, safeUseCases])
+
+  const displayUseCases = useMemo(() => {
+    const companyCoordKeys = new Set(
+      filteredCompanies.map((c) => `${c.lat.toFixed(4)},${c.lng.toFixed(4)}`)
+    )
+
+    const hashString = (s: string): number => {
+      let h = 0
+      for (let i = 0; i < s.length; i++) {
+        h = (h * 31 + s.charCodeAt(i)) >>> 0
+      }
+      return h
+    }
+
+    return filteredUseCases.map((u) => {
+      const coordKey = `${u.lat.toFixed(4)},${u.lng.toFixed(4)}`
+      if (!companyCoordKeys.has(coordKey)) return u
+
+      // Stable tiny jitter for overlapping use-case markers, so they don't hide under company markers.
+      const h = hashString(u.id)
+      const angle = (h % 360) * (Math.PI / 180)
+      const radius = 0.12 + ((h % 17) / 17) * 0.08
+      const jitterLat = u.lat + Math.cos(angle) * radius
+      const jitterLng = u.lng + Math.sin(angle) * radius
+
+      return {
+        ...u,
+        lat: jitterLat,
+        lng: jitterLng,
+      }
+    })
+  }, [filteredCompanies, filteredUseCases])
+
+  const industryOptions = useMemo(() => {
+    return Array.from(
+      safeCompanies.reduce((acc, c) => {
+        const key = c.industry?.trim() || "Unknown"
+        acc.set(key, (acc.get(key) ?? 0) + 1)
+        return acc
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([industry, count]) => ({ industry, count }))
+  }, [safeCompanies])
+
   const detailOpen = !!(selectedCompany || selectedUseCase)
 
   const handleCompanyClick = useCallback((company: CompanyWithCoords) => {
@@ -136,12 +208,12 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     const q = debouncedSearch.toLowerCase()
     const hits: UnifiedSearchHit[] = []
     if (searchIncludeCompany) {
-      for (const c of safeCompanies) {
+      for (const c of filteredCompanies) {
         if (companyMatchesQuery(c, q)) hits.push({ type: "company", item: c })
       }
     }
     if (searchIncludeUseCase) {
-      for (const u of safeUseCases) {
+      for (const u of displayUseCases) {
         if (useCaseMatchesQuery(u, q)) hits.push({ type: "use_case", item: u })
       }
     }
@@ -155,8 +227,8 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     return hits
   }, [
     debouncedSearch,
-    safeCompanies,
-    safeUseCases,
+    filteredCompanies,
+    displayUseCases,
     searchIncludeCompany,
     searchIncludeUseCase,
   ])
@@ -179,11 +251,52 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     }
   }, [])
 
-  const totalCompanies = safeCompanies.length
-  const uniqueCountries = new Set(safeCompanies.map(c => c.headquarters_country))
+  const totalCompanies = filteredCompanies.length
+  const uniqueCountries = new Set(filteredCompanies.map(c => c.headquarters_country))
   const totalCountries = uniqueCountries.size
-  const uniqueIndustries = new Set(safeCompanies.map(c => c.industry))
+  const uniqueIndustries = new Set(filteredCompanies.map(c => c.industry))
   const totalIndustries = uniqueIndustries.size
+  const showNoLinkedUseCaseHint =
+    Boolean(activeIndustry) &&
+    filteredCompanies.length > 0 &&
+    displayUseCases.length === 0
+
+  const handleStatsClick = useCallback((kind: StatsJumpKind) => {
+    setStatsPanelKind(kind)
+    setStatsPanelOpen(true)
+  }, [])
+
+  const handleIndustrySelect = useCallback((industry: string | null) => {
+    setActiveIndustry(industry)
+    setSelectedCompany(null)
+    setSelectedUseCase(null)
+  }, [])
+
+  const handlePanelCompanySelect = useCallback((company: CompanyWithCoords) => {
+    setStatsPanelOpen(false)
+    handleCompanyClick(company)
+    setFlyTo({ lat: company.lat, lng: company.lng, altitude: 1.85 })
+    setFlyToNonce((n) => n + 1)
+  }, [handleCompanyClick])
+
+  const handlePanelUseCaseSelect = useCallback((useCase: UseCaseWithCoords) => {
+    setStatsPanelOpen(false)
+    handleUseCaseClick(useCase)
+    setFlyTo({ lat: useCase.lat, lng: useCase.lng, altitude: 1.85 })
+    setFlyToNonce((n) => n + 1)
+  }, [handleUseCaseClick])
+
+  const handlePanelIndustrySelect = useCallback((industry: string) => {
+    setActiveIndustry(industry)
+    setStatsPanelOpen(false)
+  }, [])
+
+  const handleResetFilters = useCallback(() => {
+    setActiveIndustry(null)
+    setSelectedCompany(null)
+    setSelectedUseCase(null)
+    setStatsPanelOpen(false)
+  }, [])
 
   return (
     <main className="relative w-full h-screen bg-[#020a18]">
@@ -221,8 +334,8 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
       {/* 3D Globe — z-0 so search UI (higher z-index) always paints above marker glows */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <GlobeView
-          companies={safeCompanies}
-          useCases={safeUseCases}
+          companies={filteredCompanies}
+          useCases={displayUseCases}
           onCompanyClick={handleCompanyClick}
           onUseCaseClick={handleUseCaseClick}
           isPanelOpen={detailOpen}
@@ -237,15 +350,42 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
         />
       </div>
 
-      {/* Instructions */}
-      {showInstructions && <Instructions />}
+      {/* Interaction tips */}
+      <InteractionTips />
+      {showInstructions && (
+        <div className="md:hidden">
+          <Instructions />
+        </div>
+      )}
 
       {/* Stats bar */}
       <StatsBar 
         totalCompanies={totalCompanies}
         totalCountries={totalCountries}
         totalIndustries={totalIndustries}
-        totalUseCases={safeUseCases.length}
+        totalUseCases={displayUseCases.length}
+        activeIndustry={activeIndustry}
+        industryOptions={industryOptions}
+        onIndustrySelect={handleIndustrySelect}
+        onStatClick={handleStatsClick}
+        onResetFilters={handleResetFilters}
+      />
+
+      {showNoLinkedUseCaseHint && (
+        <div className="fixed bottom-36 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-amber-500/30 bg-slate-900/85 px-3 py-2 text-xs text-amber-200 backdrop-blur-md">
+          No linked use cases found for this industry filter.
+        </div>
+      )}
+
+      <StatsJumpPanel
+        open={statsPanelOpen}
+        kind={statsPanelKind}
+        companies={filteredCompanies}
+        useCases={displayUseCases}
+        onOpenChange={setStatsPanelOpen}
+        onCompanySelect={handlePanelCompanySelect}
+        onUseCaseSelect={handlePanelUseCaseSelect}
+        onIndustrySelect={handlePanelIndustrySelect}
       />
 
       {/* Company detail panel */}

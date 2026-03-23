@@ -72,7 +72,7 @@ export function InteractionTips() {
 
   return (
     <aside
-      className={`pointer-events-auto fixed left-3 top-1/2 z-30 hidden h-48 -translate-y-1/2 overflow-visible rounded-xl border border-slate-600/45 bg-slate-900/45 shadow-lg shadow-black/20 backdrop-blur-xl transition-[width] duration-300 ease-out md:block ${
+      className={`pointer-events-auto fixed left-0 top-1/2 z-30 block h-48 -translate-y-1/2 overflow-visible rounded-xl border border-slate-600/45 bg-slate-900/45 shadow-lg shadow-black/20 backdrop-blur-xl transition-[width] duration-300 ease-out md:left-3 ${
         collapsed ? "w-12" : "w-72"
       }`}
     >

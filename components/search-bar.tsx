@@ -219,7 +219,7 @@ export function SearchBar({
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/60 backdrop-blur-sm">
                 <TechLobsterIcon className="h-[1.98rem] w-[1.98rem] text-cyan-300" />
               </div>
-              <span className="hidden font-semibold text-white sm:inline whitespace-nowrap">
+              <span className="inline whitespace-nowrap text-sm font-semibold text-white sm:text-base">
                 AI Atlas
               </span>
             </div>

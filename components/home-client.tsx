@@ -370,7 +370,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
 
       {/* Footer metadata / attribution */}
       <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 -translate-x-1/2">
-        <div className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300">
+        <div className="flex max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:flex-nowrap sm:text-sm">
           <span>Last updated: {footerLastUpdated}</span>
           <span className="text-slate-600">|</span>
           <span>© 2026 AI Atlas</span>
@@ -379,7 +379,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
             <DialogTrigger asChild>
               <button
                 type="button"
-                className="-ml-2 px-2 py-1 text-sm text-slate-200 transition-colors hover:text-cyan-300"
+                className="px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
               >
                 About
               </button>

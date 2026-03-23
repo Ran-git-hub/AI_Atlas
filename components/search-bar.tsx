@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
+import { getGoogleFaviconUrl } from "@/lib/company-logo"
 
 export type UnifiedSearchHit =
   | { type: "company"; item: CompanyWithCoords }
@@ -67,6 +68,7 @@ export function SearchBar({
 }: SearchBarProps) {
   const [listDismissed, setListDismissed] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [brokenCompanyImages, setBrokenCompanyImages] = useState<Record<string, string>>({})
   const rootRef = useRef<HTMLDivElement>(null)
   const prevValueRef = useRef(value)
 
@@ -118,6 +120,19 @@ export function SearchBar({
       onIncludeUseCaseChange(checked)
     },
     [includeCompany, onIncludeUseCaseChange]
+  )
+
+  const markCompanyImageBroken = useCallback((companyId: string, src: string) => {
+    setBrokenCompanyImages((prev) => {
+      const key = `${companyId}:${src}`
+      if (prev[key]) return prev
+      return { ...prev, [key]: "1" }
+    })
+  }, [])
+
+  const isCompanyImageBroken = useCallback(
+    (companyId: string, src: string) => Boolean(brokenCompanyImages[`${companyId}:${src}`]),
+    [brokenCompanyImages]
   )
 
   return (
@@ -190,6 +205,16 @@ export function SearchBar({
                 ) : (
                   results.map((hit) => {
                     const isCo = hit.type === "company"
+                    const company = isCo ? hit.item : null
+                    const companyId = company ? String(company.id) : ""
+                    const faviconSrc = company ? getGoogleFaviconUrl(company.website_url) : ""
+                    const logoSrc = company?.logo_url?.trim() || ""
+                    const showFavicon =
+                      Boolean(faviconSrc) && !isCompanyImageBroken(companyId, faviconSrc)
+                    const showLegacyLogo =
+                      !showFavicon &&
+                      Boolean(logoSrc) &&
+                      !isCompanyImageBroken(companyId, logoSrc)
                     return (
                       <button
                         key={`${hit.type}-${hit.item.id}`}
@@ -204,7 +229,33 @@ export function SearchBar({
                             : "text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-50"
                         )}
                       >
-                        <div className="flex flex-col gap-1 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {isCo ? (
+                            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-slate-700/70 bg-slate-800/80 flex items-center justify-center">
+                              {showFavicon ? (
+                                <img
+                                  src={faviconSrc}
+                                  alt={company?.name ?? "Company logo"}
+                                  className="w-full h-full object-contain p-1"
+                                  onError={() => {
+                                    if (companyId) markCompanyImageBroken(companyId, faviconSrc)
+                                  }}
+                                />
+                              ) : showLegacyLogo ? (
+                                <img
+                                  src={logoSrc}
+                                  alt={company?.name ?? "Company logo"}
+                                  className="w-full h-full object-contain p-1"
+                                  onError={() => {
+                                    if (companyId) markCompanyImageBroken(companyId, logoSrc)
+                                  }}
+                                />
+                              ) : (
+                                <Globe className="h-4 w-4 text-slate-500" />
+                              )}
+                            </div>
+                          ) : null}
+                          <div className="flex flex-col gap-1 min-w-0 flex-1">
                           <div className="flex items-center gap-2 min-w-0">
                             <span
                               className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
@@ -228,6 +279,7 @@ export function SearchBar({
                           <span className="text-xs text-slate-500 truncate">
                             {hitSubtitle(hit)}
                           </span>
+                          </div>
                         </div>
                       </button>
                     )

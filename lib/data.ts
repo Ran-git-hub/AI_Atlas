@@ -8,20 +8,132 @@ import {
   UseCaseWithCoords,
 } from "./types"
 
+const NON_OFFICIAL_HOST_KEYWORDS = [
+  "linkedin.com",
+  "x.com",
+  "twitter.com",
+  "facebook.com",
+  "instagram.com",
+  "youtube.com",
+  "tiktok.com",
+  "wikipedia.org",
+  "github.com",
+]
+
+function normalizeWebsiteUrl(url: string): string {
+  const value = url.trim()
+  if (!value) return ""
+  if (/^https?:\/\//i.test(value)) return value
+  return `https://${value}`
+}
+
+function extractHostname(url: string): string {
+  const normalized = normalizeWebsiteUrl(url)
+  try {
+    return new URL(normalized).hostname.toLowerCase()
+  } catch {
+    return ""
+  }
+}
+
+function toRootUrl(url: string): string {
+  const normalized = normalizeWebsiteUrl(url)
+  try {
+    const u = new URL(normalized)
+    return `https://${u.hostname.toLowerCase()}`
+  } catch {
+    return normalized
+  }
+}
+
+function isLikelyOfficialHostname(hostname: string): boolean {
+  if (!hostname) return false
+  return !NON_OFFICIAL_HOST_KEYWORDS.some((blocked) => hostname.includes(blocked))
+}
+
+function buildOfficialWebsiteByCompanyId(
+  rows: Record<string, unknown>[] | null
+): Map<string, string> {
+  const countsByCompany = new Map<string, Map<string, number>>()
+
+  for (const row of rows ?? []) {
+    const companyId = row.company_id
+    if (companyId === null || companyId === undefined || companyId === "") continue
+    const id = String(companyId)
+    const sources = [
+      row.website_url,
+      row.website,
+      row.url,
+      row.reference_url,
+      row.reference,
+      row.source_url,
+      row.link,
+    ]
+
+    for (const source of sources) {
+      if (source === null || source === undefined) continue
+      const raw = String(source).trim()
+      if (!raw) continue
+      const host = extractHostname(raw)
+      if (!isLikelyOfficialHostname(host)) continue
+      const root = toRootUrl(raw)
+      const map = countsByCompany.get(id) ?? new Map<string, number>()
+      map.set(root, (map.get(root) ?? 0) + 1)
+      countsByCompany.set(id, map)
+    }
+  }
+
+  const result = new Map<string, string>()
+  for (const [companyId, domainCountMap] of countsByCompany.entries()) {
+    let bestUrl = ""
+    let bestCount = -1
+    for (const [url, count] of domainCountMap.entries()) {
+      if (count > bestCount) {
+        bestUrl = url
+        bestCount = count
+      }
+    }
+    if (bestUrl) result.set(companyId, bestUrl)
+  }
+  return result
+}
+
+function withWebsiteFallback(company: Company, officialWebsiteById: Map<string, string>): Company {
+  const website =
+    company.website_url && company.website_url.trim()
+      ? normalizeWebsiteUrl(company.website_url)
+      : officialWebsiteById.get(company.id) ?? ""
+
+  return {
+    ...company,
+    website_url: website,
+  }
+}
+
 export async function getCompanies(): Promise<Company[]> {
   const supabase = await createClient()
   
-  const { data, error } = await supabase
-    .from("AI_Atlas_Companies")
-    .select("*")
-    .order("name")
+  const [companiesResult, useCasesResult] = await Promise.all([
+    supabase.from("AI_Atlas_Companies").select("*").order("name"),
+    supabase.from("AI_Atlas_Use_Cases").select("*")
+  ])
+  const { data, error } = companiesResult
   
   if (error) {
     console.error("Error fetching companies:", error)
     return []
   }
+
+  if (useCasesResult.error) {
+    console.error("Error fetching use case URLs for company websites:", useCasesResult.error)
+  }
   
-  return data || []
+  const officialWebsiteById = buildOfficialWebsiteByCompanyId(
+    (useCasesResult.data ?? []) as Record<string, unknown>[]
+  )
+  return (data || []).map((company) =>
+    withWebsiteFallback(company as Company, officialWebsiteById)
+  )
 }
 
 export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
@@ -40,18 +152,32 @@ export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
 export async function getCompanyById(id: string): Promise<Company | null> {
   const supabase = await createClient()
   
-  const { data, error } = await supabase
-    .from("AI_Atlas_Companies")
-    .select("*")
-    .eq("id", id)
-    .single()
+  const [companyResult, useCasesResult] = await Promise.all([
+    supabase
+      .from("AI_Atlas_Companies")
+      .select("*")
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("AI_Atlas_Use_Cases")
+      .select("*")
+      .eq("company_id", id),
+  ])
+  const { data, error } = companyResult
   
   if (error) {
     console.error("Error fetching company:", error)
     return null
   }
+
+  if (useCasesResult.error) {
+    console.error("Error fetching use case URLs for company website:", useCasesResult.error)
+  }
   
-  return data
+  const officialWebsiteById = buildOfficialWebsiteByCompanyId(
+    (useCasesResult.data ?? []) as Record<string, unknown>[]
+  )
+  return withWebsiteFallback(data as Company, officialWebsiteById)
 }
 
 function snakeCaseToFieldLabel(key: string): string {

@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { X, ExternalLink, MapPin, Building2, Calendar } from "lucide-react"
 import type { CompanyWithCoords } from "@/lib/types"
+import { getGoogleFaviconUrl } from "@/lib/company-logo"
 
 interface CompanyDetailPanelProps {
   company: CompanyWithCoords
@@ -10,7 +11,14 @@ interface CompanyDetailPanelProps {
 }
 
 export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps) {
+  const [faviconError, setFaviconError] = useState(false)
   const [logoError, setLogoError] = useState(false)
+  const faviconUrl = getGoogleFaviconUrl(company.website_url)
+
+  useEffect(() => {
+    setFaviconError(false)
+    setLogoError(false)
+  }, [company.id, company.website_url, company.logo_url])
   
   return (
     <div
@@ -38,7 +46,14 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
           {/* Company Logo and Name */}
           <div className="flex items-start gap-4">
             <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
-              {company.logo_url && !logoError ? (
+              {faviconUrl && !faviconError ? (
+                <img
+                  src={faviconUrl}
+                  alt={company.name}
+                  className="w-full h-full object-contain p-2"
+                  onError={() => setFaviconError(true)}
+                />
+              ) : company.logo_url && !logoError ? (
                 <img
                   src={company.logo_url}
                   alt={company.name}

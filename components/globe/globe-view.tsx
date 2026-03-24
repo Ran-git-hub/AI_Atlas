@@ -615,18 +615,34 @@ export function GlobeView({
             font-family: system-ui, sans-serif;
             min-width: 200px;
             max-width: 280px;
+            box-sizing: border-box;
             box-shadow: 0 0 20px rgba(${borderRgb}, 0.3);
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s ease, visibility 0.2s ease;
             z-index: 2;
-            white-space: nowrap;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
           `
+
+          const titleLineStyle = `
+            font-weight: 600;
+            font-size: 14px;
+            color: ${titleRgb};
+            margin-bottom: 4px;
+            max-width: 100%;
+            line-height: 1.35;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+          `
+            .replace(/\s+/g, " ")
+            .trim()
 
           if (isCompany) {
             tooltip.innerHTML = `
-            <div style="font-weight: 600; font-size: 14px; color: ${titleRgb}; margin-bottom: 4px;">${d.name}</div>
-            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${d.city}, ${d.headquarters_country}</div>
+            <div style="${titleLineStyle}">${d.name}</div>
+            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${d.city}, ${d.headquarters_country}</div>
             <div style="
               font-size: 11px;
               padding: 3px 8px;
@@ -634,6 +650,9 @@ export function GlobeView({
               border-radius: 4px;
               color: #22d3ee;
               display: inline-block;
+              max-width: 100%;
+              word-wrap: break-word;
+              overflow-wrap: anywhere;
             ">${d.industry}</div>
           `
           } else {
@@ -641,7 +660,7 @@ export function GlobeView({
               [d.city, d.country].filter(Boolean).join(", ") ||
               (d.location ? String(d.location) : "")
             const sub = loc
-              ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">${loc}</div>`
+              ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${loc}</div>`
               : ""
             const badge =
               d.sector || d.industry
@@ -652,10 +671,13 @@ export function GlobeView({
               border-radius: 4px;
               color: ${titleRgb};
               display: inline-block;
+              max-width: 100%;
+              word-wrap: break-word;
+              overflow-wrap: anywhere;
             ">${d.sector || d.industry}</div>`
                 : `<div style="font-size: 11px; color: #64748b;">Use case</div>`
             tooltip.innerHTML = `
-            <div style="font-weight: 600; font-size: 14px; color: ${titleRgb}; margin-bottom: 4px;">${label}</div>
+            <div style="${titleLineStyle}">${label}</div>
             ${sub}
             ${badge}
           `

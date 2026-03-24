@@ -337,7 +337,6 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
           highlightSearchQuery={debouncedSearch}
           searchScopeCompany={searchIncludeCompany}
           searchScopeUseCase={searchIncludeUseCase}
-          highlightRecentUseCases={searchRecentOnly}
           flyTo={flyTo}
           flyToNonce={flyToNonce}
           selectedCompanyId={selectedCompany?.id ?? null}

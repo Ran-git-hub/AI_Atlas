@@ -33,8 +33,6 @@ interface GlobeViewProps {
   searchScopeCompany?: boolean
   /** When false, use case markers ignore search dimming (full color). */
   searchScopeUseCase?: boolean
-  /** Show yellow "new in 24h" ring around use-case markers. */
-  highlightRecentUseCases?: boolean
   /** Fly camera when nonce increases (e.g. after picking from search) */
   flyTo?: GlobeFlyTo | null
   flyToNonce?: number
@@ -72,7 +70,6 @@ export function GlobeView({
   highlightSearchQuery = "",
   searchScopeCompany = true,
   searchScopeUseCase = true,
-  highlightRecentUseCases = false,
   flyTo = null,
   flyToNonce = 0,
   selectionRevision = "",
@@ -546,7 +543,6 @@ export function GlobeView({
                 : null
           const updatedTs = updatedRaw ? Date.parse(updatedRaw) : NaN
           const isRecent24h =
-            highlightRecentUseCases &&
             !isCompany &&
             Number.isFinite(updatedTs) &&
             Date.now() - updatedTs <= 24 * 60 * 60 * 1000

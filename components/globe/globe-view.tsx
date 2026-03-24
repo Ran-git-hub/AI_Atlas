@@ -33,6 +33,8 @@ interface GlobeViewProps {
   searchScopeCompany?: boolean
   /** When false, use case markers ignore search dimming (full color). */
   searchScopeUseCase?: boolean
+  /** Show yellow "new in 24h" ring around use-case markers. */
+  highlightRecentUseCases?: boolean
   /** Fly camera when nonce increases (e.g. after picking from search) */
   flyTo?: GlobeFlyTo | null
   flyToNonce?: number
@@ -64,6 +66,7 @@ export function GlobeView({
   highlightSearchQuery = "",
   searchScopeCompany = true,
   searchScopeUseCase = true,
+  highlightRecentUseCases = false,
   flyTo = null,
   flyToNonce = 0,
   selectionRevision = "",
@@ -488,6 +491,18 @@ export function GlobeView({
           const searchApplies = q.length > 0 && inSearchScope
           const isMatch = !searchApplies || haystack.includes(q)
           const isSelected = d._globeSelected === true
+          const updatedRaw =
+            typeof d.updated_at === "string"
+              ? d.updated_at
+              : typeof d.created_at === "string"
+                ? d.created_at
+                : null
+          const updatedTs = updatedRaw ? Date.parse(updatedRaw) : NaN
+          const isRecent24h =
+            highlightRecentUseCases &&
+            !isCompany &&
+            Number.isFinite(updatedTs) &&
+            Date.now() - updatedTs <= 24 * 60 * 60 * 1000
 
           const container = document.createElement("div")
           container.className = isCompany ? "company-marker" : "use-case-marker"
@@ -515,6 +530,12 @@ export function GlobeView({
             : isSelected
               ? greenSelected
               : greenIdle
+          const recentRing = "0 0 0 0.75px rgba(253, 230, 138, 0.72)"
+          const dotShadow = isRecent24h
+            ? dotGlow === "none"
+              ? recentRing
+              : `${dotGlow}, ${recentRing}`
+            : dotGlow
           const dotSize =
             searchApplies && isMatch ? "12px" : isSelected ? "12px" : "9.6px"
           const dotGradient = isCompany
@@ -528,7 +549,7 @@ export function GlobeView({
             height: ${dotSize};
             background: ${dotGradient};
             border-radius: 50%;
-            box-shadow: ${dotGlow};
+            box-shadow: ${dotShadow};
             animation: ${searchApplies && !isMatch ? "none" : "pulse 3s ease-in-out infinite"};
             transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
             ${isSelected ? selectionRing : "outline: none;"}

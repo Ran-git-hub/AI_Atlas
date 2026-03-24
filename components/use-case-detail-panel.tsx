@@ -12,6 +12,12 @@ interface UseCaseDetailPanelProps {
 const ACCENT = "#3cb371"
 const NA = "Not Available"
 
+function isUseCaseRecent24h(useCase: UseCaseWithCoords): boolean {
+  const updatedAt = (useCase as UseCaseWithCoords & { updated_at?: string | null }).updated_at
+  const ts = Date.parse(updatedAt ?? useCase.created_at ?? "")
+  return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
+}
+
 function isProbablyUrl(key: string, value: string): boolean {
   if (!/^https?:\/\//i.test(value.trim())) return false
   if (value.includes("\n")) return false
@@ -22,6 +28,7 @@ export function UseCaseDetailPanel({ useCase, onClose }: UseCaseDetailPanelProps
   const [imageError, setImageError] = useState(false)
   const title = useCaseDisplayName(useCase)
   const showHeaderImage = Boolean(useCase.image_url?.trim()) && !imageError
+  const isRecent = isUseCaseRecent24h(useCase)
 
   return (
     <div
@@ -67,7 +74,14 @@ export function UseCaseDetailPanel({ useCase, onClose }: UseCaseDetailPanelProps
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold text-white leading-snug">{title}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl font-bold text-white leading-snug">{title}</h3>
+                {isRecent ? (
+                  <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
+                    New
+                  </span>
+                ) : null}
+              </div>
               <p className="text-slate-500 text-xs mt-1">
                 Fields from AI_Atlas_Use_Cases (some internal columns are hidden).
               </p>

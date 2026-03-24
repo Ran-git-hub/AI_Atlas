@@ -109,6 +109,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
   const [flyToNonce, setFlyToNonce] = useState(0)
   const [searchIncludeCompany, setSearchIncludeCompany] = useState(true)
   const [searchIncludeUseCase, setSearchIncludeUseCase] = useState(true)
+  const [searchRecentOnly, setSearchRecentOnly] = useState(true)
   const [activeIndustry, setActiveIndustry] = useState<string | null>(null)
   const [statsPanelOpen, setStatsPanelOpen] = useState(false)
   const [statsPanelKind, setStatsPanelKind] = useState<StatsJumpKind>("companies")
@@ -143,7 +144,15 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     })
   }, [activeIndustry, filteredCompanies, safeUseCases])
 
-  const displayUseCases = useMemo(() => filteredUseCases, [filteredUseCases])
+  const displayUseCases = useMemo(() => {
+    if (!searchRecentOnly) return filteredUseCases
+    const now = Date.now()
+    return filteredUseCases.filter((u) => {
+      const updatedAt = (u as UseCaseWithCoords & { updated_at?: string | null }).updated_at
+      const ts = Date.parse(updatedAt ?? u.created_at ?? "")
+      return Number.isFinite(ts) && now - ts <= 24 * 60 * 60 * 1000
+    })
+  }, [filteredUseCases, searchRecentOnly])
 
   const industryOptions = useMemo(() => {
     return Array.from(
@@ -271,6 +280,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
 
   const handleResetFilters = useCallback(() => {
     setActiveIndustry(null)
+    setSearchRecentOnly(false)
     setSelectedCompany(null)
     setSelectedUseCase(null)
     setStatsPanelOpen(false)
@@ -307,8 +317,10 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
         onSelectHit={handleSearchSelectHit}
         includeCompany={searchIncludeCompany}
         includeUseCase={searchIncludeUseCase}
+        includeRecent24hOnly={searchRecentOnly}
         onIncludeCompanyChange={setSearchIncludeCompany}
         onIncludeUseCaseChange={setSearchIncludeUseCase}
+        onIncludeRecent24hOnlyChange={setSearchRecentOnly}
         activeIndustry={activeIndustry}
         industryOptions={industryOptions}
         onIndustrySelect={handleIndustrySelect}
@@ -326,11 +338,12 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
           highlightSearchQuery={debouncedSearch}
           searchScopeCompany={searchIncludeCompany}
           searchScopeUseCase={searchIncludeUseCase}
+          highlightRecentUseCases={searchRecentOnly}
           flyTo={flyTo}
           flyToNonce={flyToNonce}
           selectedCompanyId={selectedCompany?.id ?? null}
           selectedUseCaseId={selectedUseCase?.id ?? null}
-          selectionRevision={`${selectedCompany?.id ?? "none"}|${selectedUseCase?.id ?? "none"}|${debouncedSearch}|${searchIncludeCompany}|${searchIncludeUseCase}|${detailOpen}`}
+          selectionRevision={`${selectedCompany?.id ?? "none"}|${selectedUseCase?.id ?? "none"}|${debouncedSearch}|${searchIncludeCompany}|${searchIncludeUseCase}|${searchRecentOnly}|${detailOpen}`}
         />
       </div>
 

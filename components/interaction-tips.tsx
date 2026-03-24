@@ -138,6 +138,11 @@ export function InteractionTips() {
               <span className="h-2.5 w-2.5 rounded-full bg-[#3cb371]" />
               <span className="text-slate-200">Use case</span>
             </span>
+            <span className="text-slate-500">/</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full border border-yellow-300/70" />
+              <span className="text-slate-200">New</span>
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Hand className="h-4 w-4 text-cyan-300" />

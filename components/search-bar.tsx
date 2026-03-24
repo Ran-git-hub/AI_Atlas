@@ -27,8 +27,10 @@ export interface SearchBarProps {
   onSelectHit: (hit: UnifiedSearchHit) => void
   includeCompany: boolean
   includeUseCase: boolean
+  includeRecent24hOnly: boolean
   onIncludeCompanyChange: (v: boolean) => void
   onIncludeUseCaseChange: (v: boolean) => void
+  onIncludeRecent24hOnlyChange: (v: boolean) => void
   activeIndustry: string | null
   industryOptions: Array<{ industry: string; count: number }>
   onIndustrySelect: (industry: string | null) => void
@@ -83,6 +85,12 @@ function hitSubtitle(hit: UnifiedSearchHit): string {
   )
 }
 
+function isUseCaseRecent24h(u: UseCaseWithCoords): boolean {
+  const updatedAt = (u as UseCaseWithCoords & { updated_at?: string | null }).updated_at
+  const ts = Date.parse(updatedAt ?? u.created_at ?? "")
+  return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
+}
+
 export function SearchBar({
   value,
   onChange,
@@ -92,8 +100,10 @@ export function SearchBar({
   onSelectHit,
   includeCompany,
   includeUseCase,
+  includeRecent24hOnly,
   onIncludeCompanyChange,
   onIncludeUseCaseChange,
+  onIncludeRecent24hOnlyChange,
   activeIndustry,
   industryOptions = [],
   onIndustrySelect,
@@ -306,6 +316,7 @@ export function SearchBar({
                           {recentHits.map((hit) => {
                             const isCo = hit.type === "company"
                             const company = isCo ? hit.item : null
+                            const isRecent = !isCo && isUseCaseRecent24h(hit.item as UseCaseWithCoords)
                             const companyId = company ? String(company.id) : ""
                             const faviconSrc = company ? getGoogleFaviconUrl(company.website_url) : ""
                             const logoSrc = company?.logo_url?.trim() || ""
@@ -373,6 +384,11 @@ export function SearchBar({
                                       >
                                         {hitLabel(hit)}
                                       </span>
+                                      {isRecent ? (
+                                        <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
+                                          New
+                                        </span>
+                                      ) : null}
                                     </div>
                                     <span className="text-xs text-slate-500 truncate">
                                       {hitSubtitle(hit)}
@@ -391,6 +407,7 @@ export function SearchBar({
                         results.map((hit) => {
                         const isCo = hit.type === "company"
                         const company = isCo ? hit.item : null
+                        const isRecent = !isCo && isUseCaseRecent24h(hit.item as UseCaseWithCoords)
                         const companyId = company ? String(company.id) : ""
                         const faviconSrc = company ? getGoogleFaviconUrl(company.website_url) : ""
                         const logoSrc = company?.logo_url?.trim() || ""
@@ -460,6 +477,11 @@ export function SearchBar({
                                     >
                                       {hitLabel(hit)}
                                     </span>
+                                    {isRecent ? (
+                                      <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
+                                        New
+                                      </span>
+                                    ) : null}
                                   </div>
                                   <span className="text-xs text-slate-500 truncate">
                                     {hitSubtitle(hit)}
@@ -568,6 +590,16 @@ export function SearchBar({
                       />
                       <span className="text-sm opacity-95 group-hover:opacity-100" style={{ color: GREEN }}>
                         Use case
+                      </span>
+                    </label>
+                    <label className="group flex cursor-pointer items-center gap-3">
+                      <Checkbox
+                        checked={includeRecent24hOnly}
+                        onCheckedChange={(v) => onIncludeRecent24hOnlyChange(v === true)}
+                        className="border-yellow-400/55 data-[state=checked]:border-yellow-300 data-[state=checked]:bg-yellow-300/20 data-[state=checked]:text-yellow-200"
+                      />
+                      <span className="text-sm text-yellow-200/95 group-hover:text-yellow-100">
+                        New (24h)
                       </span>
                     </label>
                   </div>

@@ -73,7 +73,7 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
             </div>
           </div>
 
-          {/* Industry Badge */}
+          {/* Category badge */}
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
               {company.industry}
@@ -101,7 +101,7 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
               <div className="flex items-center gap-2 text-slate-500 text-xs mb-1">
                 <Building2 className="h-3.5 w-3.5" />
-                <span>Industry</span>
+                <span>Category</span>
               </div>
               <p className="text-white text-sm font-medium">{company.industry}</p>
             </div>

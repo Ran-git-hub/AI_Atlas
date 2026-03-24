@@ -53,7 +53,7 @@ export function StatsJumpPanel({
       : kind === "countries"
         ? "Countries"
         : kind === "industries"
-          ? "Industries"
+          ? "Categories"
           : "Use cases"
 
   return (

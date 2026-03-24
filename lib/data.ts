@@ -283,6 +283,13 @@ function buildUseCaseFieldEntries(
           value: resolved,
         }
       }
+      if (normalizeUseCaseFieldKey(key) === "industry") {
+        return {
+          key,
+          label: "Category",
+          value: formatUseCaseCell(row[key]),
+        }
+      }
       return {
         key,
         label: snakeCaseToFieldLabel(key),
@@ -336,6 +343,7 @@ function rowToUseCaseWithCoords(
     url: str(row.url),
     image_url: str(row.image_url),
     created_at: str(row.created_at),
+    updated_at: str(row.updated_at),
     lat,
     lng,
     fieldEntries: buildUseCaseFieldEntries(row, companyNameById),

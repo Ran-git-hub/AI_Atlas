@@ -51,7 +51,7 @@ export function StatsBar({
           >
             <Layers className="h-4 w-4 text-cyan-400" />
             <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalIndustries}</span> Industries
+              <span className="font-semibold text-white">{totalIndustries}</span> Categories
             </span>
           </button>
           <button
@@ -100,7 +100,7 @@ export function StatsBar({
           >
             <Layers className="h-4 w-4 text-cyan-400" />
             <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalIndustries}</span> Industries
+              <span className="font-semibold text-white">{totalIndustries}</span> Categories
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />

@@ -109,7 +109,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
   const [flyToNonce, setFlyToNonce] = useState(0)
   const [searchIncludeCompany, setSearchIncludeCompany] = useState(true)
   const [searchIncludeUseCase, setSearchIncludeUseCase] = useState(true)
-  const [searchRecentOnly, setSearchRecentOnly] = useState(true)
+  const [searchRecentOnly, setSearchRecentOnly] = useState(false)
   const [activeIndustry, setActiveIndustry] = useState<string | null>(null)
   const [statsPanelOpen, setStatsPanelOpen] = useState(false)
   const [statsPanelKind, setStatsPanelKind] = useState<StatsJumpKind>("companies")
@@ -148,8 +148,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
     if (!searchRecentOnly) return filteredUseCases
     const now = Date.now()
     return filteredUseCases.filter((u) => {
-      const updatedAt = (u as UseCaseWithCoords & { updated_at?: string | null }).updated_at
-      const ts = Date.parse(updatedAt ?? u.created_at ?? "")
+      const ts = Date.parse(u.updated_at ?? u.created_at ?? "")
       return Number.isFinite(ts) && now - ts <= 24 * 60 * 60 * 1000
     })
   }, [filteredUseCases, searchRecentOnly])
@@ -366,7 +365,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
 
       {showNoLinkedUseCaseHint && (
         <div className="fixed bottom-36 left-1/2 z-30 -translate-x-1/2 rounded-lg border border-amber-500/30 bg-slate-900/85 px-3 py-2 text-xs text-amber-200 backdrop-blur-md">
-          No linked use cases found for this industry filter.
+          No linked use cases found for this category filter.
         </div>
       )}
 

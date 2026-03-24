@@ -57,6 +57,12 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
+/** Same Δ° in lat vs lng covers different ground distance; scale lng so ring reads circular on the globe. */
+function lngDegreesScaleForLocalCircle(latDeg: number): number {
+  const cosLat = Math.cos((latDeg * Math.PI) / 180)
+  return 1 / Math.max(Math.abs(cosLat), 0.2)
+}
+
 export function GlobeView({
   companies,
   useCases,
@@ -331,22 +337,63 @@ export function GlobeView({
         const radius =
           (baseRadius * (1 + layer * 0.9) + (hasCompanyOnSameCoord ? 0.03 * zoomFactor : 0)) *
           zoomOutSpreadBoost
+        const lngScale = lngDegreesScaleForLocalCircle(u.lat)
         output.push({
           ...u,
           lat: u.lat + Math.cos(angle) * radius,
-          lng: u.lng + Math.sin(angle) * radius,
+          lng: u.lng + Math.sin(angle) * radius * lngScale,
         })
       }
     }
     return output
   }, [useCases, companies, cameraAltitude])
 
+  /** Same-coordinate company markers overlap without offset; spread in a ring like use cases. */
+  const jitteredCompanies = useMemo(() => {
+    const zoomFactor = clamp(cameraAltitude / 1.8, 0.75, 2.8)
+    const zoomOutSpreadBoost = zoomFactor > 1 ? 1.5 : 1
+    const baseRadius = 0.06 + 0.12 * zoomFactor
+    const ringSlots = 8
+
+    const grouped = new Map<string, CompanyWithCoords[]>()
+    for (const c of companies) {
+      const key = `${c.lat.toFixed(4)},${c.lng.toFixed(4)}`
+      const arr = grouped.get(key)
+      if (arr) arr.push(c)
+      else grouped.set(key, [c])
+    }
+
+    const output: CompanyWithCoords[] = []
+    for (const [, arr] of grouped.entries()) {
+      const sorted = [...arr].sort((a, b) => String(a.id).localeCompare(String(b.id)))
+      if (sorted.length === 1) {
+        output.push(sorted[0])
+        continue
+      }
+      for (let i = 0; i < sorted.length; i++) {
+        const item = sorted[i]
+        const layer = Math.floor(i / ringSlots)
+        const slot = i % ringSlots
+        // Half-slot rotation vs use-case ring so cyan/green dots don’t sit on identical angles.
+        const angle = (slot / ringSlots) * Math.PI * 2 + layer * 0.25 + Math.PI / ringSlots
+        const radius = baseRadius * (1 + layer * 0.9) * zoomOutSpreadBoost
+        const lngScale = lngDegreesScaleForLocalCircle(item.lat)
+        output.push({
+          ...item,
+          lat: item.lat + Math.cos(angle) * radius,
+          lng: item.lng + Math.sin(angle) * radius * lngScale,
+        })
+      }
+    }
+    return output
+  }, [companies, cameraAltitude])
+
   // New object refs when search / panel / selection changes so react-globe.gl refreshes HTML markers.
   const htmlElementsData = useMemo(() => {
     if (!markersReady) return []
     const q = highlightSearchQuery.trim().toLowerCase()
     const companyMarkers = searchScopeCompany
-      ? companies.map((c) => ({
+      ? jitteredCompanies.map((c) => ({
           kind: "company" as const,
           ...c,
           _globeSearchKey: q,
@@ -372,7 +419,7 @@ export function GlobeView({
     return [...companyMarkers, ...useCaseMarkers]
   }, [
     markersReady,
-    companies,
+    jitteredCompanies,
     jitteredUseCases,
     highlightSearchQuery,
     searchScopeCompany,
@@ -475,7 +522,7 @@ export function GlobeView({
         htmlElementsData={htmlElementsData}
         htmlLat="lat"
         htmlLng="lng"
-        htmlAltitude={0.02}
+        htmlAltitude={0.01}
         htmlElement={(d: any) => {
           const q = (d._globeSearchKey as string) ?? ""
           const isCompany = d.kind === "company"
@@ -649,8 +696,17 @@ export function GlobeView({
               _globeSelected: _sel,
               ...rest
             } = d
-            if (isCompany) onCompanyClick(rest as CompanyWithCoords)
-            else onUseCaseClick(rest as UseCaseWithCoords)
+            if (isCompany) {
+              const c = rest as CompanyWithCoords
+              const orig = companies.find((co) => String(co.id) === String(c.id))
+              onCompanyClick(
+                orig ? { ...c, lat: orig.lat, lng: orig.lng } : c
+              )
+            } else {
+              const u = rest as UseCaseWithCoords
+              const orig = useCases.find((x) => String(x.id) === String(u.id))
+              onUseCaseClick(orig ? { ...u, lat: orig.lat, lng: orig.lng } : u)
+            }
           })
 
           return container

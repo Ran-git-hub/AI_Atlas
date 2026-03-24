@@ -290,7 +290,12 @@ export function SearchBar({
                     className="absolute left-0 right-0 top-full z-[20002] rounded-b-lg border border-t-0 border-cyan-500/30 bg-slate-900/95 backdrop-blur-md shadow-lg shadow-black/40"
                     role="listbox"
                   >
-                    <div className="max-h-60 overflow-y-auto">
+                    <div
+                      className="max-h-60 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-800/90 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-600/90 [&::-webkit-scrollbar-thumb]:hover:bg-slate-500/85"
+                      style={{
+                        scrollbarColor: "rgba(71, 85, 105, 0.9) rgba(30, 41, 59, 0.9)",
+                      }}
+                    >
                       {showRecentList ? (
                         <>
                           <div className="flex items-center justify-between px-4 pt-3 pb-1">
@@ -333,9 +338,10 @@ export function SearchBar({
                                 onClick={() => handleSelect(hit)}
                                 className={cn(
                                   "w-full text-left px-4 py-2.5 text-sm border-b border-slate-800/80 last:border-0 transition-colors",
+                                  "bg-slate-950/50 text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500/20",
                                   isCo
-                                    ? "text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-50"
-                                    : "text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-50"
+                                    ? "hover:bg-cyan-500/10 hover:text-cyan-50"
+                                    : "hover:bg-emerald-500/10 hover:text-emerald-50 focus-visible:ring-emerald-500/20"
                                 )}
                               >
                                 <div className="flex items-center gap-3 min-w-0">
@@ -345,7 +351,7 @@ export function SearchBar({
                                         <img
                                           src={faviconSrc}
                                           alt={company?.name ?? "Company logo"}
-                                          className="w-full h-full rounded-sm bg-white/95 object-contain p-1"
+                                          className="h-full w-full rounded-sm bg-slate-800/90 object-contain p-1"
                                           onError={() => {
                                             if (companyId) markCompanyImageBroken(companyId, faviconSrc)
                                           }}
@@ -354,7 +360,7 @@ export function SearchBar({
                                         <img
                                           src={logoSrc}
                                           alt={company?.name ?? "Company logo"}
-                                          className="w-full h-full object-contain p-1"
+                                          className="h-full w-full object-contain p-1"
                                           onError={() => {
                                             if (companyId) markCompanyImageBroken(companyId, logoSrc)
                                           }}
@@ -364,10 +370,10 @@ export function SearchBar({
                                       )}
                                     </div>
                                   ) : null}
-                                  <div className="flex flex-col gap-1 min-w-0 flex-1">
-                                    <div className="flex items-center gap-2 min-w-0">
+                                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                    <div className="flex min-w-0 items-center gap-2">
                                       <span
-                                        className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                                        className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                                         style={{
                                           color: isCo ? CYAN : GREEN,
                                           backgroundColor: isCo
@@ -379,7 +385,7 @@ export function SearchBar({
                                         {isCo ? "Company" : "Use case"}
                                       </span>
                                       <span
-                                        className="font-medium truncate min-w-0"
+                                        className="min-w-0 truncate font-medium"
                                         style={{ color: isCo ? CYAN : GREEN }}
                                       >
                                         {hitLabel(hit)}
@@ -390,7 +396,7 @@ export function SearchBar({
                                         </span>
                                       ) : null}
                                     </div>
-                                    <span className="text-xs text-slate-500 truncate">
+                                    <span className="truncate text-xs text-slate-500">
                                       {hitSubtitle(hit)}
                                     </span>
                                   </div>
@@ -426,19 +432,20 @@ export function SearchBar({
                               onClick={() => handleSelect(hit)}
                               className={cn(
                                 "w-full text-left px-4 py-2.5 text-sm border-b border-slate-800/80 last:border-0 transition-colors",
+                                "bg-slate-950/50 text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500/20",
                                 isCo
-                                  ? "text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-50"
-                                  : "text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-50"
+                                  ? "hover:bg-cyan-500/10 hover:text-cyan-50"
+                                  : "hover:bg-emerald-500/10 hover:text-emerald-50 focus-visible:ring-emerald-500/20"
                               )}
                             >
-                              <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex min-w-0 items-center gap-3">
                                 {isCo ? (
-                                  <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md border border-slate-700/70 bg-slate-800/80 flex items-center justify-center">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-700/70 bg-slate-800/80">
                                     {showFavicon ? (
                                       <img
                                         src={faviconSrc}
                                         alt={company?.name ?? "Company logo"}
-                                        className="w-full h-full rounded-sm bg-white/95 object-contain p-1"
+                                        className="h-full w-full rounded-sm bg-slate-800/90 object-contain p-1"
                                         onError={() => {
                                           if (companyId) markCompanyImageBroken(companyId, faviconSrc)
                                         }}
@@ -447,7 +454,7 @@ export function SearchBar({
                                       <img
                                         src={logoSrc}
                                         alt={company?.name ?? "Company logo"}
-                                        className="w-full h-full object-contain p-1"
+                                        className="h-full w-full object-contain p-1"
                                         onError={() => {
                                           if (companyId) markCompanyImageBroken(companyId, logoSrc)
                                         }}
@@ -457,10 +464,10 @@ export function SearchBar({
                                     )}
                                   </div>
                                 ) : null}
-                                <div className="flex flex-col gap-1 min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 min-w-0">
+                                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                  <div className="flex min-w-0 items-center gap-2">
                                     <span
-                                      className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                                      className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                                       style={{
                                         color: isCo ? CYAN : GREEN,
                                         backgroundColor: isCo
@@ -472,7 +479,7 @@ export function SearchBar({
                                       {isCo ? "Company" : "Use case"}
                                     </span>
                                     <span
-                                      className="font-medium truncate min-w-0"
+                                      className="min-w-0 truncate font-medium"
                                       style={{ color: isCo ? CYAN : GREEN }}
                                     >
                                       {hitLabel(hit)}
@@ -483,7 +490,7 @@ export function SearchBar({
                                       </span>
                                     ) : null}
                                   </div>
-                                  <span className="text-xs text-slate-500 truncate">
+                                  <span className="truncate text-xs text-slate-500">
                                     {hitSubtitle(hit)}
                                   </span>
                                 </div>
@@ -554,10 +561,10 @@ export function SearchBar({
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "shrink-0 w-11 h-11 rounded-xl bg-slate-800/60 backdrop-blur-md border text-slate-400 hover:bg-slate-800/80",
+                      "shrink-0 h-11 w-11 rounded-xl border border-slate-700/50 bg-slate-800/60 text-slate-300 backdrop-blur-md hover:border-cyan-500/50 hover:bg-slate-800/85 hover:text-cyan-300",
                       filterOpen || !includeCompany || !includeUseCase
                         ? "border-cyan-500/40 text-cyan-300"
-                        : "border-slate-700/50 hover:text-cyan-400 hover:border-cyan-500/50"
+                        : ""
                     )}
                     aria-label="Search scope filters"
                   >
@@ -576,7 +583,7 @@ export function SearchBar({
                       <Checkbox
                         checked={includeCompany}
                         onCheckedChange={(v) => toggleCompany(v === true)}
-                        className="border-cyan-500/50 data-[state=checked]:border-cyan-400 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-300"
+                        className="border-slate-500/60 bg-slate-800/80 shadow-none data-[state=unchecked]:bg-slate-800/80 data-[state=checked]:border-cyan-400 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-300"
                       />
                       <span className="text-sm text-cyan-300/95 group-hover:text-cyan-200">
                         Company / Organization
@@ -586,7 +593,7 @@ export function SearchBar({
                       <Checkbox
                         checked={includeUseCase}
                         onCheckedChange={(v) => toggleUseCase(v === true)}
-                        className="border-emerald-500/50 data-[state=checked]:border-[#3cb371] data-[state=checked]:bg-emerald-500/15 data-[state=checked]:text-[#3cb371]"
+                        className="border-slate-500/60 bg-slate-800/80 shadow-none data-[state=unchecked]:bg-slate-800/80 data-[state=checked]:border-[#3cb371] data-[state=checked]:bg-emerald-500/15 data-[state=checked]:text-[#3cb371]"
                       />
                       <span className="text-sm opacity-95 group-hover:opacity-100" style={{ color: GREEN }}>
                         Use case
@@ -596,7 +603,7 @@ export function SearchBar({
                       <Checkbox
                         checked={includeRecent24hOnly}
                         onCheckedChange={(v) => onIncludeRecent24hOnlyChange(v === true)}
-                        className="border-yellow-400/55 data-[state=checked]:border-yellow-300 data-[state=checked]:bg-yellow-300/20 data-[state=checked]:text-yellow-200"
+                        className="border-slate-500/60 bg-slate-800/80 shadow-none data-[state=unchecked]:bg-slate-800/80 data-[state=checked]:border-yellow-300 data-[state=checked]:bg-yellow-300/20 data-[state=checked]:text-yellow-200"
                       />
                       <span className="text-sm text-yellow-200/95 group-hover:text-yellow-100">
                         New (24h)

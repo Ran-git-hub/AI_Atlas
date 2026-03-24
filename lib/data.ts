@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import {
@@ -381,4 +382,74 @@ export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
   return rows
     .map((row) => rowToUseCaseWithCoords(row, companyNameById))
     .filter(Boolean) as UseCaseWithCoords[]
+}
+
+/** Central Europe (legally CET in winter, CEST in summer). */
+const CENTRAL_EUROPE_TZ = "Europe/Berlin"
+
+function formatUtcMsAsCentralEurope(ms: number): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: CENTRAL_EUROPE_TZ,
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZoneName: "shortGeneric",
+  }).format(new Date(ms))
+}
+
+function latestMsFromRows(rows: Record<string, unknown>[]): number | null {
+  let max = -Infinity
+  for (const row of rows) {
+    for (const key of ["updated_at", "created_at"] as const) {
+      const v = row[key]
+      if (v == null || v === "") continue
+      const t = Date.parse(String(v))
+      if (Number.isFinite(t) && t > max) max = t
+    }
+  }
+  return max === -Infinity ? null : max
+}
+
+async function fetchTimestampRows(
+  supabase: SupabaseClient,
+  table: string
+): Promise<Record<string, unknown>[]> {
+  const full = await supabase.from(table).select("updated_at, created_at")
+  if (!full.error) return (full.data ?? []) as Record<string, unknown>[]
+  const createdOnly = await supabase.from(table).select("created_at")
+  if (createdOnly.error) {
+    console.error(
+      `[getLatestAtlasDataUpdateCetDisplay] ${table}:`,
+      createdOnly.error.message
+    )
+    return []
+  }
+  return (createdOnly.data ?? []) as Record<string, unknown>[]
+}
+
+/**
+ * Latest timestamp among all `updated_at` and `created_at` values in
+ * `AI_Atlas_Companies` and `AI_Atlas_Use_Cases`, shown in Central European local time
+ * (Europe/Berlin).
+ */
+export async function getLatestAtlasDataUpdateCetDisplay(): Promise<string> {
+  const supabase =
+    createServiceRoleClient() ?? (await createClient())
+
+  const [companyRows, useCaseRows] = await Promise.all([
+    fetchTimestampRows(supabase, "AI_Atlas_Companies"),
+    fetchTimestampRows(supabase, "AI_Atlas_Use_Cases"),
+  ])
+
+  const mCompanies = latestMsFromRows(companyRows)
+  const mUseCases = latestMsFromRows(useCaseRows)
+  const candidates = [mCompanies, mUseCases].filter(
+    (n): n is number => n != null
+  )
+  if (candidates.length === 0) return "—"
+  const ms = Math.max(...candidates)
+  return formatUtcMsAsCentralEurope(ms)
 }

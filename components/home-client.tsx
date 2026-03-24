@@ -97,9 +97,15 @@ const GlobeView = dynamic(
 interface HomeClientProps {
   companies: CompanyWithCoords[]
   useCases: UseCaseWithCoords[]
+  /** Preformatted in Central European time (Europe/Berlin) on the server */
+  latestDataUpdateCet: string
 }
 
-export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
+export function HomeClient({
+  companies = [],
+  useCases = [],
+  latestDataUpdateCet,
+}: HomeClientProps) {
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
   const [selectedUseCase, setSelectedUseCase] = useState<UseCaseWithCoords | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
@@ -382,7 +388,7 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
       {/* Footer metadata / attribution */}
       <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 -translate-x-1/2">
         <div className="flex max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:flex-nowrap sm:text-sm">
-          <span>Last updated: {footerLastUpdated}</span>
+          <span>Latest Data Update: {latestDataUpdateCet}</span>
           <span className="text-slate-600">|</span>
           <span>© 2026 AI Atlas</span>
           <span className="text-slate-600">|</span>
@@ -432,7 +438,8 @@ export function HomeClient({ companies = [], useCases = [] }: HomeClientProps) {
                   </p>
                 </div>
                 <p className="text-xs text-slate-400">
-                  Last updated: {footerLastUpdated} · © 2026 AI Atlas. All rights reserved.
+                  Latest Data Update: {latestDataUpdateCet} · © 2026 AI Atlas. All rights
+                  reserved.
                 </p>
               </div>
             </DialogContent>

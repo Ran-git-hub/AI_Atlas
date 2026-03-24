@@ -530,7 +530,7 @@ export function GlobeView({
             : isSelected
               ? greenSelected
               : greenIdle
-          const recentRing = "0 0 0 0.75px rgba(253, 230, 138, 0.72)"
+          const recentRing = "0 0 0 1.1px rgba(254, 249, 195, 0.78)"
           const dotShadow = isRecent24h
             ? dotGlow === "none"
               ? recentRing

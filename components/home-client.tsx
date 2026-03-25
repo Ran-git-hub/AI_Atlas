@@ -386,12 +386,13 @@ export function HomeClient({
       />
 
       {/* Footer metadata / attribution */}
-      <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 -translate-x-1/2">
-        <div className="flex max-w-[calc(100vw-1rem)] flex-wrap items-center justify-center gap-x-2 gap-y-0.5 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:flex-nowrap sm:text-sm">
-          <span>Latest Data Update: {latestDataUpdateCet}</span>
-          <span className="text-slate-600">|</span>
-          <span>© 2026 AI Atlas</span>
-          <span className="text-slate-600">|</span>
+      <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 w-full -translate-x-1/2 px-2 sm:w-auto sm:px-0">
+        <div className="mx-auto flex max-w-[calc(100vw-1rem)] flex-col items-center justify-center gap-y-0.5 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:flex-row sm:gap-x-2 sm:gap-y-0 sm:text-sm">
+          <span className="text-center">Latest Data Update: {latestDataUpdateCet}</span>
+          <div className="flex items-center justify-center gap-2">
+            <span className="hidden text-slate-600 sm:inline">|</span>
+            <span>© 2026 AI Atlas</span>
+            <span className="text-slate-600">|</span>
           <Dialog>
             <DialogTrigger asChild>
               <button
@@ -444,6 +445,7 @@ export function HomeClient({
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </div>
 

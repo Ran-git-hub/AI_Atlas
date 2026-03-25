@@ -83,7 +83,7 @@ export function UseCaseDetailPanel({ useCase, onClose }: UseCaseDetailPanelProps
                 ) : null}
               </div>
               <p className="text-slate-500 text-xs mt-1">
-                Fields from AI_Atlas_Use_Cases (some internal columns are hidden).
+                {/* Intentionally removed internal-columns note */}
               </p>
             </div>
           </div>

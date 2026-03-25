@@ -96,6 +96,7 @@ export function GlobeView({
   const [markersReady, setMarkersReady] = useState(false)
   const [isUserPaused, setIsUserPaused] = useState(false)
   const [cameraAltitude, setCameraAltitude] = useState(PRAGUE_VIEW.altitude)
+  const [isMobileLikeInput, setIsMobileLikeInput] = useState(false)
 
   // Function to pause/resume rotation
   const pauseRotation = useCallback(() => {
@@ -212,6 +213,19 @@ export function GlobeView({
     return () => window.removeEventListener("resize", updateDimensions)
   }, [])
 
+  // Mobile-like input devices (no hover + coarse pointer): reduce DOM + animation work.
+  // This avoids degrading touchscreen laptops that still have hover-capable input.
+  useEffect(() => {
+    if (!isClient) return
+    const mql =
+      window.matchMedia?.("(hover: none) and (pointer: coarse)") ?? null
+    const update = () => setIsMobileLikeInput(Boolean(mql?.matches))
+    update()
+    if (!mql?.addEventListener) return
+    mql.addEventListener("change", update)
+    return () => mql.removeEventListener("change", update)
+  }, [isClient])
+
   // Load GeoJSON data for countries
   useEffect(() => {
     fetch(COUNTRIES_URL)
@@ -294,6 +308,22 @@ export function GlobeView({
     controls.addEventListener("end", onEnd)
     controls.addEventListener("change", onChange)
     controlsListenersRef.current = { controls, onStart, onEnd, onChange }
+
+    // Mobile perf: cap DPR to reduce GPU fill-rate.
+    try {
+      const globe = globeRef.current
+      const renderer =
+        typeof globe?.renderer === "function" ? globe.renderer() : globe?.renderer
+      if (renderer?.setPixelRatio) {
+        const mobileLike =
+          window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches ??
+          false
+        const nextDpr = mobileLike ? 1 : Math.min(window.devicePixelRatio || 1, 2)
+        renderer.setPixelRatio(nextDpr)
+      }
+    } catch {
+      // Ignore renderer configuration errors (varies by react-globe.gl version).
+    }
 
     applyPragueViewAndRotation()
     requestAnimationFrame(() => {
@@ -593,114 +623,122 @@ export function GlobeView({
             background: ${dotGradient};
             border-radius: 50%;
             box-shadow: ${dotShadow};
-            animation: ${searchApplies && !isMatch ? "none" : "pulse 3s ease-in-out infinite"};
+            animation: ${
+              isMobileLikeInput || (searchApplies && !isMatch)
+                ? "none"
+                : "pulse 3s ease-in-out infinite"
+            };
             transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
             ${isSelected ? selectionRing : "outline: none;"}
           `
 
-          const tooltip = document.createElement("div")
-          const borderRgb = isCompany ? "34, 211, 238" : SEA_GREEN_RGB
-          const titleRgb = isCompany ? "#22d3ee" : SEA_GREEN
-          tooltip.style.cssText = `
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(2, 10, 24, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(${borderRgb}, 0.5);
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: white;
-            font-family: system-ui, sans-serif;
-            min-width: 200px;
-            max-width: 280px;
-            box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(${borderRgb}, 0.3);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            z-index: 2;
-            word-wrap: break-word;
-            overflow-wrap: anywhere;
-          `
-
-          const titleLineStyle = `
-            font-weight: 600;
-            font-size: 14px;
-            color: ${titleRgb};
-            margin-bottom: 4px;
-            max-width: 100%;
-            line-height: 1.35;
-            white-space: normal;
-            word-wrap: break-word;
-            overflow-wrap: anywhere;
-          `
-            .replace(/\s+/g, " ")
-            .trim()
-
-          if (isCompany) {
-            tooltip.innerHTML = `
-            <div style="${titleLineStyle}">${d.name}</div>
-            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${d.city}, ${d.headquarters_country}</div>
-            <div style="
-              font-size: 11px;
-              padding: 3px 8px;
-              background: rgba(34, 211, 238, 0.15);
-              border-radius: 4px;
-              color: #22d3ee;
-              display: inline-block;
-              max-width: 100%;
-              word-wrap: break-word;
-              overflow-wrap: anywhere;
-            ">${d.industry}</div>
-          `
-          } else {
-            const loc =
-              [d.city, d.country].filter(Boolean).join(", ") ||
-              (d.location ? String(d.location) : "")
-            const sub = loc
-              ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${loc}</div>`
-              : ""
-            const badge =
-              d.sector || d.industry
-                ? `<div style="
-              font-size: 11px;
-              padding: 3px 8px;
-              background: rgba(${SEA_GREEN_RGB}, 0.18);
-              border-radius: 4px;
-              color: ${titleRgb};
-              display: inline-block;
-              max-width: 100%;
-              word-wrap: break-word;
-              overflow-wrap: anywhere;
-            ">${d.sector || d.industry}</div>`
-                : `<div style="font-size: 11px; color: #64748b;">Use case</div>`
-            tooltip.innerHTML = `
-            <div style="${titleLineStyle}">${label}</div>
-            ${sub}
-            ${badge}
-          `
-          }
-
           container.appendChild(dot)
-          container.appendChild(tooltip)
 
-          container.addEventListener("mouseenter", () => {
-            tooltip.style.opacity = "1"
-            tooltip.style.visibility = "visible"
-            dot.style.transform = "scale(1.5)"
-            pauseRotation()
-          })
+          // Hover tooltip is expensive and not useful on devices without hover.
+          if (!isMobileLikeInput) {
+            const tooltip = document.createElement("div")
+            const borderRgb = isCompany ? "34, 211, 238" : SEA_GREEN_RGB
+            const titleRgb = isCompany ? "#22d3ee" : SEA_GREEN
+            tooltip.style.cssText = `
+              position: absolute;
+              bottom: 20px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: rgba(2, 10, 24, 0.95);
+              backdrop-filter: blur(12px);
+              border: 1px solid rgba(${borderRgb}, 0.5);
+              border-radius: 10px;
+              padding: 12px 16px;
+              color: white;
+              font-family: system-ui, sans-serif;
+              min-width: 200px;
+              max-width: 280px;
+              box-sizing: border-box;
+              box-shadow: 0 0 20px rgba(${borderRgb}, 0.3);
+              opacity: 0;
+              visibility: hidden;
+              transition: opacity 0.2s ease, visibility 0.2s ease;
+              z-index: 2;
+              word-wrap: break-word;
+              overflow-wrap: anywhere;
+            `
 
-          container.addEventListener("mouseleave", () => {
-            tooltip.style.opacity = "0"
-            tooltip.style.visibility = "hidden"
-            dot.style.transform = "scale(1)"
-            if (!isPanelOpenRef.current && !userPausedRef.current) {
-              resumeRotation()
+            const titleLineStyle = `
+              font-weight: 600;
+              font-size: 14px;
+              color: ${titleRgb};
+              margin-bottom: 4px;
+              max-width: 100%;
+              line-height: 1.35;
+              white-space: normal;
+              word-wrap: break-word;
+              overflow-wrap: anywhere;
+            `
+              .replace(/\s+/g, " ")
+              .trim()
+
+            if (isCompany) {
+              tooltip.innerHTML = `
+              <div style="${titleLineStyle}">${d.name}</div>
+              <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${d.city}, ${d.headquarters_country}</div>
+              <div style="
+                font-size: 11px;
+                padding: 3px 8px;
+                background: rgba(34, 211, 238, 0.15);
+                border-radius: 4px;
+                color: #22d3ee;
+                display: inline-block;
+                max-width: 100%;
+                word-wrap: break-word;
+                overflow-wrap: anywhere;
+              ">${d.industry}</div>
+            `
+            } else {
+              const loc =
+                [d.city, d.country].filter(Boolean).join(", ") ||
+                (d.location ? String(d.location) : "")
+              const sub = loc
+                ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${loc}</div>`
+                : ""
+              const badge =
+                d.sector || d.industry
+                  ? `<div style="
+                font-size: 11px;
+                padding: 3px 8px;
+                background: rgba(${SEA_GREEN_RGB}, 0.18);
+                border-radius: 4px;
+                color: ${titleRgb};
+                display: inline-block;
+                max-width: 100%;
+                word-wrap: break-word;
+                overflow-wrap: anywhere;
+              ">${d.sector || d.industry}</div>`
+                  : `<div style="font-size: 11px; color: #64748b;">Use case</div>`
+              tooltip.innerHTML = `
+              <div style="${titleLineStyle}">${label}</div>
+              ${sub}
+              ${badge}
+            `
             }
-          })
+
+            container.appendChild(tooltip)
+
+            container.addEventListener("mouseenter", () => {
+              tooltip.style.opacity = "1"
+              tooltip.style.visibility = "visible"
+              dot.style.transform = "scale(1.5)"
+              pauseRotation()
+            })
+
+            container.addEventListener("mouseleave", () => {
+              tooltip.style.opacity = "0"
+              tooltip.style.visibility = "hidden"
+              dot.style.transform = "scale(1)"
+              if (!isPanelOpenRef.current && !userPausedRef.current) {
+                resumeRotation()
+              }
+            })
+          }
 
           container.addEventListener("click", (e) => {
             e.stopPropagation()

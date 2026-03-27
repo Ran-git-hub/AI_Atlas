@@ -33,7 +33,7 @@ export function UseCaseDetailPanel({ useCase, onClose }: UseCaseDetailPanelProps
   return (
     <div
       data-use-case-detail-panel
-      className="fixed right-0 top-0 bottom-0 h-full w-full max-w-md z-40 animate-in slide-in-from-right duration-300"
+      className="fixed right-0 top-[var(--app-top-bar-height)] bottom-0 w-full max-w-md z-40 animate-in slide-in-from-right duration-300"
     >
       <div
         className="flex h-full flex-col overflow-hidden border-l bg-slate-900/85 backdrop-blur-xl"

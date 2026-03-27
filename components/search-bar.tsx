@@ -221,75 +221,72 @@ export function SearchBar({
   const showReset = Boolean(activeIndustry)
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[20000] p-4 pointer-events-none">
-      <div className="flex w-full justify-center px-1 pointer-events-none">
-        <div ref={rootRef} className="flex w-full max-w-[min(94vw,52rem)] flex-col gap-1.5 pointer-events-auto">
-          <div className="flex w-full items-center gap-3 sm:gap-4">
-            <div className="flex shrink-0 items-center gap-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/60 backdrop-blur-sm">
-                <TechLobsterIcon className="h-[1.98rem] w-[1.98rem] text-cyan-300" />
-              </div>
-              <span className="inline whitespace-nowrap text-sm font-semibold text-white sm:text-base">
-                AI Atlas
-              </span>
+    <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
+      <div className="max-w-4xl mx-auto pointer-events-auto" ref={rootRef}>
+        <div className="flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 backdrop-blur-sm border border-cyan-500/30">
+              <TechLobsterIcon className="h-[1.65rem] w-[1.65rem] text-cyan-400" />
             </div>
+            <span className="hidden font-semibold text-white sm:block">AI Atlas</span>
+          </div>
 
-            <div className="relative z-[20001] min-w-0 w-[clamp(11rem,46vw,38rem)] rounded-xl p-2">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                  <Search className="h-4 w-4 text-slate-500" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={value}
-                  onChange={(e) => onChange(e.target.value)}
-                  onFocus={() => {
-                    setInputFocused(true)
-                    setListDismissed(false)
-                    setSearchExpanded(true)
-                  }}
+          <div className="relative flex-1 min-w-0 sm:max-w-xl">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+                <Search className="h-4 w-4 text-slate-500" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onFocus={() => {
+                  setInputFocused(true)
+                  setListDismissed(false)
+                  setSearchExpanded(true)
+                }}
+                onClick={() => {
+                  setSearchExpanded(true)
+                  if (trimmed.length > 0) setListDismissed(false)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setListDismissed(true)
+                    setSearchExpanded(false)
+                    setInputFocused(false)
+                    ;(e.target as HTMLInputElement).blur()
+                  }
+                }}
+                className={cn(
+                  "w-full h-10 pl-10 rounded-lg bg-slate-800/60 backdrop-blur-md border border-slate-700/50 text-white placeholder:text-slate-500",
+                  "focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all",
+                  trimmed ? "pr-20" : "pr-4",
+                  showList || showRecentList ? "border-cyan-500/40 rounded-b-none border-b-0" : ""
+                )}
+                aria-autocomplete="list"
+                aria-expanded={showList || showRecentList}
+                onBlur={() => setInputFocused(false)}
+              />
+              {trimmed ? (
+                <button
+                  type="button"
                   onClick={() => {
-                    setSearchExpanded(true)
-                    if (trimmed.length > 0) setListDismissed(false)
+                    onClear()
+                    setListDismissed(false)
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      setListDismissed(true)
-                      setSearchExpanded(false)
-                      setInputFocused(false)
-                      ;(e.target as HTMLInputElement).blur()
-                    }
-                  }}
-                  className={cn(
-                    "w-full h-10 pl-10 rounded-lg bg-slate-800/55 border border-slate-700/50 text-white placeholder:text-slate-500",
-                    "focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all",
-                    trimmed ? "pr-20" : "pr-4",
-                    showList || showRecentList ? "border-cyan-500/40 rounded-b-none border-b-0" : ""
-                  )}
-                  aria-autocomplete="list"
-                  aria-expanded={showList || showRecentList}
-                  onBlur={() => setInputFocused(false)}
-                />
-                {trimmed ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClear()
-                      setListDismissed(false)
-                    }}
-                    className="absolute inset-y-0 right-2 flex items-center justify-center w-8 h-8 my-auto rounded-md text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors"
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                ) : null}
+                  className="absolute inset-y-0 right-2 flex items-center justify-center w-8 h-8 my-auto rounded-md text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
 
-                {showList || showRecentList ? (
-                  <div
-                    className="absolute left-0 right-0 top-full z-[20002] rounded-b-lg border border-t-0 border-cyan-500/30 bg-slate-900/95 backdrop-blur-md shadow-lg shadow-black/40"
-                    role="listbox"
-                  >
+              {showList || showRecentList ? (
+                <div
+                  className="absolute left-0 right-0 top-full z-[55] rounded-b-lg border border-t-0 border-cyan-500/30 bg-slate-900/95 backdrop-blur-md shadow-lg shadow-black/40"
+                  role="listbox"
+                >
                     <div
                       className="max-h-60 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-800/90 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-600/90 [&::-webkit-scrollbar-thumb]:hover:bg-slate-500/85"
                       style={{
@@ -553,15 +550,15 @@ export function SearchBar({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <div className="flex shrink-0 items-center gap-2">
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "shrink-0 h-11 w-11 rounded-xl border border-slate-700/50 bg-slate-800/60 text-slate-300 backdrop-blur-md hover:border-cyan-500/50 hover:bg-slate-800/85 hover:text-cyan-300",
+                      "shrink-0 h-11 w-11 rounded-xl border border-slate-700/50 bg-slate-800/60 text-slate-400 backdrop-blur-md hover:border-cyan-500/50 hover:bg-slate-800/80 hover:text-cyan-400",
                       filterOpen || !includeCompany || !includeUseCase
                         ? "border-cyan-500/40 text-cyan-300"
                         : ""
@@ -573,7 +570,7 @@ export function SearchBar({
                 </PopoverTrigger>
                 <PopoverContent
                   align="end"
-                  className="z-[20003] w-72 border-slate-700 bg-slate-900/95 backdrop-blur-md text-slate-100"
+                  className="z-[60] w-72 border-slate-700 bg-slate-900/95 backdrop-blur-md text-slate-100"
                 >
                   <p className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-400">
                     Search in
@@ -616,7 +613,6 @@ export function SearchBar({
                 </PopoverContent>
               </Popover>
             </div>
-          </div>
         </div>
       </div>
     </header>

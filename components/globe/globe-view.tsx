@@ -111,6 +111,34 @@ export function GlobeView({
     }
   }, [])
 
+  /** HTML markers sit above the canvas; forward wheel so OrbitControls can still zoom while hovering tooltips. */
+  const forwardMarkerWheelToGlobe = useCallback((e: WheelEvent) => {
+    e.preventDefault()
+    const globe = globeRef.current
+    if (!globe || typeof globe.renderer !== "function") return
+    const canvas = globe.renderer()?.domElement
+    if (!(canvas instanceof HTMLCanvasElement)) return
+    canvas.dispatchEvent(
+      new WheelEvent("wheel", {
+        deltaX: e.deltaX,
+        deltaY: e.deltaY,
+        deltaZ: e.deltaZ,
+        deltaMode: e.deltaMode,
+        clientX: e.clientX,
+        clientY: e.clientY,
+        screenX: e.screenX,
+        screenY: e.screenY,
+        ctrlKey: e.ctrlKey,
+        shiftKey: e.shiftKey,
+        altKey: e.altKey,
+        metaKey: e.metaKey,
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      })
+    )
+  }, [])
+
   /** Face Prague (instant) + auto-rotate unless panel open or user paused blank-toggle. */
   const applyPragueViewAndRotation = useCallback(() => {
     const globe = globeRef.current
@@ -739,6 +767,10 @@ export function GlobeView({
               }
             })
           }
+
+          container.addEventListener("wheel", forwardMarkerWheelToGlobe, {
+            passive: false,
+          })
 
           container.addEventListener("click", (e) => {
             e.stopPropagation()

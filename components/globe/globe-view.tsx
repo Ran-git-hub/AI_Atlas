@@ -50,9 +50,18 @@ const GLOBE_ROTATION_SPEED = 0.3
 const PRAGUE_VIEW = { lat: 50.0755, lng: 14.4378, altitude: 2.2 }
 const FLY_ALTITUDE = 1.85
 const FLY_MS = 1400
+/** Bucket POV altitude so jitter + html marker data do not rebuild on every zoom tick (major perf win). */
+const CAMERA_ALTITUDE_JITTER_BUCKET = 0.09
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
+}
+
+function cameraAltitudeJitterBucket(altitude: number): number {
+  return (
+    Math.round(altitude / CAMERA_ALTITUDE_JITTER_BUCKET) *
+    CAMERA_ALTITUDE_JITTER_BUCKET
+  )
 }
 
 /** Same Δ° in lat vs lng covers different ground distance; scale lng so ring reads circular on the globe. */
@@ -320,9 +329,12 @@ export function GlobeView({
         rafId = 0
         const pov = globeRef.current?.pointOfView?.()
         if (pov && typeof pov.altitude === "number") {
-          setCameraAltitude((prev) =>
-            Math.abs(prev - pov.altitude) > 0.01 ? pov.altitude : prev
-          )
+          setCameraAltitude((prev) => {
+            const next = pov.altitude
+            const prevB = cameraAltitudeJitterBucket(prev)
+            const nextB = cameraAltitudeJitterBucket(next)
+            return prevB !== nextB ? next : prev
+          })
         }
       })
     }

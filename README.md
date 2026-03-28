@@ -1,6 +1,6 @@
 # 🗺️ AI Atlas
 
-**AI Atlas** is a modern, full-stack web application designed to serve as a comprehensive directory and exploration tool for the rapidly evolving AI ecosystem. Whether you are mapping out AI models, cataloging tools, or saving prompt architectures, AI Atlas provides a clean, fast, and responsive interface to manage and discover AI resources.
+**AI Atlas** is a modern, full-stack web application designed to serve as a comprehensive directory and exploration tool for the rapidly evolving AI ecosystem. Whether you are mapping out real world AI use cases, related companies, AI Atlas provides a clean, fast, and responsive interface to manage and discover AI resources.
 
 The application UI was rapidly prototyped using [v0 by Vercel](https://v0.dev) and developed with the [Cursor AI editor](https://cursor.sh/), leveraging a powerful modern React stack.
 

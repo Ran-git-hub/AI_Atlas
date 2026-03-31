@@ -44,6 +44,22 @@ interface GlobeViewProps {
   selectedUseCaseId?: string | null
 }
 
+interface GlobeHtmlMarkerDatum {
+  kind: "company" | "use_case"
+  id: string | number
+  lat: number
+  lng: number
+  name?: string | null
+  city?: string | null
+  headquarters_country?: string | null
+  country?: string | null
+  location?: string | null
+  industry?: string | null
+  sector?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
 // GeoJSON URL for countries
 const COUNTRIES_URL = "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson"
 const GLOBE_ROTATION_SPEED = 0.3
@@ -52,6 +68,8 @@ const FLY_ALTITUDE = 1.85
 const FLY_MS = 1400
 /** Bucket POV altitude so jitter + html marker data do not rebuild on every zoom tick (major perf win). */
 const CAMERA_ALTITUDE_JITTER_BUCKET = 0.09
+const MAX_DESKTOP_DPR = 1.5
+const FAR_VIEW_ALTITUDE = 2.45
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
@@ -106,6 +124,12 @@ export function GlobeView({
   const [isUserPaused, setIsUserPaused] = useState(false)
   const [cameraAltitude, setCameraAltitude] = useState(PRAGUE_VIEW.altitude)
   const [isMobileLikeInput, setIsMobileLikeInput] = useState(false)
+  const tooltipRef = useRef<HTMLDivElement | null>(null)
+  const highlightSearchQueryRef = useRef(highlightSearchQuery)
+  const searchScopeCompanyRef = useRef(searchScopeCompany)
+  const searchScopeUseCaseRef = useRef(searchScopeUseCase)
+  const selectedCompanyIdRef = useRef<string | null>(selectedCompanyId)
+  const selectedUseCaseIdRef = useRef<string | null>(selectedUseCaseId)
 
   // Function to pause/resume rotation
   const pauseRotation = useCallback(() => {
@@ -158,6 +182,21 @@ export function GlobeView({
     controls.autoRotate = !(isPanelOpenRef.current || userPausedRef.current)
   }, [])
 
+  const applyRendererPixelRatio = useCallback(() => {
+    try {
+      const globe = globeRef.current
+      const renderer =
+        typeof globe?.renderer === "function" ? globe.renderer() : globe?.renderer
+      if (!renderer?.setPixelRatio) return
+      const nextDpr = isMobileLikeInput
+        ? 1
+        : Math.min(window.devicePixelRatio || 1, MAX_DESKTOP_DPR)
+      renderer.setPixelRatio(nextDpr)
+    } catch {
+      // Ignore renderer configuration errors (varies by react-globe.gl version).
+    }
+  }, [isMobileLikeInput])
+
   const handleBlankAreaClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     if (Date.now() < suppressBlankClickUntilRef.current) return
     const target = event.target as HTMLElement | null
@@ -181,6 +220,10 @@ export function GlobeView({
     const dy = event.clientY - start.y
     if (Math.hypot(dx, dy) > 6) {
       dragMovedRef.current = true
+      if (tooltipRef.current) {
+        tooltipRef.current.style.opacity = "0"
+        tooltipRef.current.style.visibility = "hidden"
+      }
     }
   }, [])
 
@@ -200,6 +243,141 @@ export function GlobeView({
   useEffect(() => {
     userPausedRef.current = isUserPaused
   }, [isUserPaused])
+
+  useEffect(() => {
+    highlightSearchQueryRef.current = highlightSearchQuery
+    searchScopeCompanyRef.current = searchScopeCompany
+    searchScopeUseCaseRef.current = searchScopeUseCase
+    selectedCompanyIdRef.current = selectedCompanyId
+    selectedUseCaseIdRef.current = selectedUseCaseId
+  }, [
+    highlightSearchQuery,
+    searchScopeCompany,
+    searchScopeUseCase,
+    selectedCompanyId,
+    selectedUseCaseId,
+  ])
+
+  const hideSharedTooltip = useCallback(() => {
+    if (tooltipRef.current) {
+      tooltipRef.current.style.opacity = "0"
+      tooltipRef.current.style.visibility = "hidden"
+    }
+  }, [])
+
+  const showSharedTooltip = useCallback((marker: GlobeHtmlMarkerDatum, anchor: HTMLElement) => {
+    const tooltip = tooltipRef.current
+    const host = globeContainerRef.current
+    if (!tooltip || !host) return
+
+    const rect = anchor.getBoundingClientRect()
+    const hostRect = host.getBoundingClientRect()
+    const isCompany = marker.kind === "company"
+    const title = isCompany
+      ? String(marker.name ?? "")
+      : useCaseDisplayName(marker as UseCaseWithCoords)
+    const sub = isCompany
+      ? [marker.city, marker.headquarters_country].filter(Boolean).join(", ")
+      : [marker.city, marker.country].filter(Boolean).join(", ") || String(marker.location ?? "")
+    const badge = isCompany
+      ? String(marker.industry ?? "")
+      : String(marker.sector || marker.industry || "Use case")
+    const borderRgb = isCompany ? "34, 211, 238" : SEA_GREEN_RGB
+    const titleRgb = isCompany ? "#22d3ee" : SEA_GREEN
+    const badgeBg = isCompany ? "rgba(34, 211, 238, 0.15)" : `rgba(${SEA_GREEN_RGB}, 0.18)`
+    const badgeColor = isCompany ? "#22d3ee" : SEA_GREEN
+
+    tooltip.style.left = `${rect.left - hostRect.left + rect.width / 2}px`
+    tooltip.style.top = `${rect.top - hostRect.top}px`
+    tooltip.style.borderColor = `rgba(${borderRgb}, 0.5)`
+    tooltip.style.boxShadow = `0 0 20px rgba(${borderRgb}, 0.3)`
+    tooltip.innerHTML = `
+      <div style="margin-bottom: 4px; max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; line-height: 1.35; color: ${titleRgb};">
+        ${title}
+      </div>
+      ${
+        sub
+          ? `<div style="margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere; font-size: 12px; color: #94a3b8;">${sub}</div>`
+          : ""
+      }
+      <div style="display: inline-block; max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; border-radius: 4px; padding: 3px 8px; font-size: 11px; color: ${badgeColor}; background: ${badgeBg};">
+        ${badge}
+      </div>
+    `
+    tooltip.style.opacity = "1"
+    tooltip.style.visibility = "visible"
+  }, [])
+
+  const applyMarkerVisualState = useCallback(
+    (container: HTMLDivElement, dot: HTMLDivElement, marker: GlobeHtmlMarkerDatum) => {
+      const q = highlightSearchQueryRef.current.trim().toLowerCase()
+      const isCompany = marker.kind === "company"
+      const inSearchScope = isCompany ? searchScopeCompanyRef.current : searchScopeUseCaseRef.current
+      const haystack = isCompany
+        ? companySearchHaystack(marker as CompanyWithCoords)
+        : useCaseSearchHaystack(marker as UseCaseWithCoords)
+      const searchApplies = q.length > 0 && inSearchScope
+      const isMatch = !searchApplies || haystack.includes(q)
+      const selectedId = isCompany ? selectedCompanyIdRef.current : selectedUseCaseIdRef.current
+      const isSelected = Boolean(selectedId) && String(marker.id) === String(selectedId)
+      const updatedRaw =
+        typeof marker.updated_at === "string"
+          ? marker.updated_at
+          : typeof marker.created_at === "string"
+            ? marker.created_at
+            : null
+      const updatedTs = updatedRaw ? Date.parse(updatedRaw) : NaN
+      const isRecent24h =
+        !isCompany &&
+        Number.isFinite(updatedTs) &&
+        Date.now() - updatedTs <= 24 * 60 * 60 * 1000
+      const isFarView = cameraAltitude >= FAR_VIEW_ALTITUDE
+      const cyanSelected =
+        "0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 14px 4px rgba(34, 211, 238, 0.45)"
+      const greenSelected = `0 0 0 2px rgba(${SEA_GREEN_RGB}, 0.95), 0 0 14px 4px rgba(${SEA_GREEN_RGB}, 0.4)`
+      const dotGlow = isCompany ? (isSelected ? cyanSelected : "none") : isSelected ? greenSelected : "none"
+      const recentRing = "0 0 0 1.1px rgba(254, 249, 195, 0.78)"
+      const baseDotShadow =
+        isRecent24h ? (dotGlow === "none" ? recentRing : `${dotGlow}, ${recentRing}`) : dotGlow
+      const dotShadow = isFarView && !isSelected && !isRecent24h ? "none" : baseDotShadow
+      const shouldPulse =
+        !isMobileLikeInput && !(searchApplies && !isMatch) && (isSelected || isRecent24h)
+      const dotSize =
+        searchApplies && isMatch
+          ? isFarView && !isSelected
+            ? "10.8px"
+            : "12px"
+          : isSelected
+            ? "12px"
+            : isFarView
+              ? "8.2px"
+              : "9.6px"
+      const selectionRing = isCompany
+        ? "outline: 2px solid rgba(255,255,255,0.85); outline-offset: 4px;"
+        : `outline: 2px solid rgba(${SEA_GREEN_RGB},0.9); outline-offset: 4px;`
+
+      container.style.opacity = searchApplies && !isMatch ? "0.22" : "1"
+      container.style.filter = searchApplies && !isMatch ? "grayscale(0.85)" : "none"
+      dot.style.width = dotSize
+      dot.style.height = dotSize
+      dot.style.boxShadow = dotShadow
+      dot.style.animation = shouldPulse ? "pulse 3s ease-in-out infinite" : "none"
+      dot.style.outline = isSelected ? (isCompany ? "2px solid rgba(255,255,255,0.85)" : `2px solid rgba(${SEA_GREEN_RGB},0.9)`) : "none"
+      dot.style.outlineOffset = isSelected ? "4px" : "0px"
+      dot.dataset.selected = isSelected ? "1" : "0"
+      dot.dataset.match = isMatch ? "1" : "0"
+      dot.dataset.searchApplies = searchApplies ? "1" : "0"
+      dot.dataset.recent = isRecent24h ? "1" : "0"
+      dot.dataset.selectionRing = selectionRing
+    },
+    [cameraAltitude, isMobileLikeInput]
+  )
+
+  useEffect(() => {
+    if (isMobileLikeInput) {
+      hideSharedTooltip()
+    }
+  }, [hideSharedTooltip, isMobileLikeInput])
 
   useEffect(() => {
     flyToNonceRef.current = flyToNonce
@@ -262,6 +440,11 @@ export function GlobeView({
     mql.addEventListener("change", update)
     return () => mql.removeEventListener("change", update)
   }, [isClient])
+
+  useEffect(() => {
+    if (!isClient) return
+    applyRendererPixelRatio()
+  }, [applyRendererPixelRatio, dimensions.height, dimensions.width, isClient])
 
   // Load GeoJSON data for countries
   useEffect(() => {
@@ -349,27 +532,14 @@ export function GlobeView({
     controls.addEventListener("change", onChange)
     controlsListenersRef.current = { controls, onStart, onEnd, onChange }
 
-    // Mobile perf: cap DPR to reduce GPU fill-rate.
-    try {
-      const globe = globeRef.current
-      const renderer =
-        typeof globe?.renderer === "function" ? globe.renderer() : globe?.renderer
-      if (renderer?.setPixelRatio) {
-        const mobileLike =
-          window.matchMedia?.("(hover: none) and (pointer: coarse)")?.matches ??
-          false
-        const nextDpr = mobileLike ? 1 : Math.min(window.devicePixelRatio || 1, 2)
-        renderer.setPixelRatio(nextDpr)
-      }
-    } catch {
-      // Ignore renderer configuration errors (varies by react-globe.gl version).
-    }
+    // Cap DPR to reduce GPU fill-rate, especially on desktop retina displays.
+    applyRendererPixelRatio()
 
     applyPragueViewAndRotation()
     requestAnimationFrame(() => {
       applyPragueViewAndRotation()
     })
-  }, [applyPragueViewAndRotation, pauseRotation])
+  }, [applyPragueViewAndRotation, applyRendererPixelRatio, pauseRotation])
 
   const jitteredUseCases = useMemo(() => {
     // Larger offset when zoomed out (high altitude), smaller when zoomed in.
@@ -455,32 +625,19 @@ export function GlobeView({
     return output
   }, [companies, cameraAltitude])
 
-  // New object refs when search / panel / selection changes so react-globe.gl refreshes HTML markers.
+  // Keep marker data stable; search/selection visual updates are applied directly to DOM nodes.
   const htmlElementsData = useMemo(() => {
     if (!markersReady) return []
-    const q = highlightSearchQuery.trim().toLowerCase()
     const companyMarkers = searchScopeCompany
       ? jitteredCompanies.map((c) => ({
           kind: "company" as const,
           ...c,
-          _globeSearchKey: q,
-          _globeSearchScopeCompany: searchScopeCompany,
-          _globeSearchScopeUseCase: searchScopeUseCase,
-          _globeUiRev: selectionRevision,
-          _globeSelected:
-            Boolean(selectedCompanyId) && String(c.id) === String(selectedCompanyId),
         }))
       : []
     const useCaseMarkers = searchScopeUseCase
       ? jitteredUseCases.map((u) => ({
           kind: "use_case" as const,
           ...u,
-          _globeSearchKey: q,
-          _globeSearchScopeCompany: searchScopeCompany,
-          _globeSearchScopeUseCase: searchScopeUseCase,
-          _globeUiRev: selectionRevision,
-          _globeSelected:
-            Boolean(selectedUseCaseId) && String(u.id) === String(selectedUseCaseId),
         }))
       : []
     return [...companyMarkers, ...useCaseMarkers]
@@ -488,12 +645,33 @@ export function GlobeView({
     markersReady,
     jitteredCompanies,
     jitteredUseCases,
+    searchScopeCompany,
+    searchScopeUseCase,
+  ])
+
+  useEffect(() => {
+    const host = globeContainerRef.current
+    if (!host) return
+    const markers = host.querySelectorAll<HTMLDivElement>(".company-marker, .use-case-marker")
+    markers.forEach((container) => {
+      const dot = container.firstElementChild
+      if (!(dot instanceof HTMLDivElement)) return
+      const raw = container.dataset.marker
+      if (!raw) return
+      try {
+        applyMarkerVisualState(container, dot, JSON.parse(raw) as GlobeHtmlMarkerDatum)
+      } catch {
+        // Ignore stale marker payloads during remounts.
+      }
+    })
+  }, [
+    applyMarkerVisualState,
     highlightSearchQuery,
     searchScopeCompany,
     searchScopeUseCase,
-    selectionRevision,
     selectedCompanyId,
     selectedUseCaseId,
+    selectionRevision,
   ])
 
   // HTML markers attaching often resets POV — re-aim at Prague (unless user already flew via search).
@@ -526,8 +704,18 @@ export function GlobeView({
   useEffect(() => {
     if (!isClient || !flyTo || flyToNonce < 1) return
     const id = window.setTimeout(() => {
+      const currentAltitude =
+        typeof globeRef.current?.pointOfView === "function"
+          ? globeRef.current.pointOfView()?.altitude
+          : undefined
       globeRef.current?.pointOfView(
-        { lat: flyTo.lat, lng: flyTo.lng, altitude: flyTo.altitude ?? FLY_ALTITUDE },
+        {
+          lat: flyTo.lat,
+          lng: flyTo.lng,
+          altitude:
+            flyTo.altitude ??
+            (typeof currentAltitude === "number" ? currentAltitude : FLY_ALTITUDE),
+        },
         FLY_MS
       )
     }, 80)
@@ -590,190 +778,55 @@ export function GlobeView({
         htmlLat="lat"
         htmlLng="lng"
         htmlAltitude={0.01}
-        htmlElement={(d: any) => {
-          const q = (d._globeSearchKey as string) ?? ""
+        htmlElement={(d: GlobeHtmlMarkerDatum) => {
           const isCompany = d.kind === "company"
-          const scopeCompany = d._globeSearchScopeCompany !== false
-          const scopeUseCase = d._globeSearchScopeUseCase !== false
-          const inSearchScope = isCompany ? scopeCompany : scopeUseCase
-          const label = isCompany
-            ? String(d.name)
-            : useCaseDisplayName(d as UseCaseWithCoords)
-          const haystack = isCompany
-            ? companySearchHaystack(d as CompanyWithCoords)
-            : useCaseSearchHaystack(d as UseCaseWithCoords)
-          const searchApplies = q.length > 0 && inSearchScope
-          const isMatch = !searchApplies || haystack.includes(q)
-          const isSelected = d._globeSelected === true
-          const updatedRaw =
-            typeof d.updated_at === "string"
-              ? d.updated_at
-              : typeof d.created_at === "string"
-                ? d.created_at
-                : null
-          const updatedTs = updatedRaw ? Date.parse(updatedRaw) : NaN
-          const isRecent24h =
-            !isCompany &&
-            Number.isFinite(updatedTs) &&
-            Date.now() - updatedTs <= 24 * 60 * 60 * 1000
 
           const container = document.createElement("div")
           container.className = isCompany ? "company-marker" : "use-case-marker"
+          container.dataset.marker = JSON.stringify(d)
           container.style.cssText = `
             cursor: pointer;
             transform: translate(-50%, -50%);
             pointer-events: auto;
             position: relative;
             z-index: 1;
-            opacity: ${searchApplies && !isMatch ? "0.22" : "1"};
-            filter: ${searchApplies && !isMatch ? "grayscale(0.85)" : "none"};
+            opacity: 1;
+            filter: none;
             transition: opacity 0.25s ease, filter 0.25s ease;
           `
 
           const dot = document.createElement("div")
-          const cyanIdle = "none"
-          const cyanSelected =
-            "0 0 0 2px rgba(34, 211, 238, 0.95), 0 0 14px 4px rgba(34, 211, 238, 0.45)"
-          const greenIdle = "none"
-          const greenSelected = `0 0 0 2px rgba(${SEA_GREEN_RGB}, 0.95), 0 0 14px 4px rgba(${SEA_GREEN_RGB}, 0.4)`
-          const dotGlow = isCompany
-            ? isSelected
-              ? cyanSelected
-              : cyanIdle
-            : isSelected
-              ? greenSelected
-              : greenIdle
-          const recentRing = "0 0 0 1.1px rgba(254, 249, 195, 0.78)"
-          const dotShadow = isRecent24h
-            ? dotGlow === "none"
-              ? recentRing
-              : `${dotGlow}, ${recentRing}`
-            : dotGlow
-          const dotSize =
-            searchApplies && isMatch ? "12px" : isSelected ? "12px" : "9.6px"
           const dotGradient = isCompany
             ? "radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.8) 50%, transparent 100%)"
             : `radial-gradient(circle, ${SEA_GREEN} 0%, rgba(${SEA_GREEN_RGB}, 0.85) 50%, transparent 100%)`
-          const selectionRing = isCompany
-            ? "outline: 2px solid rgba(255,255,255,0.85); outline-offset: 4px;"
-            : `outline: 2px solid rgba(${SEA_GREEN_RGB},0.9); outline-offset: 4px;`
           dot.style.cssText = `
-            width: ${dotSize};
-            height: ${dotSize};
+            width: 9.6px;
+            height: 9.6px;
             background: ${dotGradient};
             border-radius: 50%;
-            box-shadow: ${dotShadow};
-            animation: ${
-              isMobileLikeInput || (searchApplies && !isMatch)
-                ? "none"
-                : "pulse 3s ease-in-out infinite"
-            };
+            box-shadow: none;
+            animation: none;
             transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
-            ${isSelected ? selectionRing : "outline: none;"}
+            outline: none;
           `
 
           container.appendChild(dot)
+          applyMarkerVisualState(container, dot, d)
 
-          // Hover tooltip is expensive and not useful on devices without hover.
           if (!isMobileLikeInput) {
-            const tooltip = document.createElement("div")
-            const borderRgb = isCompany ? "34, 211, 238" : SEA_GREEN_RGB
-            const titleRgb = isCompany ? "#22d3ee" : SEA_GREEN
-            tooltip.style.cssText = `
-              position: absolute;
-              bottom: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              background: rgba(2, 10, 24, 0.95);
-              backdrop-filter: blur(12px);
-              border: 1px solid rgba(${borderRgb}, 0.5);
-              border-radius: 10px;
-              padding: 12px 16px;
-              color: white;
-              font-family: system-ui, sans-serif;
-              min-width: 200px;
-              max-width: 280px;
-              box-sizing: border-box;
-              box-shadow: 0 0 20px rgba(${borderRgb}, 0.3);
-              opacity: 0;
-              visibility: hidden;
-              transition: opacity 0.2s ease, visibility 0.2s ease;
-              z-index: 2;
-              word-wrap: break-word;
-              overflow-wrap: anywhere;
-            `
-
-            const titleLineStyle = `
-              font-weight: 600;
-              font-size: 14px;
-              color: ${titleRgb};
-              margin-bottom: 4px;
-              max-width: 100%;
-              line-height: 1.35;
-              white-space: normal;
-              word-wrap: break-word;
-              overflow-wrap: anywhere;
-            `
-              .replace(/\s+/g, " ")
-              .trim()
-
-            if (isCompany) {
-              tooltip.innerHTML = `
-              <div style="${titleLineStyle}">${d.name}</div>
-              <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${d.city}, ${d.headquarters_country}</div>
-              <div style="
-                font-size: 11px;
-                padding: 3px 8px;
-                background: rgba(34, 211, 238, 0.15);
-                border-radius: 4px;
-                color: #22d3ee;
-                display: inline-block;
-                max-width: 100%;
-                word-wrap: break-word;
-                overflow-wrap: anywhere;
-              ">${d.industry}</div>
-            `
-            } else {
-              const loc =
-                [d.city, d.country].filter(Boolean).join(", ") ||
-                (d.location ? String(d.location) : "")
-              const sub = loc
-                ? `<div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere;">${loc}</div>`
-                : ""
-              const badge =
-                d.sector || d.industry
-                  ? `<div style="
-                font-size: 11px;
-                padding: 3px 8px;
-                background: rgba(${SEA_GREEN_RGB}, 0.18);
-                border-radius: 4px;
-                color: ${titleRgb};
-                display: inline-block;
-                max-width: 100%;
-                word-wrap: break-word;
-                overflow-wrap: anywhere;
-              ">${d.sector || d.industry}</div>`
-                  : `<div style="font-size: 11px; color: #64748b;">Use case</div>`
-              tooltip.innerHTML = `
-              <div style="${titleLineStyle}">${label}</div>
-              ${sub}
-              ${badge}
-            `
+            const syncTooltipPosition = () => {
+              showSharedTooltip(d, container)
             }
 
-            container.appendChild(tooltip)
-
             container.addEventListener("mouseenter", () => {
-              tooltip.style.opacity = "1"
-              tooltip.style.visibility = "visible"
               dot.style.transform = "scale(1.5)"
+              syncTooltipPosition()
               pauseRotation()
             })
 
             container.addEventListener("mouseleave", () => {
-              tooltip.style.opacity = "0"
-              tooltip.style.visibility = "hidden"
               dot.style.transform = "scale(1)"
+              hideSharedTooltip()
               if (!isPanelOpenRef.current && !userPausedRef.current) {
                 resumeRotation()
               }
@@ -787,13 +840,9 @@ export function GlobeView({
           container.addEventListener("click", (e) => {
             e.stopPropagation()
             pauseRotation()
+          hideSharedTooltip()
             const {
               kind: _k,
-              _globeSearchKey: _q,
-              _globeUiRev: _r,
-              _globeSearchScopeCompany: _sc,
-              _globeSearchScopeUseCase: _su,
-              _globeSelected: _sel,
               ...rest
             } = d
             if (isCompany) {
@@ -811,6 +860,10 @@ export function GlobeView({
 
           return container
         }}
+      />
+      <div
+        ref={tooltipRef}
+        className="pointer-events-none invisible absolute z-20 w-[min(280px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-[calc(100%+20px)] rounded-[10px] border bg-[rgba(2,10,24,0.95)] px-4 py-3 text-white opacity-0 shadow-[0_0_20px] backdrop-blur-xl transition-opacity duration-200"
       />
     </div>
   )

@@ -116,7 +116,8 @@ export function HomeClient({
   const [searchIncludeCompany, setSearchIncludeCompany] = useState(true)
   const [searchIncludeUseCase, setSearchIncludeUseCase] = useState(true)
   const [searchRecentOnly, setSearchRecentOnly] = useState(false)
-  const [activeIndustry, setActiveIndustry] = useState<string | null>(null)
+  const [selectedIndustries, setSelectedIndustries] = useState<string[]>([])
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [statsPanelOpen, setStatsPanelOpen] = useState(false)
   const [statsPanelKind, setStatsPanelKind] = useState<StatsJumpKind>("companies")
 
@@ -127,13 +128,59 @@ export function HomeClient({
 
   const safeCompanies = companies || []
   const safeUseCases = useCases || []
+  const industryOptions = useMemo(() => {
+    return Array.from(
+      safeCompanies.reduce((acc, c) => {
+        const key = c.industry?.trim() || "Unknown"
+        acc.set(key, (acc.get(key) ?? 0) + 1)
+        return acc
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([industry, count]) => ({ industry, count }))
+  }, [safeCompanies])
+  const selectedIndustrySet = useMemo(
+    () => new Set(selectedIndustries),
+    [selectedIndustries]
+  )
+  const countryOptions = useMemo(() => {
+    return Array.from(
+      safeCompanies.reduce((acc, c) => {
+        const key = c.headquarters_country?.trim() || "Unknown"
+        acc.set(key, (acc.get(key) ?? 0) + 1)
+        return acc
+      }, new Map<string, number>())
+    )
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([country, count]) => ({ country, count }))
+  }, [safeCompanies])
+  const selectedCountrySet = useMemo(
+    () => new Set(selectedCountries),
+    [selectedCountries]
+  )
+
   const filteredCompanies = useMemo(() => {
-    if (!activeIndustry) return safeCompanies
-    return safeCompanies.filter((c) => c.industry === activeIndustry)
-  }, [safeCompanies, activeIndustry])
+    return safeCompanies.filter((c) => {
+      const matchesIndustry =
+        selectedIndustries.length === 0 ||
+        selectedIndustrySet.has(c.industry?.trim() || "Unknown")
+      const matchesCountry =
+        selectedCountries.length === 0 ||
+        selectedCountrySet.has(c.headquarters_country?.trim() || "Unknown")
+      return matchesIndustry && matchesCountry
+    })
+  }, [
+    safeCompanies,
+    selectedIndustries,
+    selectedIndustrySet,
+    selectedCountries,
+    selectedCountrySet,
+  ])
 
   const filteredUseCases = useMemo(() => {
-    if (!activeIndustry) return safeUseCases
+    if (selectedIndustries.length === 0 && selectedCountries.length === 0) {
+      return safeUseCases
+    }
 
     const companyIdSet = new Set(filteredCompanies.map((c) => String(c.id)))
     const normalize = (v: string | null | undefined) =>
@@ -148,7 +195,7 @@ export function HomeClient({
         companyNameSet.has(normalize(u.company_name ?? undefined))
       return Boolean(linkedById || linkedByName)
     })
-  }, [activeIndustry, filteredCompanies, safeUseCases])
+  }, [filteredCompanies, safeUseCases, selectedIndustries.length, selectedCountries.length])
 
   const displayUseCases = useMemo(() => {
     if (!searchRecentOnly) return filteredUseCases
@@ -158,18 +205,6 @@ export function HomeClient({
       return Number.isFinite(ts) && now - ts <= 24 * 60 * 60 * 1000
     })
   }, [filteredUseCases, searchRecentOnly])
-
-  const industryOptions = useMemo(() => {
-    return Array.from(
-      safeCompanies.reduce((acc, c) => {
-        const key = c.industry?.trim() || "Unknown"
-        acc.set(key, (acc.get(key) ?? 0) + 1)
-        return acc
-      }, new Map<string, number>())
-    )
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([industry, count]) => ({ industry, count }))
-  }, [safeCompanies])
 
   const detailOpen = !!(selectedCompany || selectedUseCase)
 
@@ -233,12 +268,12 @@ export function HomeClient({
     if (hit.type === "company") {
       setSelectedUseCase(null)
       setSelectedCompany(hit.item)
-      setFlyTo({ lat: hit.item.lat, lng: hit.item.lng, altitude: 1.85 })
+      setFlyTo({ lat: hit.item.lat, lng: hit.item.lng })
       setFlyToNonce((n) => n + 1)
     } else {
       setSelectedCompany(null)
       setSelectedUseCase(hit.item)
-      setFlyTo({ lat: hit.item.lat, lng: hit.item.lng, altitude: 1.85 })
+      setFlyTo({ lat: hit.item.lat, lng: hit.item.lng })
       setFlyToNonce((n) => n + 1)
     }
   }, [])
@@ -249,7 +284,7 @@ export function HomeClient({
   const uniqueIndustries = new Set(filteredCompanies.map(c => c.industry))
   const totalIndustries = uniqueIndustries.size
   const showNoLinkedUseCaseHint =
-    Boolean(activeIndustry) &&
+    (selectedIndustries.length > 0 || selectedCountries.length > 0) &&
     filteredCompanies.length > 0 &&
     displayUseCases.length === 0
 
@@ -258,8 +293,38 @@ export function HomeClient({
     setStatsPanelOpen(true)
   }, [])
 
-  const handleIndustrySelect = useCallback((industry: string | null) => {
-    setActiveIndustry(industry)
+  const handleIndustryToggle = useCallback((industry: string) => {
+    setSelectedIndustries((prev) => {
+      const exists = prev.includes(industry)
+      if (exists) {
+        return prev.filter((item) => item !== industry)
+      }
+      return [...prev, industry]
+    })
+    setSelectedCompany(null)
+    setSelectedUseCase(null)
+  }, [])
+
+  const handleIndustrySelectAll = useCallback(() => {
+    setSelectedIndustries([])
+    setSelectedCompany(null)
+    setSelectedUseCase(null)
+  }, [])
+
+  const handleCountryToggle = useCallback((country: string) => {
+    setSelectedCountries((prev) => {
+      const exists = prev.includes(country)
+      if (exists) {
+        return prev.filter((item) => item !== country)
+      }
+      return [...prev, country]
+    })
+    setSelectedCompany(null)
+    setSelectedUseCase(null)
+  }, [])
+
+  const handleCountrySelectAll = useCallback(() => {
+    setSelectedCountries([])
     setSelectedCompany(null)
     setSelectedUseCase(null)
   }, [])
@@ -278,13 +343,17 @@ export function HomeClient({
     setFlyToNonce((n) => n + 1)
   }, [handleUseCaseClick])
 
-  const handlePanelIndustrySelect = useCallback((industry: string) => {
-    setActiveIndustry(industry)
-    setStatsPanelOpen(false)
-  }, [])
+  const handlePanelIndustryToggle = useCallback((industry: string) => {
+    handleIndustryToggle(industry)
+  }, [handleIndustryToggle])
+
+  const handlePanelCountryToggle = useCallback((country: string) => {
+    handleCountryToggle(country)
+  }, [handleCountryToggle])
 
   const handleResetFilters = useCallback(() => {
-    setActiveIndustry(null)
+    setSelectedIndustries([])
+    setSelectedCountries([])
     setSearchRecentOnly(false)
     setSelectedCompany(null)
     setSelectedUseCase(null)
@@ -326,9 +395,10 @@ export function HomeClient({
         onIncludeCompanyChange={setSearchIncludeCompany}
         onIncludeUseCaseChange={setSearchIncludeUseCase}
         onIncludeRecent24hOnlyChange={setSearchRecentOnly}
-        activeIndustry={activeIndustry}
+        selectedIndustries={selectedIndustries}
         industryOptions={industryOptions}
-        onIndustrySelect={handleIndustrySelect}
+        onIndustryToggle={handleIndustryToggle}
+        onIndustrySelectAll={handleIndustrySelectAll}
         onResetFilters={handleResetFilters}
       />
 
@@ -379,10 +449,17 @@ export function HomeClient({
         kind={statsPanelKind}
         companies={filteredCompanies}
         useCases={displayUseCases}
+        industryOptions={industryOptions}
+        countryOptions={countryOptions}
+        selectedIndustries={selectedIndustries}
+        selectedCountries={selectedCountries}
         onOpenChange={setStatsPanelOpen}
         onCompanySelect={handlePanelCompanySelect}
         onUseCaseSelect={handlePanelUseCaseSelect}
-        onIndustrySelect={handlePanelIndustrySelect}
+        onIndustryToggle={handlePanelIndustryToggle}
+        onIndustrySelectAll={handleIndustrySelectAll}
+        onCountryToggle={handlePanelCountryToggle}
+        onCountrySelectAll={handleCountrySelectAll}
       />
 
       {/* Footer metadata / attribution */}

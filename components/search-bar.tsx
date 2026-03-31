@@ -31,9 +31,10 @@ export interface SearchBarProps {
   onIncludeCompanyChange: (v: boolean) => void
   onIncludeUseCaseChange: (v: boolean) => void
   onIncludeRecent24hOnlyChange: (v: boolean) => void
-  activeIndustry: string | null
+  selectedIndustries: string[]
   industryOptions: Array<{ industry: string; count: number }>
-  onIndustrySelect: (industry: string | null) => void
+  onIndustryToggle: (industry: string) => void
+  onIndustrySelectAll: () => void
   onResetFilters: () => void
 }
 
@@ -104,9 +105,10 @@ export function SearchBar({
   onIncludeCompanyChange,
   onIncludeUseCaseChange,
   onIncludeRecent24hOnlyChange,
-  activeIndustry,
+  selectedIndustries,
   industryOptions = [],
-  onIndustrySelect,
+  onIndustryToggle,
+  onIndustrySelectAll,
   onResetFilters,
 }: SearchBarProps) {
   const [listDismissed, setListDismissed] = useState(false)
@@ -217,8 +219,7 @@ export function SearchBar({
     (companyId: string, src: string) => Boolean(brokenCompanyImages[`${companyId}:${src}`]),
     [brokenCompanyImages]
   )
-  const quickIndustries = industryOptions.slice(0, 6)
-  const showReset = Boolean(activeIndustry)
+  const showReset = selectedIndustries.length > 0
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
@@ -516,24 +517,24 @@ export function SearchBar({
                             )}
                             <button
                               type="button"
-                              onClick={() => onIndustrySelect(null)}
+                              onClick={onIndustrySelectAll}
                               className={cn(
                                 "shrink-0 rounded-full border px-2 py-1 text-xs transition-colors sm:px-2.5 sm:text-sm",
-                                !activeIndustry
+                                selectedIndustries.length === 0
                                   ? "border-cyan-400/70 bg-cyan-500/20 text-cyan-200"
                                   : "border-slate-600/70 bg-slate-800/70 text-slate-300 hover:text-cyan-300"
                               )}
                             >
-                              All
+                              Select All
                             </button>
-                            {quickIndustries.map((entry) => (
+                            {industryOptions.map((entry) => (
                               <button
                                 key={entry.industry}
                                 type="button"
-                                onClick={() => onIndustrySelect(entry.industry)}
+                                onClick={() => onIndustryToggle(entry.industry)}
                                 className={cn(
                                   "shrink-0 rounded-full border px-2 py-1 text-xs transition-colors sm:px-2.5 sm:text-sm",
-                                  activeIndustry === entry.industry
+                                  selectedIndustries.includes(entry.industry)
                                     ? "border-cyan-400/70 bg-cyan-500/20 text-cyan-200"
                                     : "border-slate-600/70 bg-slate-800/70 text-slate-300 hover:text-cyan-300"
                                 )}

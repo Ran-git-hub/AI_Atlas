@@ -1,4 +1,4 @@
-import { getUseCasesCatalogRows } from "@/lib/data"
+import { getLatestAtlasDataUpdateCetDisplay, getUseCasesCatalogRows } from "@/lib/data"
 import { UseCasesTable } from "@/components/use-cases/use-cases-table"
 
 type SearchParams = Record<string, string | string[] | undefined>
@@ -14,9 +14,10 @@ export default async function UseCasesPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const [rows, resolvedSearchParams] = await Promise.all([
+  const [rows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
     getUseCasesCatalogRows(),
     searchParams,
+    getLatestAtlasDataUpdateCetDisplay(),
   ])
 
   const cols = getSingleParam(resolvedSearchParams, "cols")
@@ -32,6 +33,7 @@ export default async function UseCasesPage({
       <div className="mx-auto max-w-7xl px-3 py-4 md:px-6 md:py-8">
         <UseCasesTable
           rows={rows}
+          latestDataUpdateCet={latestDataUpdateCet}
           initialState={{
             q: getSingleParam(resolvedSearchParams, "q"),
             industry: getSingleParam(resolvedSearchParams, "industry"),

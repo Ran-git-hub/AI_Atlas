@@ -54,6 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 
 type InitialState = {
   q: string
@@ -68,6 +69,7 @@ type InitialState = {
 interface UseCasesTableProps {
   rows: UseCaseCatalogRow[]
   initialState: InitialState
+  latestDataUpdateCet: string
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -141,7 +143,7 @@ function AtlasLogoMark() {
   )
 }
 
-export function UseCasesTable({ rows, initialState }: UseCasesTableProps) {
+export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCasesTableProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -998,6 +1000,8 @@ export function UseCasesTable({ rows, initialState }: UseCasesTableProps) {
             document.body,
           )
         : null}
+
+      <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
     </div>
   )
 }

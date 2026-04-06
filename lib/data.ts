@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import {
   Company,
+  UseCaseCatalogRow,
   CompanyWithCoords,
   CITY_COORDINATES,
   type UseCaseFieldEntry,
@@ -351,6 +352,47 @@ function rowToUseCaseWithCoords(
   }
 }
 
+function rowToUseCaseCatalogRow(
+  row: Record<string, unknown>,
+  companyNameById: Map<string, string>
+): UseCaseCatalogRow | null {
+  const id = row.id
+  if (id === null || id === undefined || id === "") return null
+
+  const str = (v: unknown) =>
+    v === null || v === undefined ? null : String(v)
+  const companyId = str(row.company_id)
+  const normalizedCompanyName =
+    str(row.company_name)?.trim() ||
+    (companyId ? companyNameById.get(companyId)?.trim() : "") ||
+    null
+  const lat = pickCoord(row, ["lat", "latitude", "Lat", "Latitude"])
+  const lng = pickCoord(row, ["lng", "longitude", "lon", "Lng", "Longitude"])
+
+  return {
+    id: String(id),
+    company_id: companyId,
+    title: str(row.title ?? row.use_case_title ?? row.case_title),
+    name: str(row.name ?? row.use_case_name),
+    description: str(row.description ?? row.summary ?? row.details),
+    sector: str(row.sector),
+    industry: str(row.industry),
+    city: str(row.city),
+    country: str(row.country ?? row.headquarters_country),
+    location: str(row.location),
+    company_name: normalizedCompanyName,
+    website_url: str(row.website_url),
+    reference_url: str(row.reference_url),
+    url: str(row.url),
+    image_url: str(row.image_url),
+    created_at: str(row.created_at),
+    updated_at: str(row.updated_at),
+    lat,
+    lng,
+    fieldEntries: buildUseCaseFieldEntries(row, companyNameById),
+  }
+}
+
 export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
   // Prefer service role on the server so reads work even when RLS has no policy yet.
   // For production, prefer fixing RLS (see supabase/migrations) and you may omit the service key.
@@ -382,6 +424,73 @@ export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
   return rows
     .map((row) => rowToUseCaseWithCoords(row, companyNameById))
     .filter(Boolean) as UseCaseWithCoords[]
+}
+
+export async function getUseCasesCatalogRows(): Promise<UseCaseCatalogRow[]> {
+  const supabase =
+    createServiceRoleClient() ?? (await createClient())
+
+  const [companiesResult, useCasesResult] = await Promise.all([
+    supabase.from("AI_Atlas_Companies").select("id, name").order("name"),
+    supabase
+      .from("AI_Atlas_Use_Cases")
+      .select("*")
+      .order("id", { ascending: true }),
+  ])
+
+  if (companiesResult.error) {
+    console.error("Error fetching companies for use case labels:", companiesResult.error)
+  }
+
+  const companyNameById = buildCompanyNameById(
+    companiesResult.data as { id: unknown; name: unknown }[] | null
+  )
+
+  if (useCasesResult.error) {
+    console.error("Error fetching use cases for catalog table:", useCasesResult.error)
+    return []
+  }
+
+  const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
+  return rows
+    .map((row) => rowToUseCaseCatalogRow(row, companyNameById))
+    .filter(Boolean) as UseCaseCatalogRow[]
+}
+
+export async function getUseCaseCatalogRowById(
+  id: string
+): Promise<UseCaseCatalogRow | null> {
+  const supabase =
+    createServiceRoleClient() ?? (await createClient())
+
+  const [companiesResult, useCaseResult] = await Promise.all([
+    supabase.from("AI_Atlas_Companies").select("id, name").order("name"),
+    supabase
+      .from("AI_Atlas_Use_Cases")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle(),
+  ])
+
+  if (companiesResult.error) {
+    console.error("Error fetching companies for use case labels:", companiesResult.error)
+  }
+
+  if (useCaseResult.error) {
+    console.error("Error fetching use case by id for catalog detail:", useCaseResult.error)
+    return null
+  }
+
+  if (!useCaseResult.data) return null
+
+  const companyNameById = buildCompanyNameById(
+    companiesResult.data as { id: unknown; name: unknown }[] | null
+  )
+
+  return rowToUseCaseCatalogRow(
+    useCaseResult.data as Record<string, unknown>,
+    companyNameById
+  )
 }
 
 /** Central Europe (legally CET in winter, CEST in summer). */

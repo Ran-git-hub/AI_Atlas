@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { Search, SlidersHorizontal, Globe, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
@@ -225,19 +227,40 @@ export function SearchBar({
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
       <div className="max-w-4xl mx-auto pointer-events-auto" ref={rootRef}>
         <div className="flex items-center gap-4">
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="relative flex shrink-0 items-center gap-2">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 backdrop-blur-sm border border-cyan-500/30">
               <TechLobsterIcon className="h-[1.65rem] w-[1.65rem] text-cyan-400" />
             </div>
-            <span className="hidden font-semibold text-white sm:block">AI Atlas</span>
+            <span className="hidden text-lg font-semibold text-white sm:block">AI Atlas</span>
+            <Button
+              asChild
+              variant="outline"
+              className={cn(
+                "pointer-events-auto absolute left-0 top-full mt-2",
+                viewSwitchButtonClassName,
+              )}
+            >
+              <Link
+                href="/use-cases"
+                style={{
+                  borderColor: "rgba(165, 243, 252, 0.6)",
+                  backgroundColor: "rgba(34, 211, 238, 0.2)",
+                  color: "#cffafe",
+                  boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
+                }}
+              >
+                Switch to Index View
+              </Link>
+            </Button>
           </div>
 
-          <div className="relative flex-1 min-w-0 sm:max-w-xl">
+          <div className="relative flex-1 min-w-0 translate-x-[20px] sm:max-w-xl">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                 <Search className="h-4 w-4 text-slate-500" />
               </div>
               <input
+                suppressHydrationWarning
                 type="text"
                 placeholder="Search"
                 value={value}
@@ -551,7 +574,7 @@ export function SearchBar({
               </div>
             </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 translate-x-[20px] items-center gap-2">
             <Popover open={filterOpen} onOpenChange={setFilterOpen}>
                 <PopoverTrigger asChild>
                   <Button

@@ -51,6 +51,13 @@ export interface UseCaseWithCoords extends UseCase {
   fieldEntries: UseCaseFieldEntry[]
 }
 
+export interface UseCaseCatalogRow extends UseCase {
+  lat?: number | null
+  lng?: number | null
+  /** One entry per DB column (stable order) for table details/expansion */
+  fieldEntries: UseCaseFieldEntry[]
+}
+
 export function useCaseDisplayName(u: UseCase): string {
   const t = u.title?.trim() || u.name?.trim()
   return t || "Use case"

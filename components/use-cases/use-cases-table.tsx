@@ -83,6 +83,12 @@ function formatDate(value: string | null | undefined): string {
   }).format(d)
 }
 
+/** Same 24h window as globe search / detail panel for use cases. */
+function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
+  const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
+  return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
+}
+
 function firstNonEmpty(...values: Array<string | null | undefined>): string {
   for (const value of values) {
     const v = value?.trim()
@@ -97,6 +103,19 @@ function isProbablyUrl(_key: string, value: string): boolean {
   if (v.includes("\n")) return false
   return true
 }
+
+/** Default hidden when no `cols` query; order matches table columns for URL sync. */
+const DEFAULT_HIDDEN_COLUMN_IDS = new Set<string>(["city", "source"])
+
+const ALL_COLUMN_IDS = [
+  "title",
+  "updated_at",
+  "company",
+  "industry",
+  "country",
+  "city",
+  "source",
+] as const
 
 function KpiStat({
   icon,
@@ -171,12 +190,17 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   const [showAdvanced, setShowAdvanced] = React.useState(false)
   const [sorting, setSorting] = React.useState<SortingState>(() => {
     const [id, dir] = initialState.sort.split(":")
-    if (!id) return []
+    if (!id) return [{ id: "updated_at", desc: true }]
     return [{ id, desc: dir === "desc" }]
   })
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() =>
     Object.fromEntries(
-      ALL_COLUMN_IDS.map((id) => [id, initialState.cols.length ? initialState.cols.includes(id) : true])
+      ALL_COLUMN_IDS.map((id) => [
+        id,
+        initialState.cols.length
+          ? initialState.cols.includes(id)
+          : !DEFAULT_HIDDEN_COLUMN_IDS.has(id),
+      ])
     )
   )
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(() => {
@@ -194,6 +218,20 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   const openDetail = React.useCallback((row: UseCaseCatalogRow) => {
     setActiveDetail(row)
   }, [])
+
+  const [viewportWidth, setViewportWidth] = React.useState(1024)
+  React.useLayoutEffect(() => {
+    const update = () => setViewportWidth(window.innerWidth)
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
+
+  const isMobileTableLayout = viewportWidth < 768
+  const titleColumnSize = isMobileTableLayout
+    ? Math.max(260, Math.round(Math.min(viewportWidth - 36, 720)))
+    : 560
+  const titleColumnMinSize = isMobileTableLayout ? 200 : 460
 
   React.useEffect(() => {
     const t = window.setTimeout(() => {
@@ -215,27 +253,13 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     })
   }, [industryFilter, countryFilter, cityFilter, orgFilter])
 
-  React.useEffect(() => {
-    // Avoid hydration mismatch: apply mobile default columns only after mount.
-    if (initialState.cols.length > 0) return
-    if (window.innerWidth >= 768) return
-    const mobileHidden = new Set(["city", "updated_at", "source"])
-    setColumnVisibility((prev) => {
-      const next = { ...prev }
-      for (const id of ALL_COLUMN_IDS) {
-        next[id] = !mobileHidden.has(id)
-      }
-      return next
-    })
-  }, [initialState.cols.length])
-
   const columns = React.useMemo<ColumnDef<UseCaseCatalogRow>[]>(
     () => [
       {
         id: "title",
         accessorFn: (row) => useCaseDisplayName(row),
-        size: 560,
-        minSize: 460,
+        size: titleColumnSize,
+        minSize: titleColumnMinSize,
         maxSize: 2200,
         header: ({ column }) => (
           <Button
@@ -247,27 +271,65 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => (
-          <div className="w-full min-w-0">
-            <button
-              type="button"
-              onClick={() => openDetail(row.original)}
-              className="block cursor-pointer overflow-hidden text-left text-ellipsis whitespace-normal break-words font-medium leading-5 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
-              style={{
-                color: "#43cc93",
-                textDecoration: "underline",
-                textDecorationColor: "rgba(67,204,147,0.3)",
-                textUnderlineOffset: 3,
-              }}
-            >
-              {useCaseDisplayName(row.original)}
-            </button>
-            <div className="overflow-hidden text-ellipsis whitespace-normal break-words text-xs text-[#8a8a8a] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
-              {firstNonEmpty(row.original.description, row.original.sector)}
+        cell: ({ row }) => {
+          const isNew = isUseCaseCatalogRowRecent24h(row.original)
+          return (
+            <div className="w-full min-w-0">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => openDetail(row.original)}
+                  className="min-w-0 cursor-pointer overflow-hidden text-left text-ellipsis whitespace-normal break-words font-medium leading-5 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+                  style={{
+                    color: "#43cc93",
+                    textDecoration: "underline",
+                    textDecorationColor: "rgba(67,204,147,0.3)",
+                    textUnderlineOffset: 3,
+                  }}
+                >
+                  {useCaseDisplayName(row.original)}
+                </button>
+                {isNew ? (
+                  <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
+                    New
+                  </span>
+                ) : null}
+              </div>
+              <div className="overflow-hidden text-ellipsis whitespace-normal break-words text-xs text-[#8a8a8a] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+                {firstNonEmpty(row.original.description, row.original.sector)}
+              </div>
             </div>
-          </div>
-        ),
+          )
+        },
         enableHiding: false,
+      },
+      {
+        id: "updated_at",
+        accessorFn: (row) => row.updated_at ?? row.created_at ?? "",
+        sortingFn: (rowA, rowB) => {
+          const ts = (row: UseCaseCatalogRow) =>
+            Date.parse(row.updated_at ?? row.created_at ?? "") || 0
+          const a = ts(rowA.original)
+          const b = ts(rowB.original)
+          return a === b ? 0 : a < b ? -1 : 1
+        },
+        size: 160,
+        minSize: 130,
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            className="-ml-3 text-[#b3b3b3] hover:bg-transparent hover:text-[#d8d8d8] focus-visible:ring-0"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Updated
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <span className="text-xs text-[#8a8a8a]">
+            {formatDate(row.original.updated_at ?? row.original.created_at)}
+          </span>
+        ),
       },
       {
         id: "company",
@@ -334,27 +396,6 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         ),
       },
       {
-        id: "updated_at",
-        accessorFn: (row) => row.updated_at ?? row.created_at ?? "",
-        size: 160,
-        minSize: 130,
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="-ml-3 text-[#b3b3b3] hover:bg-transparent hover:text-[#d8d8d8] focus-visible:ring-0"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Updated
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }) => (
-          <span className="text-xs text-[#8a8a8a]">
-            {formatDate(row.original.updated_at ?? row.original.created_at)}
-          </span>
-        ),
-      },
-      {
         id: "source",
         accessorFn: (row) => firstNonEmpty(row.reference_url, row.url, row.website_url),
         size: 120,
@@ -391,7 +432,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         },
       },
     ],
-    []
+    [openDetail, titleColumnMinSize, titleColumnSize]
   )
 
   const table = useReactTable({
@@ -1081,19 +1122,49 @@ function DetailModal({
           }}
         >
           <div style={{ minWidth: 0, flex: 1 }}>
-            <h3
+            <div
               style={{
-                margin: 0,
-                fontSize: 18,
-                fontWeight: 600,
-                color: "#f5f5f5",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 8,
+                minWidth: 0,
               }}
             >
-              {useCaseDisplayName(detail)}
-            </h3>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: 18,
+                  fontWeight: 600,
+                  color: "#f5f5f5",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  minWidth: 0,
+                  flex: "1 1 auto",
+                }}
+              >
+                {useCaseDisplayName(detail)}
+              </h3>
+              {isUseCaseCatalogRowRecent24h(detail) ? (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    borderRadius: 9999,
+                    border: "1px solid rgba(253,224,71,0.55)",
+                    backgroundColor: "rgba(254,240,138,0.15)",
+                    padding: "2px 8px",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                    color: "#fef9c3",
+                  }}
+                >
+                  New
+                </span>
+              ) : null}
+            </div>
             <p style={{ margin: "4px 0 0", fontSize: 14, color: "#b3b3b3" }}>
               Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
             </p>
@@ -1194,5 +1265,3 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
     </span>
   )
 }
-
-const ALL_COLUMN_IDS = ["title", "company", "industry", "country", "city", "updated_at", "source"] as const

@@ -367,6 +367,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
+        cell: ({ row }) => (
+          <div className="whitespace-normal break-words text-sm text-[#f5f5f5]">
+            {row.original.industry ?? ""}
+          </div>
+        ),
       },
       {
         id: "country",
@@ -382,6 +387,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             Country
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
+        ),
+        cell: ({ row }) => (
+          <div className="whitespace-normal break-words text-sm text-[#f5f5f5]">
+            {row.original.country ?? ""}
+          </div>
         ),
       },
       {

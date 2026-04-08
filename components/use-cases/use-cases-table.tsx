@@ -181,8 +181,16 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
   const [searchInput, setSearchInput] = React.useState(initialState.q)
   const [globalFilter, setGlobalFilter] = React.useState(initialState.q)
-  const [industryFilter, setIndustryFilter] = React.useState(initialState.industry)
-  const [countryFilter, setCountryFilter] = React.useState(initialState.country)
+  const [industryFilter, setIndustryFilter] = React.useState<string[]>(
+    initialState.industry
+      ? initialState.industry.split(",").map((v) => v.trim()).filter(Boolean)
+      : []
+  )
+  const [countryFilter, setCountryFilter] = React.useState<string[]>(
+    initialState.country
+      ? initialState.country.split(",").map((v) => v.trim()).filter(Boolean)
+      : []
+  )
   const [cityFilter, setCityFilter] = React.useState("")
   const [orgFilter, setOrgFilter] = React.useState("")
   const [dateAfter, setDateAfter] = React.useState("")
@@ -245,8 +253,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       const next = prev.filter(
         (f) => f.id !== "industry" && f.id !== "country" && f.id !== "city" && f.id !== "company"
       )
-      if (industryFilter) next.push({ id: "industry", value: industryFilter })
-      if (countryFilter) next.push({ id: "country", value: countryFilter })
+      if (industryFilter.length > 0) next.push({ id: "industry", value: industryFilter })
+      if (countryFilter.length > 0) next.push({ id: "country", value: countryFilter })
       if (cityFilter) next.push({ id: "city", value: cityFilter })
       if (orgFilter) next.push({ id: "company", value: orgFilter })
       return next
@@ -355,6 +363,12 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       {
         id: "industry",
         accessorFn: (row) => row.industry ?? "",
+        filterFn: (row, _id, value) => {
+          const selected = Array.isArray(value) ? (value as string[]) : []
+          if (selected.length === 0) return true
+          const current = row.original.industry?.trim() ?? ""
+          return selected.includes(current)
+        },
         size: 180,
         minSize: 140,
         header: ({ column }) => (
@@ -376,6 +390,12 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       {
         id: "country",
         accessorFn: (row) => row.country ?? "",
+        filterFn: (row, _id, value) => {
+          const selected = Array.isArray(value) ? (value as string[]) : []
+          if (selected.length === 0) return true
+          const current = row.original.country?.trim() ?? ""
+          return selected.includes(current)
+        },
         size: 140,
         minSize: 120,
         header: ({ column }) => (
@@ -578,8 +598,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
   const activeFilterCount =
     (searchInput.trim() ? 1 : 0) +
-    (industryFilter ? 1 : 0) +
-    (countryFilter ? 1 : 0) +
+    industryFilter.length +
+    countryFilter.length +
     (cityFilter ? 1 : 0) +
     (orgFilter ? 1 : 0) +
     (dateAfter ? 1 : 0) +
@@ -591,8 +611,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   function clearAllFilters() {
     setSearchInput("")
     setGlobalFilter("")
-    setIndustryFilter("")
-    setCountryFilter("")
+    setIndustryFilter([])
+    setCountryFilter([])
     setCityFilter("")
     setOrgFilter("")
     setDateAfter("")
@@ -603,8 +623,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   React.useEffect(() => {
     const params = new URLSearchParams()
     if (globalFilter.trim()) params.set("q", globalFilter.trim())
-    if (industryFilter) params.set("industry", industryFilter)
-    if (countryFilter) params.set("country", countryFilter)
+    if (industryFilter.length > 0) params.set("industry", industryFilter.join(","))
+    if (countryFilter.length > 0) params.set("country", countryFilter.join(","))
     if (sorting[0]?.id) {
       params.set("sort", `${sorting[0].id}:${sorting[0].desc ? "desc" : "asc"}`)
     }
@@ -697,49 +717,93 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             setSearchInput(e.target.value)
             setPagination((prev) => ({ ...prev, pageIndex: 0 }))
           }}
-          placeholder="Search use case / company / industry..."
-          className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-slate-500 focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[460px] md:text-sm"
+          placeholder="Search Use Case/ Orgnization / Industry ..."
+          className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[460px] md:text-sm"
         />
         <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
-          <Select
-            value={industryFilter || "all"}
-            onValueChange={(value) => {
-              setIndustryFilter(value === "all" ? "" : value)
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-            }}
-          >
-            <SelectTrigger className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-sm leading-none text-white md:h-9 md:w-[220px]">
-              <SelectValue placeholder="Industry" />
-            </SelectTrigger>
-            <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
-              <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All industries</SelectItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[220px]"
+              >
+                {industryFilter.length > 0
+                  ? `${industryFilter.length} Industries`
+                  : "Filter by Industry"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="max-h-[320px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+              <DropdownMenuCheckboxItem
+                className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                checked={industryFilter.length === 0}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={() => {
+                  setIndustryFilter([])
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                }}
+              >
+                All industries
+              </DropdownMenuCheckboxItem>
               {industries.map((industry) => (
-                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={industry} value={industry}>
+                <DropdownMenuCheckboxItem
+                  key={industry}
+                  className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                  checked={industryFilter.includes(industry)}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    setIndustryFilter((prev) =>
+                      checked ? [...prev, industry] : prev.filter((v) => v !== industry)
+                    )
+                    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                  }}
+                >
                   {industry}
-                </SelectItem>
+                </DropdownMenuCheckboxItem>
               ))}
-            </SelectContent>
-          </Select>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-          <Select
-            value={countryFilter || "all"}
-            onValueChange={(value) => {
-              setCountryFilter(value === "all" ? "" : value)
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-            }}
-          >
-            <SelectTrigger className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-sm leading-none text-white md:h-9 md:w-[200px]">
-              <SelectValue placeholder="Country" />
-            </SelectTrigger>
-            <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
-              <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All countries</SelectItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[200px]"
+              >
+                {countryFilter.length > 0
+                  ? `${countryFilter.length} Countries`
+                  : "Filter by Country"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="max-h-[320px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+              <DropdownMenuCheckboxItem
+                className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                checked={countryFilter.length === 0}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={() => {
+                  setCountryFilter([])
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                }}
+              >
+                All countries
+              </DropdownMenuCheckboxItem>
               {countries.map((country) => (
-                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={country} value={country}>
+                <DropdownMenuCheckboxItem
+                  key={country}
+                  className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                  checked={countryFilter.includes(country)}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    setCountryFilter((prev) =>
+                      checked ? [...prev, country] : prev.filter((v) => v !== country)
+                    )
+                    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                  }}
+                >
                   {country}
-                </SelectItem>
+                </DropdownMenuCheckboxItem>
               ))}
-            </SelectContent>
-          </Select>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
             variant="outline"
@@ -880,24 +944,26 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               }}
             />
           ) : null}
-          {industryFilter ? (
+          {industryFilter.map((industry) => (
             <FilterChip
-              label={`Industry: ${industryFilter}`}
+              key={`industry-${industry}`}
+              label={`Industry: ${industry}`}
               onRemove={() => {
-                setIndustryFilter("")
+                setIndustryFilter((prev) => prev.filter((v) => v !== industry))
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))
               }}
             />
-          ) : null}
-          {countryFilter ? (
+          ))}
+          {countryFilter.map((country) => (
             <FilterChip
-              label={`Country: ${countryFilter}`}
+              key={`country-${country}`}
+              label={`Country: ${country}`}
               onRemove={() => {
-                setCountryFilter("")
+                setCountryFilter((prev) => prev.filter((v) => v !== country))
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))
               }}
             />
-          ) : null}
+          ))}
           {cityFilter ? (
             <FilterChip
               label={`City: ${cityFilter}`}

@@ -19,6 +19,7 @@ import {
   ArrowUpDown,
   Building2,
   Calendar,
+  CircleHelp,
   Columns3,
   ExternalLink,
   Factory,
@@ -30,7 +31,15 @@ import {
 } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -55,6 +64,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
+import { Toaster } from "@/components/ui/toaster"
+import { toast } from "@/hooks/use-toast"
 
 type InitialState = {
   q: string
@@ -70,6 +81,39 @@ interface UseCasesTableProps {
   rows: UseCaseCatalogRow[]
   initialState: InitialState
   latestDataUpdateCet: string
+}
+
+type TableDensity = "compact" | "comfortable"
+
+const MAX_RECENT_FILTER_PICKS = 5
+const RECENT_INDUSTRIES_KEY = "use-cases:recent-filter-industries:v1"
+const RECENT_COUNTRIES_KEY = "use-cases:recent-filter-countries:v1"
+const TABLE_DENSITY_STORAGE_KEY = "use-cases:table-density:v1"
+
+function loadRecentFilterPicks(key: string): string[] {
+  try {
+    const raw = window.localStorage.getItem(key)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed.map((v) => String(v)).filter(Boolean).slice(0, MAX_RECENT_FILTER_PICKS)
+  } catch {
+    return []
+  }
+}
+
+function persistRecentFilterPicks(key: string, values: string[]) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(values.slice(0, MAX_RECENT_FILTER_PICKS)))
+  } catch {
+    // Ignore storage write failures.
+  }
+}
+
+function bumpRecentPick(prev: string[], value: string): string[] {
+  const v = value.trim()
+  if (!v) return prev
+  return [v, ...prev.filter((x) => x !== v)].slice(0, MAX_RECENT_FILTER_PICKS)
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -116,6 +160,19 @@ const ALL_COLUMN_IDS = [
   "city",
   "source",
 ] as const
+
+function sortColumnLabel(columnId: string): string {
+  const labels: Record<string, string> = {
+    title: "Use Case",
+    updated_at: "Updated",
+    company: "Organization",
+    industry: "Industry",
+    country: "Country",
+    city: "City",
+    source: "Source",
+  }
+  return labels[columnId] ?? columnId.replaceAll("_", " ")
+}
 
 function KpiStat({
   icon,
@@ -196,6 +253,32 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   const [dateAfter, setDateAfter] = React.useState("")
   const [dateBefore, setDateBefore] = React.useState("")
   const [showAdvanced, setShowAdvanced] = React.useState(false)
+  const [tableDensity, setTableDensity] = React.useState<TableDensity>("comfortable")
+  const [recentIndustryPicks, setRecentIndustryPicks] = React.useState<string[]>([])
+  const [recentCountryPicks, setRecentCountryPicks] = React.useState<string[]>([])
+  const lastActionToastRef = React.useRef<{ text: string; at: number }>({ text: "", at: 0 })
+
+  const notifyAction = React.useCallback((text: string) => {
+    const now = Date.now()
+    if (lastActionToastRef.current.text === text && now - lastActionToastRef.current.at < 900) {
+      return
+    }
+    lastActionToastRef.current = { text, at: now }
+    toast({
+      description: text,
+      duration: 1300,
+    })
+  }, [])
+
+  const setTableDensityPersist = React.useCallback((next: TableDensity) => {
+    setTableDensity(next)
+    try {
+      window.localStorage.setItem(TABLE_DENSITY_STORAGE_KEY, next)
+    } catch {
+      // Ignore storage write failures.
+    }
+    notifyAction(next === "compact" ? "Density set to Compact." : "Density set to Comfortable.")
+  }, [notifyAction])
   const [sorting, setSorting] = React.useState<SortingState>(() => {
     const [id, dir] = initialState.sort.split(":")
     if (!id) return [{ id: "updated_at", desc: true }]
@@ -235,6 +318,19 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     return () => window.removeEventListener("resize", update)
   }, [])
 
+  React.useLayoutEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(TABLE_DENSITY_STORAGE_KEY)
+      if (raw === "compact" || raw === "comfortable") {
+        setTableDensity(raw)
+        return
+      }
+      setTableDensity(window.innerWidth < 768 ? "compact" : "comfortable")
+    } catch {
+      setTableDensity(window.innerWidth < 768 ? "compact" : "comfortable")
+    }
+  }, [])
+
   const isMobileTableLayout = viewportWidth < 768
   const titleColumnSize = isMobileTableLayout
     ? Math.max(260, Math.round(Math.min(viewportWidth - 36, 720)))
@@ -247,6 +343,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     }, 120)
     return () => window.clearTimeout(t)
   }, [searchInput])
+
+  React.useEffect(() => {
+    setRecentIndustryPicks(loadRecentFilterPicks(RECENT_INDUSTRIES_KEY))
+    setRecentCountryPicks(loadRecentFilterPicks(RECENT_COUNTRIES_KEY))
+  }, [])
 
   React.useEffect(() => {
     setColumnFilters((prev) => {
@@ -282,12 +383,27 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         cell: ({ row }) => {
           const isNew = isUseCaseCatalogRowRecent24h(row.original)
           return (
-            <div className="w-full min-w-0">
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <div
+              className={cn(
+                "w-full min-w-0",
+                tableDensity === "comfortable" && "space-y-1 md:space-y-1.5"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex min-w-0 flex-wrap items-center",
+                  tableDensity === "compact" ? "gap-1" : "gap-1.5"
+                )}
+              >
                 <button
                   type="button"
                   onClick={() => openDetail(row.original)}
-                  className="min-w-0 cursor-pointer overflow-hidden text-left text-ellipsis whitespace-normal break-words font-medium leading-5 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+                  className={cn(
+                    "min-w-0 cursor-pointer overflow-hidden text-left text-ellipsis whitespace-normal break-words font-medium [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]",
+                    tableDensity === "compact"
+                      ? "text-[13px] leading-5 md:text-sm"
+                      : "text-sm leading-6 md:text-[15px] md:leading-7"
+                  )}
                   style={{
                     color: "#43cc93",
                     textDecoration: "underline",
@@ -298,12 +414,24 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                   {useCaseDisplayName(row.original)}
                 </button>
                 {isNew ? (
-                  <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 font-semibold uppercase tracking-wide text-yellow-200",
+                      tableDensity === "compact" ? "py-0 text-[9px]" : "py-0.5 text-[10px]"
+                    )}
+                  >
                     New
                   </span>
                 ) : null}
               </div>
-              <div className="overflow-hidden text-ellipsis whitespace-normal break-words text-xs text-[#8a8a8a] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+              <div
+                className={cn(
+                  "overflow-hidden text-ellipsis whitespace-normal break-words text-[#8a8a8a] [display:-webkit-box] [-webkit-box-orient:vertical]",
+                  tableDensity === "compact"
+                    ? "[-webkit-line-clamp:2] text-[11px] leading-snug md:text-xs"
+                    : "[-webkit-line-clamp:2] text-xs leading-relaxed md:[-webkit-line-clamp:3]"
+                )}
+              >
                 {firstNonEmpty(row.original.description, row.original.sector)}
               </div>
             </div>
@@ -334,7 +462,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </Button>
         ),
         cell: ({ row }) => (
-          <span className="text-xs text-[#8a8a8a]">
+          <span
+            className={cn(
+              "text-[#8a8a8a]",
+              tableDensity === "compact"
+                ? "text-[11px] leading-tight md:text-xs"
+                : "text-xs leading-relaxed"
+            )}
+          >
             {formatDate(row.original.updated_at ?? row.original.created_at)}
           </span>
         ),
@@ -355,7 +490,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="whitespace-normal break-words text-sm text-[#f5f5f5]">
+          <div
+            className={cn(
+              "whitespace-normal break-words text-[#f5f5f5]",
+              tableDensity === "compact"
+                ? "text-xs leading-snug md:text-sm"
+                : "text-sm leading-relaxed"
+            )}
+          >
             {firstNonEmpty(row.original.company_name, row.original.company_id)}
           </div>
         ),
@@ -382,7 +524,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="whitespace-normal break-words text-sm text-[#f5f5f5]">
+          <div
+            className={cn(
+              "whitespace-normal break-words text-[#f5f5f5]",
+              tableDensity === "compact"
+                ? "text-xs leading-snug md:text-sm"
+                : "text-sm leading-relaxed"
+            )}
+          >
             {row.original.industry ?? ""}
           </div>
         ),
@@ -409,7 +558,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </Button>
         ),
         cell: ({ row }) => (
-          <div className="whitespace-normal break-words text-sm text-[#f5f5f5]">
+          <div
+            className={cn(
+              "whitespace-normal break-words text-[#f5f5f5]",
+              tableDensity === "compact"
+                ? "text-xs leading-snug md:text-sm"
+                : "text-sm leading-relaxed"
+            )}
+          >
             {row.original.country ?? ""}
           </div>
         ),
@@ -453,7 +609,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 4,
-                fontSize: 12,
+                fontSize: tableDensity === "compact" ? 11 : 12,
                 color: "#43cc93",
                 textDecoration: "underline",
                 textDecorationColor: "rgba(67,204,147,0.4)",
@@ -467,7 +623,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         },
       },
     ],
-    [openDetail, titleColumnMinSize, titleColumnSize]
+    [openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
   )
 
   const table = useReactTable({
@@ -487,7 +643,21 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       columnVisibility,
     },
     columnResizeMode: "onChange",
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      setSorting((prev) => {
+        const next = typeof updater === "function" ? updater(prev) : updater
+        const col = next[0]
+        if (!col?.id) {
+          notifyAction("Sorting reset.")
+        } else {
+          const label = sortColumnLabel(col.id)
+          notifyAction(
+            `Sorted by ${label}${col.id === "updated_at" && !col.desc ? " (oldest first)" : col.desc ? " (descending)" : " (ascending)"}`
+          )
+        }
+        return next
+      })
+    },
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
@@ -524,6 +694,40 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   })
 
   const filteredRows = table.getFilteredRowModel().rows
+  const filteredRowCount = filteredRows.length
+
+  const activeQuerySummary = React.useMemo(() => {
+    const parts: string[] = []
+    parts.push(
+      `Showing ${filteredRowCount.toLocaleString()} result${filteredRowCount === 1 ? "" : "s"}`
+    )
+    if (industryFilter.length > 0) {
+      parts.push(
+        `${industryFilter.length} ${industryFilter.length === 1 ? "industry" : "industries"}`
+      )
+    }
+    if (countryFilter.length > 0) {
+      parts.push(
+        `${countryFilter.length} ${countryFilter.length === 1 ? "country" : "countries"}`
+      )
+    }
+    const q = globalFilter.trim()
+    if (q) {
+      parts.push(q.length > 40 ? `matching "${q.slice(0, 40)}…"` : `matching "${q}"`)
+    }
+    const col = sorting[0]
+    const isDefaultUpdatedDesc = !col || (col.id === "updated_at" && col.desc)
+    if (isDefaultUpdatedDesc) {
+      parts.push("sorted by Updated")
+    } else if (col && col.id === "updated_at" && !col.desc) {
+      parts.push("sorted by Updated (oldest first)")
+    } else if (col) {
+      const label = sortColumnLabel(col.id)
+      parts.push(`sorted by ${label} (${col.desc ? "descending" : "ascending"})`)
+    }
+    return parts.join(" · ")
+  }, [countryFilter, filteredRowCount, globalFilter, industryFilter, sorting])
+
   const filteredOriginals = React.useMemo(
     () => filteredRows.map((r) => r.original),
     [filteredRows]
@@ -608,6 +812,40 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   const advancedFilterCount =
     (cityFilter ? 1 : 0) + (orgFilter ? 1 : 0) + (dateAfter ? 1 : 0) + (dateBefore ? 1 : 0)
 
+  const hasAnyDatasetRows = rows.length > 0
+  const hasBaseFilters =
+    Boolean(searchInput.trim()) || industryFilter.length > 0 || countryFilter.length > 0
+  const hasAdvancedFilters =
+    Boolean(cityFilter) || Boolean(orgFilter) || Boolean(dateAfter) || Boolean(dateBefore)
+
+  const emptyStateCopy = React.useMemo(() => {
+    if (!hasAnyDatasetRows && activeFilterCount === 0) {
+      return {
+        title: "Data not available right now",
+        description:
+          "The use case dataset is temporarily unavailable or still loading. Please refresh in a moment, or return later.",
+      }
+    }
+    if (hasAdvancedFilters && !hasBaseFilters) {
+      return {
+        title: "No results for advanced filters",
+        description:
+          "City, Organization, or date range is too restrictive. Clear advanced filters or start with Industry/Country first.",
+      }
+    }
+    return {
+      title: "No use cases found",
+      description:
+        "Try broadening filters, removing date limits, or testing a shorter search phrase to find matches.",
+    }
+  }, [activeFilterCount, hasAdvancedFilters, hasAnyDatasetRows, hasBaseFilters])
+
+  const applyExampleQuery = React.useCallback((query: string) => {
+    setSearchInput(query)
+    setGlobalFilter(query)
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+  }, [])
+
   function clearAllFilters() {
     setSearchInput("")
     setGlobalFilter("")
@@ -618,6 +856,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     setDateAfter("")
     setDateBefore("")
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    notifyAction("All filters cleared.")
   }
 
   React.useEffect(() => {
@@ -652,7 +891,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
   return (
     <div className="space-y-3 text-[#f5f5f5]">
-      <div className="mb-1 -translate-y-[5px]">
+      <div className="mb-1 flex items-center justify-between gap-2 -translate-y-[5px]">
         <Button
           asChild
           variant="outline"
@@ -670,6 +909,65 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             Switch to Globe View
           </Link>
         </Button>
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 shrink-0 rounded-full border-slate-700/50 bg-slate-800/60 px-4 text-sm font-semibold leading-none text-white backdrop-blur-md hover:border-cyan-500/60 hover:bg-slate-700/60"
+            >
+              <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
+              Help
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[min(85vh,520px)] overflow-y-auto border-cyan-500/25 bg-slate-900/98 text-[#f5f5f5] shadow-xl sm:max-w-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
+            <DialogHeader>
+              <DialogTitle className="text-[#f8fafa]">Quick help</DialogTitle>
+            </DialogHeader>
+            <ul className="list-disc space-y-2.5 pl-4 text-sm leading-relaxed text-[#d7dedb]">
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Industry and Country:</strong>{" "}
+                multi-select filters; the menu stays open while you tick several values (use &quot;All&quot;
+                to clear that dimension). Values you have picked recently are tagged{" "}
+                <span className="whitespace-nowrap">Recent</span> inside each list (stored locally in this
+                browser).
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">&quot;New&quot; badge:</strong> the use case was
+                updated within the last 24 hours (same rule as on the globe view).
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Column widths:</strong> drag the grip
+                between header cells to resize; double-click the grip to reset a column width (desktop).
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Sharable URL:</strong> search text,
+                industry/country selections, sort, visible columns, page, and page size are reflected in
+                the address bar — copy the link to share the same view.
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Search:</strong> matches use case title,
+                description, organization name, industry, country, and city text.
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Other filters:</strong> open{" "}
+                <span className="whitespace-nowrap">Other Filters</span> for city, organization, and
+                updated date range.
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Details:</strong> click a row or the green
+                underlined title to open the full detail panel; green links open sources in a new tab.
+              </li>
+              <li>
+                <strong className="font-medium text-[#f0f4f1]">Table density:</strong>{" "}
+                <span className="whitespace-nowrap">Compact</span> fits more rows on screen (especially on
+                phones); <span className="whitespace-nowrap">Comfortable</span> adds spacing and, on larger
+                screens, shows an extra subtitle line per row.
+              </li>
+            </ul>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Header + KPI Stats Strip */}
@@ -740,6 +1038,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 onCheckedChange={() => {
                   setIndustryFilter([])
                   setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                  notifyAction("Industry filter cleared.")
                 }}
               >
                 All industries
@@ -747,17 +1046,36 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               {industries.map((industry) => (
                 <DropdownMenuCheckboxItem
                   key={industry}
-                  className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                  className="w-full text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
                   checked={industryFilter.includes(industry)}
                   onSelect={(e) => e.preventDefault()}
                   onCheckedChange={(checked) => {
+                    if (checked) {
+                      setRecentIndustryPicks((prev) => {
+                        const next = bumpRecentPick(prev, industry)
+                        persistRecentFilterPicks(RECENT_INDUSTRIES_KEY, next)
+                        return next
+                      })
+                    }
                     setIndustryFilter((prev) =>
                       checked ? [...prev, industry] : prev.filter((v) => v !== industry)
                     )
                     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                    notifyAction(
+                      checked
+                        ? `Industry filter applied: ${industry}.`
+                        : `Industry filter removed: ${industry}.`
+                    )
                   }}
                 >
-                  {industry}
+                  <span className="flex min-w-0 flex-1 items-center justify-between gap-2 pr-1">
+                    <span className="min-w-0 truncate">{industry}</span>
+                    {recentIndustryPicks.includes(industry) ? (
+                      <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-cyan-300/90">
+                        Recent
+                      </span>
+                    ) : null}
+                  </span>
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
@@ -782,6 +1100,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 onCheckedChange={() => {
                   setCountryFilter([])
                   setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                  notifyAction("Country filter cleared.")
                 }}
               >
                 All countries
@@ -789,17 +1108,36 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               {countries.map((country) => (
                 <DropdownMenuCheckboxItem
                   key={country}
-                  className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                  className="w-full text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
                   checked={countryFilter.includes(country)}
                   onSelect={(e) => e.preventDefault()}
                   onCheckedChange={(checked) => {
+                    if (checked) {
+                      setRecentCountryPicks((prev) => {
+                        const next = bumpRecentPick(prev, country)
+                        persistRecentFilterPicks(RECENT_COUNTRIES_KEY, next)
+                        return next
+                      })
+                    }
                     setCountryFilter((prev) =>
                       checked ? [...prev, country] : prev.filter((v) => v !== country)
                     )
                     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                    notifyAction(
+                      checked
+                        ? `Country filter applied: ${country}.`
+                        : `Country filter removed: ${country}.`
+                    )
                   }}
                 >
-                  {country}
+                  <span className="flex min-w-0 flex-1 items-center justify-between gap-2 pr-1">
+                    <span className="min-w-0 truncate">{country}</span>
+                    {recentCountryPicks.includes(country) ? (
+                      <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-cyan-300/90">
+                        Recent
+                      </span>
+                    ) : null}
+                  </span>
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
@@ -862,6 +1200,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             onValueChange={(value) => {
               setCityFilter(value === "all" ? "" : value)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              notifyAction(value === "all" ? "City filter cleared." : `City filter applied: ${value}.`)
             }}
           >
             <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[180px]">
@@ -886,6 +1225,9 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             onValueChange={(value) => {
               setOrgFilter(value === "all" ? "" : value)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              notifyAction(
+                value === "all" ? "Organization filter cleared." : `Organization filter applied: ${value}.`
+              )
             }}
           >
             <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[200px]">
@@ -911,6 +1253,9 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             onChange={(e) => {
               setDateAfter(e.target.value)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              notifyAction(
+                e.target.value ? `Start date set: ${e.target.value}.` : "Start date cleared."
+              )
             }}
             className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[150px]"
           />
@@ -925,6 +1270,9 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             onChange={(e) => {
               setDateBefore(e.target.value)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              notifyAction(
+                e.target.value ? `End date set: ${e.target.value}.` : "End date cleared."
+              )
             }}
             className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[150px]"
           />
@@ -1012,6 +1360,48 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         </div>
       ) : null}
 
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <p
+          className="min-w-0 flex-1 text-sm leading-snug text-[#b3b3b3] md:text-[13px]"
+          role="status"
+          aria-live="polite"
+        >
+          {activeQuerySummary}
+        </p>
+        <div
+          className="flex shrink-0 justify-end"
+          role="group"
+          aria-label="Table row density"
+        >
+          <div className="inline-flex h-8 rounded-full border border-slate-700/50 bg-slate-800/60 p-0.5">
+            <button
+              type="button"
+              onClick={() => setTableDensityPersist("compact")}
+              className={cn(
+                "rounded-full px-2.5 text-[11px] font-semibold transition-colors md:px-3 md:text-xs",
+                tableDensity === "compact"
+                  ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                  : "text-[#9aa39e] hover:text-[#e8eeeb]"
+              )}
+            >
+              Compact
+            </button>
+            <button
+              type="button"
+              onClick={() => setTableDensityPersist("comfortable")}
+              className={cn(
+                "rounded-full px-2.5 text-[11px] font-semibold transition-colors md:px-3 md:text-xs",
+                tableDensity === "comfortable"
+                  ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                  : "text-[#9aa39e] hover:text-[#e8eeeb]"
+              )}
+            >
+              Comfortable
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Data Table */}
       <div className="overflow-x-auto overscroll-x-contain rounded-xl border border-[#2f2f2f] bg-[#181818] shadow-[0_8px_24px_-18px_rgba(30,215,96,0.6)] [-webkit-overflow-scrolling:touch]">
         <Table className="table-fixed [&_tbody_tr:hover]:bg-white/5 [&_td]:border-white/0 [&_th]:text-[#b3b3b3]" style={{ minWidth: `${table.getVisibleLeafColumns().reduce((sum, c) => sum + c.getSize(), 0)}px` }}>
@@ -1021,7 +1411,12 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 {headerGroup.headers.map((header, index) => (
                   <TableHead
                     key={header.id}
-                    className={index === 0 ? "relative pl-4" : "relative"}
+                    className={cn(
+                      index === 0 ? "relative pl-4" : "relative",
+                      tableDensity === "compact"
+                        ? "!h-auto min-h-9 py-1.5 align-top"
+                        : "!h-auto min-h-10 py-2 align-top md:min-h-11 md:py-3"
+                    )}
                     style={{ width: header.getSize() }}
                   >
                     {header.isPlaceholder ? null : (
@@ -1052,7 +1447,12 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                   {row.getVisibleCells().map((cell, index) => (
                     <TableCell
                       key={cell.id}
-                      className={index === 0 ? "pl-4 align-top whitespace-normal" : ""}
+                      className={cn(
+                        index === 0 ? "pl-4 align-top whitespace-normal" : "align-top whitespace-normal",
+                        tableDensity === "compact"
+                          ? "!px-2.5 !py-2 md:!px-3"
+                          : "!px-2.5 !py-2.5 md:!px-3.5 md:!py-4"
+                      )}
                       style={{ width: cell.column.getSize() }}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -1062,8 +1462,31 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-[#8a8a8a]">
-                  No use cases found.
+                <TableCell
+                  colSpan={Math.max(table.getVisibleLeafColumns().length, 1)}
+                  className="px-4 py-8 text-center"
+                >
+                  <div className="mx-auto max-w-xl space-y-2">
+                    <p className="text-base font-medium text-[#e8eeeb]">{emptyStateCopy.title}</p>
+                    <p className="text-sm text-[#8a8a8a]">{emptyStateCopy.description}</p>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-8 border-cyan-500/30 bg-slate-900/55 text-xs text-[#d7dedb] hover:border-cyan-500/55 hover:bg-slate-800/60"
+                        onClick={clearAllFilters}
+                      >
+                        Clear all filters
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => applyExampleQuery("manufacturing ai")}
+                        className="text-xs text-cyan-300 underline-offset-2 hover:text-cyan-200 hover:underline"
+                      >
+                        Try example: &quot;manufacturing ai&quot;
+                      </button>
+                    </div>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -1079,9 +1502,10 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         <div className="flex items-center gap-2">
           <Select
             value={String(pagination.pageSize)}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
               setPagination((prev) => ({ ...prev, pageSize: Number(value), pageIndex: 0 }))
-            }
+              notifyAction(`Rows per page set to ${value}.`)
+            }}
           >
             <SelectTrigger className="w-[120px] border-white/15 bg-[#181818] text-[#f5f5f5]">
               <SelectValue />
@@ -1098,7 +1522,10 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             variant="outline"
             size="sm"
             className="h-10 min-w-[80px] border-white/15 bg-[#1a1a1a] text-[#f5f5f5] hover:border-[#43cc93]/60 hover:bg-[#1f1f1f] md:h-8"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              table.previousPage()
+              notifyAction("Moved to previous page.")
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             Previous
@@ -1107,12 +1534,21 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             variant="outline"
             size="sm"
             className="h-10 min-w-[80px] border-white/15 bg-[#1a1a1a] text-[#f5f5f5] hover:border-[#43cc93]/60 hover:bg-[#1f1f1f] md:h-8"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              table.nextPage()
+              notifyAction("Moved to next page.")
+            }}
             disabled={!table.getCanNextPage()}
           >
             Next
           </Button>
         </div>
+      </div>
+
+      <div className="rounded-xl border border-cyan-500/20 bg-slate-900/45 px-3 py-2.5 text-center text-xs leading-relaxed text-[#9ba4a0]">
+        <span className="font-medium text-[#c9d2cd]">Data note:</span> This index includes publicly
+        referenced AI use cases and organizations currently tracked by AI Atlas. Data is refreshed
+        periodically, with the latest update at <span className="text-[#d7dedb]">{latestDataUpdateCet}</span>.
       </div>
 
       {/* Detail Modal — portal to body to avoid stacking-context issues on mobile */}
@@ -1124,6 +1560,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         : null}
 
       <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
+      <Toaster />
     </div>
   )
 }

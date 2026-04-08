@@ -732,7 +732,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                   : "Filter by Industry"}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-[320px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+            <DropdownMenuContent align="end" className="max-h-[608px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
               <DropdownMenuCheckboxItem
                 className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
                 checked={industryFilter.length === 0}
@@ -774,7 +774,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                   : "Filter by Country"}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="max-h-[320px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+            <DropdownMenuContent align="end" className="max-h-[608px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
               <DropdownMenuCheckboxItem
                 className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
                 checked={countryFilter.length === 0}

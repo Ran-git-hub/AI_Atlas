@@ -31,7 +31,7 @@ export function StatsBar({
           >
             <Database className="h-4 w-4 text-cyan-400" />
             <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalCompanies}</span> Companies
+              <span className="font-semibold text-white">{totalCompanies}</span> Organizations
             </span>
           </button>
           <button
@@ -51,7 +51,7 @@ export function StatsBar({
           >
             <Layers className="h-4 w-4 text-cyan-400" />
             <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalIndustries}</span> Categories
+              <span className="font-semibold text-white">{totalIndustries}</span> Industries
             </span>
           </button>
           <button
@@ -78,7 +78,7 @@ export function StatsBar({
           >
             <Database className="h-4 w-4 text-cyan-400" />
             <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalCompanies}</span> Companies
+              <span className="font-semibold text-white">{totalCompanies}</span> Organizations
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />
@@ -100,7 +100,7 @@ export function StatsBar({
           >
             <Layers className="h-4 w-4 text-cyan-400" />
             <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalIndustries}</span> Categories
+              <span className="font-semibold text-white">{totalIndustries}</span> Industries
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />

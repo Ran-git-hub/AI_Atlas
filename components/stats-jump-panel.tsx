@@ -51,17 +51,17 @@ export function StatsJumpPanel({
         : `${selectedCountries.length} selected`
       : kind === "industries"
         ? isAllSelected
-          ? `All ${industryOptions.length} categories`
+          ? `All ${industryOptions.length} industries`
           : `${selectedIndustries.length} selected`
         : null
 
   const title =
     kind === "companies"
-      ? "Companies"
+      ? "Organizations"
       : kind === "countries"
         ? "Countries"
         : kind === "industries"
-          ? "Categories"
+          ? "Industries"
           : "Use cases"
 
   return (
@@ -152,7 +152,7 @@ export function StatsJumpPanel({
                   }`}
                 >
                   <span>{entry.country}</span>
-                  <span className="text-xs text-slate-400">{entry.count} companies</span>
+                  <span className="text-xs text-slate-400">{entry.count} organizations</span>
                 </button>
               ))}
             </div>
@@ -178,7 +178,7 @@ export function StatsJumpPanel({
                     </span>
                   ) : null}
                 </span>
-                <span className="text-xs text-slate-400">{industryOptions.length} categories</span>
+                <span className="text-xs text-slate-400">{industryOptions.length} industries</span>
               </button>
               {industryOptions.map((entry) => (
                 <button
@@ -192,7 +192,7 @@ export function StatsJumpPanel({
                   }`}
                 >
                   <span>{entry.industry}</span>
-                  <span className="text-xs text-slate-400">{entry.count} companies</span>
+                  <span className="text-xs text-slate-400">{entry.count} organizations</span>
                 </button>
               ))}
             </div>

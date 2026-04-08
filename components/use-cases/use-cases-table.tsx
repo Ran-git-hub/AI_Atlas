@@ -346,6 +346,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
+        cell: ({ row }) => (
+          <div className="whitespace-normal break-words text-sm text-[#f5f5f5]">
+            {firstNonEmpty(row.original.company_name, row.original.company_id)}
+          </div>
+        ),
       },
       {
         id: "industry",

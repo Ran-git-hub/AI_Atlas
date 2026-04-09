@@ -1170,10 +1170,10 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             }`}
             onClick={() => setShowAdvanced((prev) => !prev)}
           >
-            <Filter className="absolute left-3 h-4 w-4" />
+            <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
             <span className="w-full text-center">Other Filters</span>
             {advancedFilterCount > 0 ? (
-              <span className="absolute right-3 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
+              <span className="absolute right-3 top-1/2 inline-flex h-4 min-w-4 -translate-y-1/2 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
                 {advancedFilterCount}
               </span>
             ) : null}
@@ -1185,7 +1185,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 variant="outline"
                 className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px]"
               >
-                <Columns3 className="absolute left-3 h-4 w-4" />
+                <Columns3 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <span className="w-full text-center">Columns</span>
               </Button>
             </DropdownMenuTrigger>
@@ -1528,8 +1528,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             }}
           >
             <SelectTrigger
-              size="sm"
-              className="h-10 w-[120px] border-white/15 bg-[#181818] text-[#f5f5f5] md:h-8"
+              className="!h-10 w-[120px] border-white/15 bg-[#181818] py-0 leading-none text-[#f5f5f5]"
             >
               <SelectValue />
             </SelectTrigger>
@@ -1541,7 +1540,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               ))}
             </SelectContent>
           </Select>
-          <div className="flex h-10 min-w-[92px] items-center rounded-md border border-white/15 bg-[#181818] px-2 text-sm font-medium tabular-nums text-[#f5f5f5] md:h-8">
+          <div className="flex h-10 min-w-[92px] items-center rounded-md border border-white/15 bg-[#181818] px-2 text-sm font-medium tabular-nums text-[#f5f5f5]">
             <div className="mx-auto inline-flex w-[66px] items-center justify-center">
               <input
                 type="text"
@@ -1568,8 +1567,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </div>
           <Button
             variant="outline"
-            size="sm"
-            className="h-10 min-w-[80px] border-white/15 bg-[#1a1a1a] text-[#f5f5f5] hover:border-[#43cc93]/60 hover:bg-[#1f1f1f] md:h-8"
+            className="h-10 min-w-[80px] border-white/15 bg-[#1a1a1a] text-[#f5f5f5] hover:border-[#43cc93]/60 hover:bg-[#1f1f1f]"
             onClick={() => {
               table.previousPage()
               notifyAction("Moved to previous page.")
@@ -1580,8 +1578,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            className="h-10 min-w-[80px] border-white/15 bg-[#1a1a1a] text-[#f5f5f5] hover:border-[#43cc93]/60 hover:bg-[#1f1f1f] md:h-8"
+            className="h-10 min-w-[80px] border-white/15 bg-[#1a1a1a] text-[#f5f5f5] hover:border-[#43cc93]/60 hover:bg-[#1f1f1f]"
             onClick={() => {
               table.nextPage()
               notifyAction("Moved to next page.")

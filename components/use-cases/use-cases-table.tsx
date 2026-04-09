@@ -304,6 +304,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     pageIndex: Math.max(initialState.page - 1, 0),
     pageSize: initialState.pageSize,
   })
+  const [pageJumpInput, setPageJumpInput] = React.useState(String(Math.max(initialState.page, 1)))
   const [activeDetail, setActiveDetail] = React.useState<UseCaseCatalogRow | null>(null)
 
   const openDetail = React.useCallback((row: UseCaseCatalogRow) => {
@@ -846,6 +847,23 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }, [])
 
+  const totalPages = Math.max(table.getPageCount(), 1)
+  const currentPage = table.getState().pagination.pageIndex + 1
+
+  React.useEffect(() => {
+    setPageJumpInput(String(currentPage))
+  }, [currentPage])
+
+  const commitPageJump = React.useCallback(() => {
+    const parsed = Number.parseInt(pageJumpInput, 10)
+    const safePage = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), totalPages) : currentPage
+    setPageJumpInput(String(safePage))
+    if (safePage !== currentPage) {
+      setPagination((prev) => ({ ...prev, pageIndex: safePage - 1 }))
+      notifyAction(`Jumped to page ${safePage}.`)
+    }
+  }, [currentPage, notifyAction, pageJumpInput, totalPages])
+
   function clearAllFilters() {
     setSearchInput("")
     setGlobalFilter("")
@@ -1023,8 +1041,9 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[220px]"
+                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
               >
+                <Filter className="mr-2 h-4 w-4 shrink-0" aria-hidden />
                 {industryFilter.length > 0
                   ? `${industryFilter.length} Industries`
                   : "Filter by Industry"}
@@ -1085,8 +1104,9 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[200px]"
+                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[175px]"
               >
+                <Filter className="mr-2 h-4 w-4 shrink-0" aria-hidden />
                 {countryFilter.length > 0
                   ? `${countryFilter.length} Countries`
                   : "Filter by Country"}
@@ -1507,7 +1527,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               notifyAction(`Rows per page set to ${value}.`)
             }}
           >
-            <SelectTrigger className="w-[120px] border-white/15 bg-[#181818] text-[#f5f5f5]">
+            <SelectTrigger size="sm" className="w-[120px] border-white/15 bg-[#181818] text-[#f5f5f5]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="border-white/15 bg-[#181818] text-[#f5f5f5]">
@@ -1518,6 +1538,31 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               ))}
             </SelectContent>
           </Select>
+          <div className="flex h-8 min-w-[92px] items-center rounded-md border border-white/15 bg-[#181818] px-2 text-sm font-medium tabular-nums text-[#f5f5f5]">
+            <div className="mx-auto inline-flex w-[66px] items-center justify-center">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={pageJumpInput}
+                onChange={(e) => {
+                  const next = e.target.value.replace(/\D/g, "")
+                  setPageJumpInput(next)
+                }}
+                onBlur={commitPageJump}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    commitPageJump()
+                  }
+                }}
+                className="h-full w-[28px] bg-transparent py-0 text-center text-sm leading-none font-medium text-[#f5f5f5] outline-none"
+                aria-label="Current page number"
+              />
+              <span className="mx-1 text-[#9ba4a0]">/</span>
+              <span className="min-w-[26px] text-center">{totalPages}</span>
+            </div>
+          </div>
           <Button
             variant="outline"
             size="sm"

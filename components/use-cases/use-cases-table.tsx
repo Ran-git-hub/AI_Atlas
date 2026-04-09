@@ -938,21 +938,28 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         <h1 className="sr-only">
           AI Atlas - Daily updates on real-world AI deployments worldwide
         </h1>
-        <div className="w-full min-w-0">
-          <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-2 sm:gap-x-3">
-            <div className="min-w-0" aria-hidden="true" />
-            <div className="flex min-w-0 max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-3 sm:gap-y-2">
-              <div className="flex shrink-0 items-center gap-2">
-                <AtlasLogoMark
-                  className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
-                  iconClassName="h-[1.45rem] w-[1.45rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem]"
-                />
-                <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base md:text-lg">
-                  AI Atlas
-                </span>
-              </div>
-              <AtlasSiteTagline className="min-w-0 max-w-full flex-[1_1_100%] text-center leading-snug sm:flex-[0_1_auto] sm:max-w-md sm:text-left" />
-              <Button asChild variant="outline" className={cn("pointer-events-auto shrink-0", viewSwitchButtonClassName)}>
+        <div className="relative w-full min-w-0 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-x-3 md:gap-y-2">
+          <div className="hidden min-w-0 md:block" aria-hidden="true" />
+          <div className="flex min-w-0 max-w-full flex-col gap-1 pr-[4.5rem] md:flex-row md:flex-wrap md:items-center md:justify-center md:gap-x-3 md:gap-y-2 md:pr-0">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <AtlasLogoMark
+                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 md:h-9 md:w-9"
+                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] md:h-[1.45rem] md:w-[1.45rem]"
+              />
+              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base md:text-lg">
+                AI Atlas
+              </span>
+            </div>
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 max-md:justify-between md:contents">
+              <AtlasSiteTagline className="min-w-0 max-w-full flex-1 text-[11px] leading-tight tracking-tight max-md:text-left md:flex-[0_1_auto] md:max-w-md md:text-center md:text-sm md:leading-snug md:tracking-wide" />
+              <Button
+                asChild
+                variant="outline"
+                className={cn(
+                  "pointer-events-auto max-md:h-8 max-md:shrink-0 max-md:px-2.5 max-md:text-[11px]",
+                  viewSwitchButtonClassName
+                )}
+              >
                 <Link
                   href="/"
                   style={{
@@ -962,11 +969,13 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                     boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
                   }}
                 >
-                  Switch to Globe View
+                  <span className="md:hidden">Globe</span>
+                  <span className="hidden md:inline">Switch to Globe View</span>
                 </Link>
               </Button>
             </div>
-            <div className="flex min-w-0 justify-end self-start sm:self-center">
+          </div>
+          <div className="absolute right-0 top-0 z-10 md:relative md:top-auto md:right-auto md:flex md:min-w-0 md:justify-end md:self-center">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
@@ -1028,7 +1037,6 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             </div>
           </div>
         </div>
-      </div>
 
       <div className="mt-2.5 flex flex-col gap-3">
       {/* Toolbar */}

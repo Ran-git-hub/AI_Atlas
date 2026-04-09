@@ -63,6 +63,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AdvancedFilterDateField } from "@/components/use-cases/advanced-filter-date-field"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { Toaster } from "@/components/ui/toaster"
 import { toast } from "@/hooks/use-toast"
@@ -1041,13 +1042,15 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
+                className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
               >
-                <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" aria-hidden />
-                <span className="w-full text-center">
-                  {industryFilter.length > 0
-                    ? `${industryFilter.length} Industries`
-                    : "Filter by Industry"}
+                <span className="flex w-full min-w-0 items-center justify-center gap-2">
+                  <Filter className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="min-w-0 truncate">
+                    {industryFilter.length > 0
+                      ? `${industryFilter.length} Industries`
+                      : "Filter by Industry"}
+                  </span>
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -1106,13 +1109,15 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[175px]"
+                className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[175px]"
               >
-                <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" aria-hidden />
-                <span className="w-full text-center">
-                  {countryFilter.length > 0
-                    ? `${countryFilter.length} Countries`
-                    : "Filter by Country"}
+                <span className="flex w-full min-w-0 items-center justify-center gap-2">
+                  <Filter className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="min-w-0 truncate">
+                    {countryFilter.length > 0
+                      ? `${countryFilter.length} Countries`
+                      : "Filter by Country"}
+                  </span>
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -1169,15 +1174,17 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
           <Button
             variant="outline"
-            className={`relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px] ${
+            className={`relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px] ${
               showAdvanced ? "border-cyan-500/60 bg-cyan-500/12" : ""
-            }`}
+            } ${advancedFilterCount > 0 ? "pr-9" : ""}`}
             onClick={() => setShowAdvanced((prev) => !prev)}
           >
-            <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-            <span className="w-full text-center">Other Filters</span>
+            <span className="flex w-full min-w-0 items-center justify-center gap-2">
+              <Filter className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="min-w-0 truncate">Other Filters</span>
+            </span>
             {advancedFilterCount > 0 ? (
-              <span className="absolute right-3 top-1/2 inline-flex h-4 min-w-4 -translate-y-1/2 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
+              <span className="absolute right-2.5 top-1/2 inline-flex h-4 min-w-4 -translate-y-1/2 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
                 {advancedFilterCount}
               </span>
             ) : null}
@@ -1187,10 +1194,12 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px]"
+                className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px]"
               >
-                <Columns3 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                <span className="w-full text-center">Columns</span>
+                <span className="flex w-full min-w-0 items-center justify-center gap-2">
+                  <Columns3 className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="min-w-0 truncate">Columns</span>
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
@@ -1214,91 +1223,89 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
       {/* Advanced Filters Panel */}
       {showAdvanced ? (
-        <div className="flex flex-col gap-2 rounded-xl border border-cyan-500/25 bg-slate-900/65 p-3 backdrop-blur-md md:flex-row md:items-center">
-          <div className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
+        <div className="w-full min-w-0 gap-2 rounded-xl border border-cyan-500/25 bg-slate-900/65 p-3 backdrop-blur-md max-md:grid max-md:grid-cols-1 max-md:[grid-template-columns:minmax(0,1fr)] md:flex md:flex-row md:flex-wrap md:items-center">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
             <MapPin className="h-3 w-3" />
             City
           </div>
-          <Select
-            value={cityFilter || "all"}
-            onValueChange={(value) => {
-              setCityFilter(value === "all" ? "" : value)
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-              notifyAction(value === "all" ? "City filter cleared." : `City filter applied: ${value}.`)
-            }}
-          >
-            <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[180px]">
-              <SelectValue placeholder="City" />
-            </SelectTrigger>
-            <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
-              <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All cities</SelectItem>
-              {cities.map((city) => (
-                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={city} value={city}>
-                  {city}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="min-w-0 w-full md:w-auto">
+            <Select
+              value={cityFilter || "all"}
+              onValueChange={(value) => {
+                setCityFilter(value === "all" ? "" : value)
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                notifyAction(value === "all" ? "City filter cleared." : `City filter applied: ${value}.`)
+              }}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[180px]">
+                <SelectValue placeholder="City" />
+              </SelectTrigger>
+              <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All cities</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
             <Building2 className="h-3 w-3" />
             Organization
           </div>
-          <Select
-            value={orgFilter || "all"}
-            onValueChange={(value) => {
-              setOrgFilter(value === "all" ? "" : value)
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-              notifyAction(
-                value === "all" ? "Organization filter cleared." : `Organization filter applied: ${value}.`
-              )
-            }}
-          >
-            <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[200px]">
-              <SelectValue placeholder="Organization" />
-            </SelectTrigger>
-            <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
-              <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All organizations</SelectItem>
-              {organizations.map((org) => (
-                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={org} value={org}>
-                  {org}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="min-w-0 w-full md:w-auto">
+            <Select
+              value={orgFilter || "all"}
+              onValueChange={(value) => {
+                setOrgFilter(value === "all" ? "" : value)
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                notifyAction(
+                  value === "all" ? "Organization filter cleared." : `Organization filter applied: ${value}.`
+                )
+              }}
+            >
+              <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[200px]">
+                <SelectValue placeholder="Organization" />
+              </SelectTrigger>
+              <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All organizations</SelectItem>
+                {organizations.map((org) => (
+                  <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={org} value={org}>
+                    {org}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
             <Calendar className="h-3 w-3" />
             After
           </div>
-          <Input
-            type="date"
+          <AdvancedFilterDateField
             value={dateAfter}
-            onChange={(e) => {
-              setDateAfter(e.target.value)
+            emptyLabel="After date"
+            onChange={(next) => {
+              setDateAfter(next)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-              notifyAction(
-                e.target.value ? `Start date set: ${e.target.value}.` : "Start date cleared."
-              )
+              notifyAction(next ? `Start date set: ${next}.` : "Start date cleared.")
             }}
-            className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[150px]"
           />
 
-          <div className="flex items-center gap-1.5 text-xs text-[#8a8a8a]">
+          <div className="flex min-w-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
             <Calendar className="h-3 w-3" />
             Before
           </div>
-          <Input
-            type="date"
+          <AdvancedFilterDateField
             value={dateBefore}
-            onChange={(e) => {
-              setDateBefore(e.target.value)
+            emptyLabel="Before date"
+            onChange={(next) => {
+              setDateBefore(next)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-              notifyAction(
-                e.target.value ? `End date set: ${e.target.value}.` : "End date cleared."
-              )
+              notifyAction(next ? `End date set: ${next}.` : "End date cleared.")
             }}
-            className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[150px]"
           />
         </div>
       ) : null}

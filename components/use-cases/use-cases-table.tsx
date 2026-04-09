@@ -1034,7 +1034,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             setPagination((prev) => ({ ...prev, pageIndex: 0 }))
           }}
           placeholder="Search Use Case/ Orgnization / Industry ..."
-          className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[460px] md:text-sm"
+          className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
         />
         <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
           <DropdownMenu>

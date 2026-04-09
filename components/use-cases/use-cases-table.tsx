@@ -1165,15 +1165,15 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
           <Button
             variant="outline"
-            className={`h-10 w-full justify-start rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-left text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px] ${
+            className={`relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px] ${
               showAdvanced ? "border-cyan-500/60 bg-cyan-500/12" : ""
             }`}
             onClick={() => setShowAdvanced((prev) => !prev)}
           >
-            <Filter className="mr-2 h-4 w-4" />
-          Other Filters
+            <Filter className="absolute left-3 h-4 w-4" />
+            <span className="w-full text-center">Other Filters</span>
             {advancedFilterCount > 0 ? (
-              <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
+              <span className="absolute right-3 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
                 {advancedFilterCount}
               </span>
             ) : null}
@@ -1183,10 +1183,10 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 w-full justify-start rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-left text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px]"
+                className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px]"
               >
-                <Columns3 className="mr-2 h-4 w-4" />
-                Columns
+                <Columns3 className="absolute left-3 h-4 w-4" />
+                <span className="w-full text-center">Columns</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
@@ -1527,7 +1527,10 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               notifyAction(`Rows per page set to ${value}.`)
             }}
           >
-            <SelectTrigger size="sm" className="w-[120px] border-white/15 bg-[#181818] text-[#f5f5f5]">
+            <SelectTrigger
+              size="sm"
+              className="h-10 w-[120px] border-white/15 bg-[#181818] text-[#f5f5f5] md:h-8"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="border-white/15 bg-[#181818] text-[#f5f5f5]">
@@ -1538,7 +1541,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               ))}
             </SelectContent>
           </Select>
-          <div className="flex h-8 min-w-[92px] items-center rounded-md border border-white/15 bg-[#181818] px-2 text-sm font-medium tabular-nums text-[#f5f5f5]">
+          <div className="flex h-10 min-w-[92px] items-center rounded-md border border-white/15 bg-[#181818] px-2 text-sm font-medium tabular-nums text-[#f5f5f5] md:h-8">
             <div className="mx-auto inline-flex w-[66px] items-center justify-center">
               <input
                 type="text"

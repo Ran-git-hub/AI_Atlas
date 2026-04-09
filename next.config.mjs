@@ -13,7 +13,9 @@ const nextConfig = {
    * "Loading Globe..." on phone/tablet.
    * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
    */
-  allowedDevOrigins: (process.env.NEXT_DEV_LAN_ORIGINS ?? "192.168.0.200")
+  allowedDevOrigins: (
+    process.env.NEXT_DEV_LAN_ORIGINS ?? "localhost,127.0.0.1,192.168.0.34,192.168.0.200"
+  )
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),

@@ -1534,7 +1534,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <SelectTrigger
               className="!h-10 w-[120px] border-white/15 bg-[#181818] !py-0 leading-none text-[#f5f5f5]"
             >
-              <SelectValue />
+              <span className="text-[#f5f5f5]">{pagination.pageSize} / page</span>
             </SelectTrigger>
             <SelectContent className="border-white/15 bg-[#181818] text-[#f5f5f5]">
               {[20, 50, 100].map((size) => (

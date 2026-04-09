@@ -10,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
 import { cn } from "@/lib/utils"
 import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
@@ -226,20 +227,10 @@ export function SearchBar({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
       <div className="max-w-4xl mx-auto pointer-events-auto" ref={rootRef}>
-        <div className="flex items-center gap-4">
-          <div className="relative flex shrink-0 items-center gap-2">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800/80 backdrop-blur-sm border border-cyan-500/30">
-              <TechLobsterIcon className="h-[1.65rem] w-[1.65rem] text-cyan-400" />
-            </div>
-            <span className="hidden text-lg font-semibold text-white sm:block">AI Atlas</span>
-            <Button
-              asChild
-              variant="outline"
-              className={cn(
-                "pointer-events-auto absolute left-0 top-full mt-2",
-                viewSwitchButtonClassName,
-              )}
-            >
+        <div className="grid w-full grid-cols-[minmax(4.5rem,1fr)_auto_minmax(4.5rem,1fr)] items-center gap-x-2">
+          <div className="min-w-0" aria-hidden="true" />
+          <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+            <Button asChild variant="outline" className={cn("pointer-events-auto shrink-0", viewSwitchButtonClassName)}>
               <Link
                 href="/use-cases"
                 style={{
@@ -252,9 +243,20 @@ export function SearchBar({
                 Switch to Index View
               </Link>
             </Button>
+            <AtlasSiteTagline className="w-full text-center leading-snug sm:w-auto sm:text-left" />
+          </div>
+          <div className="min-w-0" aria-hidden="true" />
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm">
+              <TechLobsterIcon className="h-[1.65rem] w-[1.65rem] text-cyan-400" />
+            </div>
+            <span className="hidden text-lg font-semibold text-white sm:block">AI Atlas</span>
           </div>
 
-          <div className="relative flex-1 min-w-0 translate-x-[20px] sm:max-w-xl">
+          <div className="relative min-w-0 flex-1 translate-x-[20px] sm:max-w-xl">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                 <Search className="h-4 w-4 text-slate-500" />

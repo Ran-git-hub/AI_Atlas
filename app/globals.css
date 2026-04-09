@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* SearchBar: p-4 + row (max h-11) + p-4 — detail panels start below this */
-  --app-top-bar-height: 4.75rem;
+  /* SearchBar: p-4 + row1 + mt-2.5 + logo/search row + p-4 — detail panels start below this */
+  --app-top-bar-height: calc(9rem + 2px);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

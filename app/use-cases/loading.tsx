@@ -1,3 +1,4 @@
+import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function UseCasesLoading() {
@@ -8,9 +9,15 @@ export default function UseCasesLoading() {
           Loading use case index…
         </p>
 
-        <div className="flex items-center justify-between gap-2">
-          <Skeleton className="h-8 w-40 rounded-full bg-slate-700/50" />
-          <Skeleton className="h-9 w-20 rounded-full bg-slate-700/50" />
+        <div className="grid w-full grid-cols-[minmax(4.5rem,1fr)_auto_minmax(4.5rem,1fr)] items-center gap-x-2">
+          <div className="min-w-0" aria-hidden="true" />
+          <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+            <Skeleton className="h-8 w-40 shrink-0 rounded-full bg-slate-700/50" />
+            <AtlasSiteTagline className="w-full text-center leading-snug sm:w-auto sm:text-left" />
+          </div>
+          <div className="flex justify-end">
+            <Skeleton className="h-9 w-20 shrink-0 rounded-full bg-slate-700/50" />
+          </div>
         </div>
 
         <div className="rounded-2xl border border-cyan-500/20 bg-slate-800/35 px-3 py-3 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.35)] md:px-6 md:py-4">

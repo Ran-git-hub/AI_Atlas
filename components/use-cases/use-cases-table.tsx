@@ -63,6 +63,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
 import { AdvancedFilterDateField } from "@/components/use-cases/advanced-filter-date-field"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { Toaster } from "@/components/ui/toaster"
@@ -910,25 +911,29 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
   return (
     <div className="space-y-3 text-[#f5f5f5]">
-      <div className="mb-1 flex items-center justify-between gap-2 -translate-y-[5px]">
-        <Button
-          asChild
-          variant="outline"
-          className="h-8 rounded-full px-3 text-xs font-semibold backdrop-blur-md"
-        >
-          <Link
-            href="/"
-            style={{
-              borderColor: "rgba(165, 243, 252, 0.6)",
-              backgroundColor: "rgba(34, 211, 238, 0.2)",
-              color: "#cffafe",
-              boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-            }}
+      <div className="mb-1 grid w-full grid-cols-[minmax(4.5rem,1fr)_auto_minmax(4.5rem,1fr)] items-center gap-x-2 -translate-y-[5px]">
+        <div className="min-w-0" aria-hidden="true" />
+        <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+          <Button
+            asChild
+            variant="outline"
+            className="h-8 shrink-0 rounded-full px-3 text-xs font-semibold backdrop-blur-md"
           >
-            Switch to Globe View
-          </Link>
-        </Button>
-
+            <Link
+              href="/"
+              style={{
+                borderColor: "rgba(165, 243, 252, 0.6)",
+                backgroundColor: "rgba(34, 211, 238, 0.2)",
+                color: "#cffafe",
+                boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
+              }}
+            >
+              Switch to Globe View
+            </Link>
+          </Button>
+          <AtlasSiteTagline className="w-full text-center leading-snug sm:w-auto sm:text-left" />
+        </div>
+        <div className="flex min-w-0 justify-end">
         <Dialog>
           <DialogTrigger asChild>
             <Button
@@ -987,6 +992,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             </ul>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Header + KPI Stats Strip */}

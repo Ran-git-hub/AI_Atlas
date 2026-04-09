@@ -30,7 +30,7 @@ export default async function UseCasesPage({
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
-      <div className="mx-auto max-w-7xl px-3 py-4 md:px-6 md:py-8">
+      <div className="mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]">
         <UseCasesTable
           rows={rows}
           latestDataUpdateCet={latestDataUpdateCet}

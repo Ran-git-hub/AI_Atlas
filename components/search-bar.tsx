@@ -227,38 +227,34 @@ export function SearchBar({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
       <div className="max-w-4xl mx-auto pointer-events-auto" ref={rootRef}>
-        <div className="grid w-full grid-cols-[minmax(4.5rem,1fr)_auto_minmax(4.5rem,1fr)] items-center gap-x-2">
-          <div className="min-w-0" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
-            <Button asChild variant="outline" className={cn("pointer-events-auto shrink-0", viewSwitchButtonClassName)}>
-              <Link
-                href="/use-cases"
-                style={{
-                  borderColor: "rgba(165, 243, 252, 0.6)",
-                  backgroundColor: "rgba(34, 211, 238, 0.2)",
-                  color: "#cffafe",
-                  boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-                }}
-              >
-                Switch to Index View
-              </Link>
-            </Button>
-            <AtlasSiteTagline className="w-full text-center leading-snug sm:w-auto sm:text-left" />
-          </div>
-          <div className="min-w-0" aria-hidden="true" />
-        </div>
-
-        <div className="mt-2.5 flex items-center gap-4">
+        <div className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-3 sm:gap-y-2">
           <div className="flex shrink-0 items-center gap-2">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm">
-              <TechLobsterIcon className="h-[1.65rem] w-[1.65rem] text-cyan-400" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm sm:h-10 sm:w-10">
+              <TechLobsterIcon className="h-[1.45rem] w-[1.45rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem]" />
             </div>
-            <span className="shrink-0 text-base font-semibold tracking-tight text-white sm:text-lg">
+            <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base md:text-lg">
               AI Atlas
             </span>
           </div>
+          <AtlasSiteTagline className="min-w-0 max-w-full flex-[1_1_100%] text-center leading-snug sm:flex-[0_1_auto] sm:max-w-md sm:text-left" />
+          <Button asChild variant="outline" className={cn("pointer-events-auto shrink-0", viewSwitchButtonClassName)}>
+            <Link
+              href="/use-cases"
+              style={{
+                borderColor: "rgba(165, 243, 252, 0.6)",
+                backgroundColor: "rgba(34, 211, 238, 0.2)",
+                color: "#cffafe",
+                boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
+              }}
+            >
+              Switch to Index View
+            </Link>
+          </Button>
+        </div>
 
-          <div className="relative min-w-0 flex-1 translate-x-[20px] sm:max-w-xl">
+        <div className="mt-2.5 flex justify-center">
+          <div className="flex w-full max-w-2xl items-center gap-3">
+          <div className="relative min-w-0 flex-1">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                 <Search className="h-4 w-4 text-slate-500" />
@@ -578,7 +574,7 @@ export function SearchBar({
               </div>
             </div>
 
-          <div className="flex shrink-0 translate-x-[20px] items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <Popover open={filterOpen} onOpenChange={setFilterOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -641,6 +637,7 @@ export function SearchBar({
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
         </div>
       </div>
     </header>

@@ -22,16 +22,14 @@ import {
   CircleHelp,
   Columns3,
   ExternalLink,
-  Factory,
   Filter,
-  Globe,
-  Hash,
   MapPin,
   X,
 } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -176,35 +174,24 @@ function sortColumnLabel(columnId: string): string {
   return labels[columnId] ?? columnId.replaceAll("_", " ")
 }
 
-function KpiStat({
-  icon,
-  label,
-  value,
+function AtlasLogoMark({
+  className,
+  iconClassName,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: string | number
-}) {
+  className?: string
+  iconClassName?: string
+} = {}) {
   return (
-    <div className="flex min-h-[3.25rem] cursor-default flex-col justify-center gap-1 rounded-xl border border-cyan-500/15 bg-slate-950/40 px-3 py-2.5 text-xs shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] select-none md:min-h-0 md:flex-row md:items-center md:gap-1.5 md:rounded-sm md:border-0 md:border-l md:border-white/20 md:bg-transparent md:px-2 md:py-0.5 md:shadow-none">
-      <div className="flex items-center gap-1.5 text-[#7f8a85]">
-        {icon}
-        <span className="font-medium tracking-wide">{label}</span>
-      </div>
-      <span className="truncate text-[13px] font-semibold tabular-nums text-[#e8eeeb] md:text-xs md:font-medium md:text-[#d7dedb]">
-        {value}
-      </span>
-    </div>
-  )
-}
-
-function AtlasLogoMark() {
-  return (
-    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm md:h-9 md:w-9">
+    <div
+      className={cn(
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm md:h-9 md:w-9",
+        className,
+      )}
+    >
       <svg
         viewBox="0 0 24 24"
         aria-hidden="true"
-        className="h-5 w-5 text-cyan-400 md:h-6 md:w-6"
+        className={cn("h-5 w-5 text-cyan-400 md:h-6 md:w-6", iconClassName)}
         fill="none"
         stroke="currentColor"
         strokeWidth="1.7"
@@ -699,38 +686,6 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   const filteredRows = table.getFilteredRowModel().rows
   const filteredRowCount = filteredRows.length
 
-  const activeQuerySummary = React.useMemo(() => {
-    const parts: string[] = []
-    parts.push(
-      `Showing ${filteredRowCount.toLocaleString()} result${filteredRowCount === 1 ? "" : "s"}`
-    )
-    if (industryFilter.length > 0) {
-      parts.push(
-        `${industryFilter.length} ${industryFilter.length === 1 ? "industry" : "industries"}`
-      )
-    }
-    if (countryFilter.length > 0) {
-      parts.push(
-        `${countryFilter.length} ${countryFilter.length === 1 ? "country" : "countries"}`
-      )
-    }
-    const q = globalFilter.trim()
-    if (q) {
-      parts.push(q.length > 40 ? `matching "${q.slice(0, 40)}…"` : `matching "${q}"`)
-    }
-    const col = sorting[0]
-    const isDefaultUpdatedDesc = !col || (col.id === "updated_at" && col.desc)
-    if (isDefaultUpdatedDesc) {
-      parts.push("sorted by Updated")
-    } else if (col && col.id === "updated_at" && !col.desc) {
-      parts.push("sorted by Updated (oldest first)")
-    } else if (col) {
-      const label = sortColumnLabel(col.id)
-      parts.push(`sorted by ${label} (${col.desc ? "descending" : "ascending"})`)
-    }
-    return parts.join(" · ")
-  }, [countryFilter, filteredRowCount, globalFilter, industryFilter, sorting])
-
   const filteredOriginals = React.useMemo(
     () => filteredRows.map((r) => r.original),
     [filteredRows]
@@ -769,6 +724,74 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       countries: ctrs.size,
     }
   }, [dateFilteredRows, filteredOriginals, dateAfter, dateBefore, rows.length])
+
+  const activeQuerySummary = React.useMemo(() => {
+    const parts: string[] = []
+    if (filteredRowCount === rows.length) {
+      parts.push(
+        `Showing ${filteredRowCount.toLocaleString()} result${filteredRowCount === 1 ? "" : "s"}`
+      )
+    } else {
+      parts.push(
+        `Showing ${filteredRowCount.toLocaleString()} of ${rows.length.toLocaleString()} results`
+      )
+    }
+    if (isMobileTableLayout) {
+      parts.push(
+        `${kpiStats.orgs.toLocaleString()} org${kpiStats.orgs === 1 ? "" : "s"}`,
+        `${kpiStats.industries.toLocaleString()} industr${kpiStats.industries === 1 ? "y" : "ies"}`,
+        `${kpiStats.countries.toLocaleString()} countr${kpiStats.countries === 1 ? "y" : "ies"}`
+      )
+    } else {
+      parts.push(
+        `${kpiStats.orgs.toLocaleString()} organization${kpiStats.orgs === 1 ? "" : "s"}`,
+        `${kpiStats.industries.toLocaleString()} industr${kpiStats.industries === 1 ? "y" : "ies"}`,
+        `${kpiStats.countries.toLocaleString()} countr${kpiStats.countries === 1 ? "y" : "ies"}`
+      )
+    }
+    if (industryFilter.length > 0) {
+      parts.push(
+        `${industryFilter.length} ${industryFilter.length === 1 ? "industry" : "industries"}`
+      )
+    }
+    if (countryFilter.length > 0) {
+      parts.push(
+        `${countryFilter.length} ${countryFilter.length === 1 ? "country" : "countries"}`
+      )
+    }
+    const q = globalFilter.trim()
+    if (q) {
+      parts.push(q.length > 40 ? `matching "${q.slice(0, 40)}…"` : `matching "${q}"`)
+    }
+    const col = sorting[0]
+    const isDefaultUpdatedDesc = !col || (col.id === "updated_at" && col.desc)
+    if (isDefaultUpdatedDesc) {
+      parts.push(isMobileTableLayout ? "by Updated" : "sorted by Updated")
+    } else if (col && col.id === "updated_at" && !col.desc) {
+      parts.push(
+        isMobileTableLayout ? "Updated (oldest)" : "sorted by Updated (oldest first)"
+      )
+    } else if (col) {
+      const label = sortColumnLabel(col.id)
+      parts.push(
+        isMobileTableLayout
+          ? `${label} (${col.desc ? "↓" : "↑"})`
+          : `sorted by ${label} (${col.desc ? "descending" : "ascending"})`
+      )
+    }
+    return parts.join(" · ")
+  }, [
+    countryFilter,
+    filteredRowCount,
+    globalFilter,
+    industryFilter,
+    isMobileTableLayout,
+    kpiStats.countries,
+    kpiStats.industries,
+    kpiStats.orgs,
+    rows.length,
+    sorting,
+  ])
 
   const industries = React.useMemo(
     () =>
@@ -910,130 +933,106 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   ])
 
   return (
-    <div className="space-y-3 text-[#f5f5f5]">
-      <div className="mb-1 grid w-full grid-cols-[minmax(4.5rem,1fr)_auto_minmax(4.5rem,1fr)] items-center gap-x-2 -translate-y-[5px]">
-        <div className="min-w-0" aria-hidden="true" />
-        <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
-          <Button
-            asChild
-            variant="outline"
-            className="h-8 shrink-0 rounded-full px-3 text-xs font-semibold backdrop-blur-md"
-          >
-            <Link
-              href="/"
-              style={{
-                borderColor: "rgba(165, 243, 252, 0.6)",
-                backgroundColor: "rgba(34, 211, 238, 0.2)",
-                color: "#cffafe",
-                boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-              }}
-            >
-              Switch to Globe View
-            </Link>
-          </Button>
-          <AtlasSiteTagline className="w-full text-center leading-snug sm:w-auto sm:text-left" />
-        </div>
-        <div className="flex min-w-0 justify-end">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9 shrink-0 rounded-full border-slate-700/50 bg-slate-800/60 px-4 text-sm font-semibold leading-none text-white backdrop-blur-md hover:border-cyan-500/60 hover:bg-slate-700/60"
-            >
-              <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
-              Help
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-h-[min(85vh,520px)] overflow-y-auto border-cyan-500/25 bg-slate-900/98 text-[#f5f5f5] shadow-xl sm:max-w-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
+    <div className="text-[#f5f5f5]">
+      <div>
+        <h1 className="sr-only">
+          AI Atlas - Daily updates on real-world AI deployments worldwide
+        </h1>
+        <div className="w-full min-w-0">
+          <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-2 sm:gap-x-3">
+            <div className="min-w-0" aria-hidden="true" />
+            <div className="flex min-w-0 max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-3 sm:gap-y-2">
+              <div className="flex shrink-0 items-center gap-2">
+                <AtlasLogoMark
+                  className="h-9 w-9 shrink-0 sm:h-10 sm:w-10"
+                  iconClassName="h-[1.45rem] w-[1.45rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem]"
+                />
+                <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base md:text-lg">
+                  AI Atlas
+                </span>
+              </div>
+              <AtlasSiteTagline className="min-w-0 max-w-full flex-[1_1_100%] text-center leading-snug sm:flex-[0_1_auto] sm:max-w-md sm:text-left" />
+              <Button asChild variant="outline" className={cn("pointer-events-auto shrink-0", viewSwitchButtonClassName)}>
+                <Link
+                  href="/"
+                  style={{
+                    borderColor: "rgba(165, 243, 252, 0.6)",
+                    backgroundColor: "rgba(34, 211, 238, 0.2)",
+                    color: "#cffafe",
+                    boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
+                  }}
+                >
+                  Switch to Globe View
+                </Link>
+              </Button>
+            </div>
+            <div className="flex min-w-0 justify-end self-start sm:self-center">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 shrink-0 rounded-full border-slate-700/50 bg-slate-800/60 px-4 text-sm font-semibold leading-none text-white backdrop-blur-md hover:border-cyan-500/60 hover:bg-slate-700/60"
+                  >
+                    <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
+                    Help
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[min(85vh,520px)] overflow-y-auto border-cyan-500/25 bg-slate-900/98 text-[#f5f5f5] shadow-xl sm:max-w-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
             <DialogHeader>
               <DialogTitle className="text-[#f8fafa]">Quick help</DialogTitle>
             </DialogHeader>
             <ul className="list-disc space-y-2.5 pl-4 text-sm leading-relaxed text-[#d7dedb]">
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Industry and Country:</strong>{" "}
-                multi-select filters; the menu stays open while you tick several values (use &quot;All&quot;
-                to clear that dimension). Values you have picked recently are tagged{" "}
-                <span className="whitespace-nowrap">Recent</span> inside each list (stored locally in this
-                browser).
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">&quot;New&quot; badge:</strong> the use case was
-                updated within the last 24 hours (same rule as on the globe view).
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Column widths:</strong> drag the grip
-                between header cells to resize; double-click the grip to reset a column width (desktop).
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Shareable URL:</strong> search text,
-                industry/country selections, sort, visible columns, page, and page size are reflected in
-                the address bar — copy the link to share the same view.
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Search:</strong> matches use case title,
-                description, organization name, industry, country, and city text.
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Other filters:</strong> open{" "}
-                <span className="whitespace-nowrap">Other Filters</span> for city, organization, and
-                updated date range.
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Details:</strong> click a row or the green
-                underlined title to open the full detail panel; green links open sources in a new tab.
-              </li>
-              <li>
-                <strong className="font-medium text-[#f0f4f1]">Table density:</strong>{" "}
-                <span className="whitespace-nowrap">Compact</span> fits more rows on screen (especially on
-                phones); <span className="whitespace-nowrap">Comfortable</span> adds spacing and, on larger
-                screens, shows an extra subtitle line per row.
-              </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Industry and Country:</strong>{" "}
+                  multi-select filters; the menu stays open while you tick several values (use &quot;All&quot;
+                  to clear that dimension). Values you have picked recently are tagged{" "}
+                  <span className="whitespace-nowrap">Recent</span> inside each list (stored locally in this
+                  browser).
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">&quot;New&quot; badge:</strong> the use case was
+                  updated within the last 24 hours (same rule as on the globe view).
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Column widths:</strong> drag the grip
+                  between header cells to resize; double-click the grip to reset a column width (desktop).
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Shareable URL:</strong> search text,
+                  industry/country selections, sort, visible columns, page, and page size are reflected in
+                  the address bar — copy the link to share the same view.
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Search:</strong> matches use case title,
+                  description, organization name, industry, country, and city text.
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Other filters:</strong> open{" "}
+                  <span className="whitespace-nowrap">Other Filters</span> for city, organization, and
+                  updated date range.
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Details:</strong> click a row or the green
+                  underlined title to open the full detail panel; green links open sources in a new tab.
+                </li>
+                <li>
+                  <strong className="font-medium text-[#f0f4f1]">Table density:</strong>{" "}
+                  <span className="whitespace-nowrap">Compact</span> fits more rows on screen (especially on
+                  phones); <span className="whitespace-nowrap">Comfortable</span> adds spacing and, on larger
+                  screens, shows an extra subtitle line per row.
+                </li>
             </ul>
-          </DialogContent>
-        </Dialog>
-        </div>
-      </div>
-
-      {/* Header + KPI Stats Strip */}
-      <div className="mb-1 rounded-2xl border border-cyan-500/25 bg-slate-800/80 px-3 py-3 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.45)] backdrop-blur-md md:bg-slate-800/55 md:px-6 md:py-[9.5px] md:shadow-none">
-        <div className="flex flex-col gap-3.5 md:flex-row md:items-center md:justify-between md:gap-2">
-          <div
-            className="flex items-center gap-2.5 md:translate-y-[6px] md:gap-2"
-            style={{ position: "relative", top: "-6px" }}
-          >
-            <AtlasLogoMark />
-            <h1 className="text-[1.06rem] font-semibold leading-snug tracking-[-0.02em] text-[#f8fafa] md:text-xl md:leading-normal">
-              AI Atlas Use Case Index
-            </h1>
-          </div>
-          <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center md:gap-1.5 md:justify-end">
-            <KpiStat
-              icon={<Hash className="h-3 w-3" />}
-              label="Total"
-              value={`${kpiStats.filtered.toLocaleString()} / ${kpiStats.total.toLocaleString()}`}
-            />
-            <KpiStat
-              icon={<Building2 className="h-3 w-3" />}
-              label="Organizations"
-              value={kpiStats.orgs}
-            />
-            <KpiStat
-              icon={<Factory className="h-3 w-3" />}
-              label="Industries"
-              value={kpiStats.industries}
-            />
-            <KpiStat
-              icon={<Globe className="h-3 w-3" />}
-              label="Countries"
-              value={kpiStats.countries}
-            />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
       </div>
 
+      <div className="mt-2.5 flex flex-col gap-3">
       {/* Toolbar */}
-      <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <Input
           value={searchInput}
           onChange={(e) => {
@@ -1397,25 +1396,25 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-3 sm:gap-y-2">
         <p
-          className="min-w-0 flex-1 text-sm leading-snug text-[#b3b3b3] md:text-[13px]"
+          className="min-w-0 max-w-full break-words text-sm leading-snug text-[#b3b3b3] [overflow-wrap:anywhere] md:flex-1 md:text-[13px]"
           role="status"
           aria-live="polite"
         >
           {activeQuerySummary}
         </p>
         <div
-          className="flex shrink-0 justify-end"
+          className="flex w-full shrink-0 justify-stretch sm:w-auto sm:justify-end"
           role="group"
           aria-label="Table row density"
         >
-          <div className="inline-flex h-8 rounded-full border border-slate-700/50 bg-slate-800/60 p-0.5">
+          <div className="inline-flex h-10 w-full rounded-full border border-slate-700/50 bg-slate-800/60 p-0.5 sm:h-8 sm:w-auto">
             <button
               type="button"
               onClick={() => setTableDensityPersist("compact")}
               className={cn(
-                "rounded-full px-2.5 text-[11px] font-semibold transition-colors md:px-3 md:text-xs",
+                "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
                 tableDensity === "compact"
                   ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
                   : "text-[#9aa39e] hover:text-[#e8eeeb]"
@@ -1427,7 +1426,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               type="button"
               onClick={() => setTableDensityPersist("comfortable")}
               className={cn(
-                "rounded-full px-2.5 text-[11px] font-semibold transition-colors md:px-3 md:text-xs",
+                "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
                 tableDensity === "comfortable"
                   ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
                   : "text-[#9aa39e] hover:text-[#e8eeeb]"
@@ -1623,6 +1622,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
       <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
       <Toaster />
+      </div>
     </div>
   )
 }

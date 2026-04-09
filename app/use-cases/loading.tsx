@@ -4,37 +4,30 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function UseCasesLoading() {
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
-      <div className="mx-auto max-w-7xl space-y-3 px-3 py-4 md:px-6 md:py-8">
+      <div className="mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]">
         <p className="sr-only" role="status">
           Loading use case index…
         </p>
 
-        <div className="grid w-full grid-cols-[minmax(4.5rem,1fr)_auto_minmax(4.5rem,1fr)] items-center gap-x-2">
-          <div className="min-w-0" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
-            <Skeleton className="h-8 w-40 shrink-0 rounded-full bg-slate-700/50" />
-            <AtlasSiteTagline className="w-full text-center leading-snug sm:w-auto sm:text-left" />
-          </div>
-          <div className="flex justify-end">
-            <Skeleton className="h-9 w-20 shrink-0 rounded-full bg-slate-700/50" />
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-cyan-500/20 bg-slate-800/35 px-3 py-3 shadow-[0_8px_28px_-12px_rgba(0,0,0,0.35)] md:px-6 md:py-4">
-          <div className="flex flex-col gap-3.5 md:flex-row md:items-center md:justify-between">
-            <Skeleton className="mx-auto h-9 w-full max-w-[280px] rounded-xl bg-slate-700/45 md:mx-0 md:max-w-[320px]" />
-            <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:justify-end">
-              {[0, 1, 2, 3].map((k) => (
-                <Skeleton
-                  key={k}
-                  className="h-[3.25rem] rounded-xl bg-slate-700/40 md:h-8 md:min-w-[6.5rem] md:rounded-md"
-                />
-              ))}
+        <div className="w-full min-w-0">
+          <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-2 sm:gap-x-3">
+            <div className="min-w-0" aria-hidden="true" />
+            <div className="flex min-w-0 max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-3 sm:gap-y-2">
+              <div className="flex shrink-0 items-center gap-2">
+                <Skeleton className="h-9 w-9 shrink-0 rounded-xl bg-slate-700/50 sm:h-10 sm:w-10" />
+                <Skeleton className="h-5 w-[4.5rem] shrink-0 rounded bg-slate-700/45 sm:h-6 sm:w-24" />
+              </div>
+              <AtlasSiteTagline className="min-w-0 max-w-full flex-[1_1_100%] text-center leading-snug sm:flex-[0_1_auto] sm:max-w-md sm:text-left" />
+              <Skeleton className="h-8 w-[9.5rem] shrink-0 rounded-full bg-slate-700/50" />
+            </div>
+            <div className="flex min-w-0 justify-end self-start sm:self-center">
+              <Skeleton className="h-9 w-20 shrink-0 rounded-full bg-slate-700/50" />
             </div>
           </div>
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 md:flex-row md:items-center">
+        <div className="mt-2.5 flex flex-col gap-3">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <Skeleton className="h-10 w-full rounded-full bg-slate-700/45 md:h-9 md:max-w-[460px]" />
           <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:justify-end">
             {[0, 1, 2, 3].map((k) => (
@@ -91,6 +84,7 @@ export default function UseCasesLoading() {
           <Skeleton className="h-3 w-48 rounded bg-slate-700/25" />
           <Skeleton className="h-3 w-40 rounded bg-slate-700/25" />
           <Skeleton className="h-8 w-28 rounded-full bg-slate-700/40" />
+        </div>
         </div>
       </div>
     </main>

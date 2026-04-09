@@ -11,8 +11,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
+import { AtlasLogoMark } from "@/components/atlas-logo-mark"
 import { cn } from "@/lib/utils"
 import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
+import {
+  ATLAS_TAGLINE_MOBILE_LINES,
+  SWITCH_TO_INDEX_VIEW_LABEL,
+  SWITCH_TO_INDEX_VIEW_MOBILE_LINES,
+} from "@/lib/atlas-mobile-header"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
@@ -45,29 +51,6 @@ const CYAN = "#22d3ee"
 const GREEN = "#3cb371"
 const RECENT_HITS_STORAGE_KEY = "ai-atlas:recent-search-hits:v1"
 const MAX_RECENT_HITS = 5
-
-function TechLobsterIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {/* Globe outline */}
-      <circle cx="12" cy="12" r="8.4" />
-      {/* Connected light nodes (minimal) */}
-      <path d="M7.3 8.4 13 6.8 16.7 14.8 7.3 8.4Z" />
-      <circle cx="7.3" cy="8.4" r="0.9" />
-      <circle cx="13" cy="6.8" r="0.9" />
-      <circle cx="16.7" cy="14.8" r="0.9" />
-    </svg>
-  )
-}
 
 function hitLabel(hit: UnifiedSearchHit): string {
   return hit.type === "company"
@@ -226,30 +209,52 @@ export function SearchBar({
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
-      <div className="max-w-4xl mx-auto pointer-events-auto" ref={rootRef}>
-        <div className="flex w-full flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-3 sm:gap-y-2">
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm sm:h-10 sm:w-10">
-              <TechLobsterIcon className="h-[1.45rem] w-[1.45rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem]" />
+      <div className="mx-auto w-full min-w-0 max-w-7xl pointer-events-auto" ref={rootRef}>
+        <div className="relative flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <AtlasLogoMark
+                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 lg:h-9 lg:w-9"
+                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] lg:h-[1.45rem] lg:w-[1.45rem]"
+              />
+              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base lg:text-base lg:text-lg">
+                AI Atlas
+              </span>
             </div>
-            <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base md:text-lg">
-              AI Atlas
-            </span>
-          </div>
-          <AtlasSiteTagline className="min-w-0 max-w-full flex-[1_1_100%] text-center leading-snug sm:flex-[0_1_auto] sm:max-w-md sm:text-left" />
-          <Button asChild variant="outline" className={cn("pointer-events-auto shrink-0", viewSwitchButtonClassName)}>
-            <Link
-              href="/use-cases"
-              style={{
-                borderColor: "rgba(165, 243, 252, 0.6)",
-                backgroundColor: "rgba(34, 211, 238, 0.2)",
-                color: "#cffafe",
-                boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-              }}
+            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] lg:hidden">
+              <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[0]}</span>
+              {ATLAS_TAGLINE_MOBILE_LINES[1] ? (
+                <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[1]}</span>
+              ) : null}
+            </p>
+            <AtlasSiteTagline className="hidden min-w-0 max-w-md lg:block lg:flex-[0_1_auto] lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
+            <Button
+              asChild
+              variant="outline"
+              className={cn(
+                "pointer-events-auto min-w-0 shrink",
+                viewSwitchButtonClassName,
+                "max-lg:!h-auto max-lg:min-h-0 max-lg:max-w-[6.25rem] max-lg:shrink max-lg:px-1.5 max-lg:py-1 lg:max-w-none lg:shrink-0 lg:px-3"
+              )}
             >
-              Switch to Index View
-            </Link>
-          </Button>
+              <Link
+                href="/use-cases"
+                className="inline-flex max-w-full items-center justify-center text-center max-lg:min-w-0 max-lg:flex-col max-lg:gap-0 max-lg:py-0.5 max-lg:text-sm max-lg:font-semibold max-lg:leading-[1.15] max-lg:sm:text-base lg:flex-row lg:whitespace-nowrap lg:text-xs lg:leading-none"
+                style={{
+                  borderColor: "rgba(165, 243, 252, 0.6)",
+                  backgroundColor: "rgba(34, 211, 238, 0.2)",
+                  color: "#cffafe",
+                  boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
+                }}
+              >
+                <span className="contents lg:hidden">
+                  <span className="block w-full text-center">{SWITCH_TO_INDEX_VIEW_MOBILE_LINES[0]}</span>
+                  {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1] ? (
+                    <span className="block w-full text-center">{SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1]}</span>
+                  ) : null}
+                </span>
+                <span className="hidden lg:inline">{SWITCH_TO_INDEX_VIEW_LABEL}</span>
+              </Link>
+            </Button>
         </div>
 
         <div className="mt-2.5 flex justify-center">

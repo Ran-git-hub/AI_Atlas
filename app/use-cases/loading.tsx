@@ -11,18 +11,20 @@ export default function UseCasesLoading() {
 
         <div className="relative w-full min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-3 lg:gap-y-2">
           <div className="hidden min-w-0 lg:block" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-col gap-1 pr-[4.5rem] lg:flex-row lg:flex-wrap lg:items-center lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:pr-0">
+          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto pr-[2.875rem] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-x-3 lg:overflow-visible lg:pr-0 [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <Skeleton className="h-8 w-8 shrink-0 rounded-xl bg-slate-700/50 sm:h-10 sm:w-10 lg:h-9 lg:w-9" />
-              <Skeleton className="h-5 w-[4.5rem] shrink-0 rounded bg-slate-700/45 sm:h-6 sm:w-24" />
+              <Skeleton className="h-5 w-16 shrink-0 rounded bg-slate-700/45 sm:h-5 sm:w-[4.5rem]" />
             </div>
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 lg:contents">
-              <AtlasSiteTagline className="min-w-0 max-w-full flex-1 text-left text-[11px] leading-tight tracking-tight lg:flex-[0_1_auto] lg:max-w-md lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
-              <Skeleton className="h-8 w-[3.25rem] shrink-0 rounded-full bg-slate-700/50 lg:h-8 lg:w-[9.5rem]" />
+            <div className="flex w-[8.25rem] shrink-0 flex-col gap-0.5 lg:hidden sm:w-[9rem]">
+              <Skeleton className="h-2 w-full rounded bg-slate-700/40" />
+              <Skeleton className="h-2 w-[88%] rounded bg-slate-700/40" />
             </div>
+            <AtlasSiteTagline className="hidden min-w-0 max-w-md lg:block lg:flex-[0_1_auto] lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
+            <Skeleton className="h-[2.25rem] w-[6.25rem] shrink-0 rounded-full bg-slate-700/50 lg:h-8 lg:w-[9.5rem]" />
           </div>
           <div className="absolute right-0 top-0 z-10 lg:relative lg:top-auto lg:right-auto lg:flex lg:min-w-0 lg:justify-end lg:self-center">
-            <Skeleton className="h-9 w-20 shrink-0 rounded-full bg-slate-700/50" />
+            <Skeleton className="h-9 w-9 shrink-0 rounded-full bg-slate-700/50 lg:w-20" />
           </div>
         </div>
 

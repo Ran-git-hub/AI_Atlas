@@ -19,7 +19,6 @@ import {
   ArrowUpDown,
   Building2,
   Calendar,
-  CircleHelp,
   Columns3,
   ExternalLink,
   Filter,
@@ -31,13 +30,6 @@ import { useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -62,6 +54,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
+import { AtlasLogoMark } from "@/components/atlas-logo-mark"
+import { AtlasQuickHelpDialog } from "@/components/atlas-quick-help-dialog"
+import {
+  ATLAS_TAGLINE_MOBILE_LINES,
+  SWITCH_TO_GLOBE_VIEW_LABEL,
+  SWITCH_TO_GLOBE_VIEW_MOBILE_LINES,
+} from "@/lib/atlas-mobile-header"
 import { AdvancedFilterDateField } from "@/components/use-cases/advanced-filter-date-field"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { Toaster } from "@/components/ui/toaster"
@@ -172,40 +171,6 @@ function sortColumnLabel(columnId: string): string {
     source: "Source",
   }
   return labels[columnId] ?? columnId.replaceAll("_", " ")
-}
-
-function AtlasLogoMark({
-  className,
-  iconClassName,
-}: {
-  className?: string
-  iconClassName?: string
-} = {}) {
-  return (
-    <div
-      className={cn(
-        "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm md:h-9 md:w-9",
-        className,
-      )}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-        className={cn("h-5 w-5 text-cyan-400 md:h-6 md:w-6", iconClassName)}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="8.4" />
-        <path d="M7.3 8.4 13 6.8 16.7 14.8 7.3 8.4Z" />
-        <circle cx="7.3" cy="8.4" r="0.9" />
-        <circle cx="13" cy="6.8" r="0.9" />
-        <circle cx="16.7" cy="14.8" r="0.9" />
-      </svg>
-    </div>
-  )
 }
 
 export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCasesTableProps) {
@@ -940,101 +905,55 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         </h1>
         <div className="relative w-full min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-3 lg:gap-y-2">
           <div className="hidden min-w-0 lg:block" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-col gap-1 pr-[4.5rem] lg:flex-row lg:flex-wrap lg:items-center lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:pr-0">
+          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain pr-[2.875rem] [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:overflow-visible lg:pr-0 [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <AtlasLogoMark
                 className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 lg:h-9 lg:w-9"
                 iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] lg:h-[1.45rem] lg:w-[1.45rem]"
               />
-              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base lg:text-lg">
+              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base lg:text-base lg:text-lg">
                 AI Atlas
               </span>
             </div>
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 lg:contents">
-              <AtlasSiteTagline className="min-w-0 max-w-full flex-1 text-left text-[11px] leading-tight tracking-tight lg:flex-[0_1_auto] lg:max-w-md lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
-              <Button
-                asChild
-                variant="outline"
-                className={cn(
-                  "pointer-events-auto h-8 shrink-0 px-2.5 text-[11px] lg:h-8 lg:px-3 lg:text-xs",
-                  viewSwitchButtonClassName
-                )}
+            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] lg:hidden">
+              <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[0]}</span>
+              {ATLAS_TAGLINE_MOBILE_LINES[1] ? (
+                <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[1]}</span>
+              ) : null}
+            </p>
+            <AtlasSiteTagline className="hidden min-w-0 max-w-md lg:block lg:flex-[0_1_auto] lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
+            <Button
+              asChild
+              variant="outline"
+              className={cn(
+                "pointer-events-auto min-w-0 shrink",
+                viewSwitchButtonClassName,
+                "max-lg:!h-auto max-lg:min-h-0 max-lg:max-w-[6.25rem] max-lg:shrink max-lg:px-1.5 max-lg:py-1 lg:max-w-none lg:shrink-0 lg:px-3"
+              )}
+            >
+              <Link
+                href="/"
+                className="inline-flex max-w-full items-center justify-center text-center max-lg:min-w-0 max-lg:flex-col max-lg:gap-0 max-lg:py-0.5 max-lg:text-sm max-lg:font-semibold max-lg:leading-[1.15] max-lg:sm:text-base lg:flex-row lg:whitespace-nowrap lg:text-xs lg:leading-none"
+                style={{
+                  borderColor: "rgba(165, 243, 252, 0.6)",
+                  backgroundColor: "rgba(34, 211, 238, 0.2)",
+                  color: "#cffafe",
+                  boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
+                }}
               >
-                <Link
-                  href="/"
-                  style={{
-                    borderColor: "rgba(165, 243, 252, 0.6)",
-                    backgroundColor: "rgba(34, 211, 238, 0.2)",
-                    color: "#cffafe",
-                    boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-                  }}
-                >
-                  <span className="lg:hidden">Globe</span>
-                  <span className="hidden lg:inline">Switch to Globe View</span>
-                </Link>
-              </Button>
-            </div>
+                <span className="contents lg:hidden">
+                  <span className="block w-full text-center">{SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[0]}</span>
+                  {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1] ? (
+                    <span className="block w-full text-center">{SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1]}</span>
+                  ) : null}
+                </span>
+                <span className="hidden lg:inline">{SWITCH_TO_GLOBE_VIEW_LABEL}</span>
+              </Link>
+            </Button>
           </div>
           <div className="absolute right-0 top-0 z-10 lg:relative lg:top-auto lg:right-auto lg:flex lg:min-w-0 lg:justify-end lg:self-center">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-9 shrink-0 rounded-full border-slate-700/50 bg-slate-800/60 px-4 text-sm font-semibold leading-none text-white backdrop-blur-md hover:border-cyan-500/60 hover:bg-slate-700/60"
-                  >
-                    <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
-                    Help
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-h-[min(85vh,520px)] overflow-y-auto border-cyan-500/25 bg-slate-900/98 text-[#f5f5f5] shadow-xl sm:max-w-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
-            <DialogHeader>
-              <DialogTitle className="text-[#f8fafa]">Quick help</DialogTitle>
-            </DialogHeader>
-            <ul className="list-disc space-y-2.5 pl-4 text-sm leading-relaxed text-[#d7dedb]">
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Industry and Country:</strong>{" "}
-                  multi-select filters; the menu stays open while you tick several values (use &quot;All&quot;
-                  to clear that dimension). Values you have picked recently are tagged{" "}
-                  <span className="whitespace-nowrap">Recent</span> inside each list (stored locally in this
-                  browser).
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">&quot;New&quot; badge:</strong> the use case was
-                  updated within the last 24 hours (same rule as on the globe view).
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Column widths:</strong> drag the grip
-                  between header cells to resize; double-click the grip to reset a column width (desktop).
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Shareable URL:</strong> search text,
-                  industry/country selections, sort, visible columns, page, and page size are reflected in
-                  the address bar — copy the link to share the same view.
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Search:</strong> matches use case title,
-                  description, organization name, industry, country, and city text.
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Other filters:</strong> open{" "}
-                  <span className="whitespace-nowrap">Other Filters</span> for city, organization, and
-                  updated date range.
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Details:</strong> click a row or the green
-                  underlined title to open the full detail panel; green links open sources in a new tab.
-                </li>
-                <li>
-                  <strong className="font-medium text-[#f0f4f1]">Table density:</strong>{" "}
-                  <span className="whitespace-nowrap">Compact</span> fits more rows on screen (especially on
-                  phones); <span className="whitespace-nowrap">Comfortable</span> adds spacing and, on larger
-                  screens, shows an extra subtitle line per row.
-                </li>
-            </ul>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <AtlasQuickHelpDialog />
+          </div>
           </div>
         </div>
 

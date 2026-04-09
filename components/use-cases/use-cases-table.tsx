@@ -1041,12 +1041,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
+                className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
               >
-                <Filter className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-                {industryFilter.length > 0
-                  ? `${industryFilter.length} Industries`
-                  : "Filter by Industry"}
+                <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" aria-hidden />
+                <span className="w-full text-center">
+                  {industryFilter.length > 0
+                    ? `${industryFilter.length} Industries`
+                    : "Filter by Industry"}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="max-h-[608px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
@@ -1104,12 +1106,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-10 w-full justify-center rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-center text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[175px]"
+                className="relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-4 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[175px]"
               >
-                <Filter className="mr-2 h-4 w-4 shrink-0" aria-hidden />
-                {countryFilter.length > 0
-                  ? `${countryFilter.length} Countries`
-                  : "Filter by Country"}
+                <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" aria-hidden />
+                <span className="w-full text-center">
+                  {countryFilter.length > 0
+                    ? `${countryFilter.length} Countries`
+                    : "Filter by Country"}
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="max-h-[608px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
@@ -1528,7 +1532,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             }}
           >
             <SelectTrigger
-              className="!h-10 w-[120px] border-white/15 bg-[#181818] py-0 leading-none text-[#f5f5f5]"
+              className="!h-10 w-[120px] border-white/15 bg-[#181818] !py-0 leading-none text-[#f5f5f5]"
             >
               <SelectValue />
             </SelectTrigger>

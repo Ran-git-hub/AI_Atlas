@@ -938,25 +938,25 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         <h1 className="sr-only">
           AI Atlas - Daily updates on real-world AI deployments worldwide
         </h1>
-        <div className="relative w-full min-w-0 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-x-3 md:gap-y-2">
-          <div className="hidden min-w-0 md:block" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-col gap-1 pr-[4.5rem] md:flex-row md:flex-wrap md:items-center md:justify-center md:gap-x-3 md:gap-y-2 md:pr-0">
+        <div className="relative w-full min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-3 lg:gap-y-2">
+          <div className="hidden min-w-0 lg:block" aria-hidden="true" />
+          <div className="flex min-w-0 max-w-full flex-col gap-1 pr-[4.5rem] lg:flex-row lg:flex-wrap lg:items-center lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:pr-0">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <AtlasLogoMark
-                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 md:h-9 md:w-9"
-                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] md:h-[1.45rem] md:w-[1.45rem]"
+                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 lg:h-9 lg:w-9"
+                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] lg:h-[1.45rem] lg:w-[1.45rem]"
               />
-              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base md:text-lg">
+              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base lg:text-lg">
                 AI Atlas
               </span>
             </div>
-            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 max-md:justify-between md:contents">
-              <AtlasSiteTagline className="min-w-0 max-w-full flex-1 text-[11px] leading-tight tracking-tight max-md:text-left md:flex-[0_1_auto] md:max-w-md md:text-center md:text-sm md:leading-snug md:tracking-wide" />
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1 lg:contents">
+              <AtlasSiteTagline className="min-w-0 max-w-full flex-1 text-left text-[11px] leading-tight tracking-tight lg:flex-[0_1_auto] lg:max-w-md lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
               <Button
                 asChild
                 variant="outline"
                 className={cn(
-                  "pointer-events-auto max-md:h-8 max-md:shrink-0 max-md:px-2.5 max-md:text-[11px]",
+                  "pointer-events-auto h-8 shrink-0 px-2.5 text-[11px] lg:h-8 lg:px-3 lg:text-xs",
                   viewSwitchButtonClassName
                 )}
               >
@@ -969,13 +969,13 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                     boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
                   }}
                 >
-                  <span className="md:hidden">Globe</span>
-                  <span className="hidden md:inline">Switch to Globe View</span>
+                  <span className="lg:hidden">Globe</span>
+                  <span className="hidden lg:inline">Switch to Globe View</span>
                 </Link>
               </Button>
             </div>
           </div>
-          <div className="absolute right-0 top-0 z-10 md:relative md:top-auto md:right-auto md:flex md:min-w-0 md:justify-end md:self-center">
+          <div className="absolute right-0 top-0 z-10 lg:relative lg:top-auto lg:right-auto lg:flex lg:min-w-0 lg:justify-end lg:self-center">
               <Dialog>
                 <DialogTrigger asChild>
                   <Button

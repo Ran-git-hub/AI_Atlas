@@ -253,7 +253,9 @@ export function SearchBar({
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/30 bg-slate-800/80 backdrop-blur-sm">
               <TechLobsterIcon className="h-[1.65rem] w-[1.65rem] text-cyan-400" />
             </div>
-            <span className="hidden text-lg font-semibold text-white sm:block">AI Atlas</span>
+            <span className="shrink-0 text-base font-semibold tracking-tight text-white sm:text-lg">
+              AI Atlas
+            </span>
           </div>
 
           <div className="relative min-w-0 flex-1 translate-x-[20px] sm:max-w-xl">

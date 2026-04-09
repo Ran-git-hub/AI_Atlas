@@ -961,7 +961,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 between header cells to resize; double-click the grip to reset a column width (desktop).
               </li>
               <li>
-                <strong className="font-medium text-[#f0f4f1]">Sharable URL:</strong> search text,
+                <strong className="font-medium text-[#f0f4f1]">Shareable URL:</strong> search text,
                 industry/country selections, sort, visible columns, page, and page size are reflected in
                 the address bar — copy the link to share the same view.
               </li>
@@ -1034,7 +1034,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             setSearchInput(e.target.value)
             setPagination((prev) => ({ ...prev, pageIndex: 0 }))
           }}
-          placeholder="Search Use Case/ Orgnization / Industry ..."
+          placeholder="Search Use Case / Organization / Industry ..."
           className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
         />
         <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">

@@ -2,7 +2,7 @@ import type { WeeklyReportContent } from "@/lib/types-weekly-report"
 
 export type BlogPostKind = "weekly_report" | "article"
 
-/** Minimal JSON body for `post_kind = article` (extend later). */
+/** Article body: `markdown` or `body` is rendered as GitHub-flavored Markdown on `/blog/[slug]`. */
 export interface BlogArticleContent {
   markdown?: string
   body?: string

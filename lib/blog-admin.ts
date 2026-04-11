@@ -7,7 +7,7 @@
  * `Prefer: resolution=merge-duplicates`, body array with one row; snake_case columns as in DB.
  *
  * Minimal **article** row (week fields must be omitted or null; `post_kind` = `article`):
- * `slug`, `title`, `summary`, `content` = `{ "markdown": "..." }` or `{ "body": "..." }`,
+ * `slug`, `title`, `summary`, `content` = `{ "markdown": "…" }` or `{ "body": "…" }` (GFM Markdown),
  * `tags`, `related_case_ids`, counts, `data_sources`, `published_at`.
  */
 import { createServiceRoleClient } from "@/lib/supabase/service-role"

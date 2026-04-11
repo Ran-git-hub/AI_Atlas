@@ -7,7 +7,7 @@ const blogShellPad =
 
 export const metadata = {
   title: "Blog — AI Atlas",
-  description: "Weekly reports on AI use case collection, industry trends, and data quality updates.",
+  description: "Reports and analysis on real-world AI deployments, updated regularly.",
 }
 
 export default async function BlogPage() {
@@ -24,7 +24,7 @@ export default async function BlogPage() {
           <div className="mt-4 max-w-4xl border-t border-slate-800/80 pt-4">
             <h1 className="mb-1 text-2xl font-bold text-[#f5f5f5]">AI Atlas Blog</h1>
             <p className="text-sm text-slate-400">
-              Weekly reports on AI use case collection, industry trends, and data quality updates.
+              Reports and analysis on real-world AI deployments, updated regularly.
             </p>
           </div>
         </div>

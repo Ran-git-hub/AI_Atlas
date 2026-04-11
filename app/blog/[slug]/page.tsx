@@ -6,6 +6,8 @@ import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-r
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
 
+export const dynamic = "force-dynamic"
+
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 

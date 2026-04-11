@@ -22,6 +22,7 @@ export interface UpsertWeeklyBlogPostInput {
   title: string
   summary: string
   content: WeeklyReportContent
+  // Supabase text[] — flat string array with classification prefixes, e.g. ["Weekly", "Multi-Agent Systems", "Warning"]
   tags: string[]
   relatedCaseIds: string[]
   newUseCasesCount: number
@@ -53,7 +54,7 @@ export async function upsertWeeklyBlogPost(input: UpsertWeeklyBlogPostInput): Pr
     new_companies_count: input.newCompaniesCount,
     countries_count: input.countriesCount,
     industries_count: input.industriesCount,
-    data_sources: input.dataSources ?? {},
+    data_sources: input.dataSources ?? "AI Atlas - Use Case Database",
     published_at: now,
     updated_at: now,
   }

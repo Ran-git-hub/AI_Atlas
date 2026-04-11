@@ -14,30 +14,77 @@ export interface WeeklyReportTrend {
   description: string
 }
 
-export interface WeeklyReportSection {
-  id: string
-  title: string
-  content: string
+export interface SystemWarning {
+  severity: "info" | "warning" | "critical"
+  location: string
+  issue: string
+  recommendation: string
+}
+
+export interface SystemHealth {
+  status: "green" | "yellow" | "red"
+  label: string
+  warnings: SystemWarning[]
+}
+
+export interface SearchFallbackStats {
+  tavily?: number
+  exa_mcp?: number
+  xcrawl_search?: number
+  mmx_search?: number
+  duckduckgo?: number
+  free_web_search?: number
+}
+
+export interface AgentMetrics {
+  runsThisWeek: number
+  totalErrorsIntercepted: number
+  errorInterceptionRate: string
+  reflexLoopTriggers: number
+  dataQualityScore: number
+  recordsFailedQualityGate: number
+  searchFallbackChainInvocations: SearchFallbackStats
+}
+
+export interface NextStep {
+  priority: "high" | "medium" | "low"
+  file: string
+  issue: string
+  action: string
+}
+
+export interface QueryPerformance {
+  query: string
+  hitRate: "High" | "Medium" | "Low"
+  notes: string
+}
+
+export interface DataQualityIssue {
+  issue: string
+  count: number
+  handling: string
 }
 
 export interface WeeklyReportContent {
+  systemHealth: SystemHealth
   overview: {
     newUseCases: number
     newCompanies: number
     countriesCount: number
     industriesCount: number
   }
+  agentMetrics: AgentMetrics
   highlights: WeeklyReportHighlight[]
   trends: WeeklyReportTrend[]
   searchStrategy: {
-    queryPerformance: Array<{ query: string; hitRate: string; notes: string }>
+    queryPerformance: QueryPerformance[]
     newQueriesAdded: string[]
   }
   dataQuality: {
-    issues: Array<{ issue: string; count: number; handling: string }>
+    issues: DataQualityIssue[]
   }
-  insights: string[]
-  nextWeekPlan: string[]
+  observations: string[]
+  nextSteps: NextStep[]
 }
 
 export interface WeeklyReport {
@@ -47,6 +94,8 @@ export interface WeeklyReport {
   title: string
   summary: string
   content: WeeklyReportContent
+  // tags is text[] in Supabase — stored as flat string array with classification prefixes
+  // e.g. ["Weekly", "Multi-Agent Systems", "China AI Scale", "Warning"]
   tags: string[]
   relatedCaseIds: string[]
   newUseCasesCount: number

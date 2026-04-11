@@ -3,6 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Top bar layout for Globe / Index / use-cases (SearchBar, table toolbar).
+ * `--breakpoint-atlas-header` alone does not emit these prefixes; variants must be declared.
+ * >= 900px: centered wrap row + desktop tagline; < 900px: compact / mobile tagline + button layout.
+ */
+@custom-variant atlas-header (@media (width >= 56.25rem));
+@custom-variant max-atlas-header (@media (width < 56.25rem));
+
 :root {
   /* SearchBar: p-4 + row1 + mt-2.5 + logo/search row + p-4 — detail panels start below this */
   --app-top-bar-height: calc(9rem + 2px);

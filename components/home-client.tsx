@@ -92,12 +92,15 @@ interface HomeClientProps {
   useCases: UseCaseWithCoords[]
   /** Preformatted in Central European time (Europe/Berlin) on the server */
   latestDataUpdateCet: string
+  /** Open Globe index with this use case’s side panel (`/?useCaseId=…`). */
+  deepLinkUseCaseId?: string
 }
 
 export function HomeClient({
   companies = [],
   useCases = [],
   latestDataUpdateCet,
+  deepLinkUseCaseId,
 }: HomeClientProps) {
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
   const [selectedUseCase, setSelectedUseCase] = useState<UseCaseWithCoords | null>(null)
@@ -121,6 +124,20 @@ export function HomeClient({
 
   const safeCompanies = companies || []
   const safeUseCases = useCases || []
+
+  useEffect(() => {
+    const raw = deepLinkUseCaseId?.trim()
+    if (!raw) return
+    const id = String(raw)
+    const uc = safeUseCases.find((u) => String(u.id) === id)
+    if (!uc) return
+    setShowInstructions(false)
+    setSelectedCompany(null)
+    setSelectedUseCase(uc)
+    setFlyTo({ lat: uc.lat, lng: uc.lng })
+    setFlyToNonce((n) => n + 1)
+  }, [deepLinkUseCaseId, safeUseCases])
+
   const industryOptions = useMemo(() => {
     return Array.from(
       safeCompanies.reduce((acc, c) => {

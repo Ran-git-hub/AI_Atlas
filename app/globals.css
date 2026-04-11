@@ -77,6 +77,8 @@
 }
 
 @theme inline {
+  /* Top bar: use desktop layout from this width up (below default lg 1024px). */
+  --breakpoint-atlas-header: 56.25rem;
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);

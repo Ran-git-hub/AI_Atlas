@@ -21,10 +21,10 @@ export function AtlasQuickHelpDialog() {
           type="button"
           variant="outline"
           aria-label="Help"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-slate-700/50 bg-slate-800/60 p-0 text-sm font-semibold leading-none text-white backdrop-blur-md hover:border-cyan-500/60 hover:bg-slate-700/60 lg:h-9 lg:w-auto lg:px-4"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-slate-700/50 bg-slate-800/60 p-0 text-sm font-semibold leading-none text-white backdrop-blur-md hover:border-cyan-500/60 hover:bg-slate-700/60 atlas-header:h-9 atlas-header:w-auto atlas-header:px-4"
         >
           <CircleHelp className="h-4 w-4 shrink-0" aria-hidden />
-          <span className="hidden lg:inline lg:ml-1.5">Help</span>
+          <span className="hidden atlas-header:inline atlas-header:ml-1.5">Help</span>
         </Button>
       </DialogTrigger>
       <DialogContent className={dialogContentClassName}>

@@ -440,7 +440,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             className="-ml-3 text-[#b3b3b3] hover:bg-transparent hover:text-[#d8d8d8] focus-visible:ring-0"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Organizaiton
+            Organization
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
@@ -903,37 +903,39 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         <h1 className="sr-only">
           AI Atlas - Daily updates on real-world AI deployments worldwide
         </h1>
-        <div className="relative w-full min-w-0 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-x-3 lg:gap-y-2">
-          <div className="hidden min-w-0 lg:block" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain pr-[2.875rem] [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:overflow-visible lg:pr-0 [&::-webkit-scrollbar]:hidden">
+        <div className="relative w-full min-w-0 atlas-header:grid atlas-header:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] atlas-header:items-center atlas-header:gap-x-3 atlas-header:gap-y-2">
+          <div className="hidden min-w-0 atlas-header:block" aria-hidden="true" />
+          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain pr-[2.875rem] [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible atlas-header:pr-0 [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <AtlasLogoMark
-                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 lg:h-9 lg:w-9"
-                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] lg:h-[1.45rem] lg:w-[1.45rem]"
+                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 atlas-header:h-9 atlas-header:w-9"
+                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] atlas-header:h-[1.45rem] atlas-header:w-[1.45rem]"
               />
-              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base lg:text-base lg:text-lg">
+              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base atlas-header:text-base atlas-header:text-lg">
                 AI Atlas
               </span>
             </div>
-            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] lg:hidden">
+            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] atlas-header:hidden">
               <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[0]}</span>
               {ATLAS_TAGLINE_MOBILE_LINES[1] ? (
                 <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[1]}</span>
               ) : null}
             </p>
-            <AtlasSiteTagline className="hidden min-w-0 max-w-md lg:block lg:flex-[0_1_auto] lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
+            <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
             <Button
               asChild
               variant="outline"
               className={cn(
                 "pointer-events-auto min-w-0 shrink",
                 viewSwitchButtonClassName,
-                "max-lg:!h-auto max-lg:min-h-0 max-lg:max-w-[6.25rem] max-lg:shrink max-lg:px-1.5 max-lg:py-1 lg:max-w-none lg:shrink-0 lg:px-3"
+                "max-atlas-header:!h-auto max-atlas-header:min-h-0 max-atlas-header:max-w-[6.25rem] max-atlas-header:shrink max-atlas-header:px-1.5 max-atlas-header:py-1 atlas-header:max-w-none atlas-header:shrink-0",
+                /* Match AtlasSiteTagline on desktop: text-sm font-medium leading-snug tracking-wide */
+                "atlas-header:!text-sm atlas-header:!font-medium atlas-header:!leading-snug atlas-header:!tracking-wide atlas-header:antialiased"
               )}
             >
               <Link
                 href="/"
-                className="inline-flex max-w-full items-center justify-center text-center max-lg:min-w-0 max-lg:flex-col max-lg:gap-0 max-lg:py-0.5 max-lg:text-sm max-lg:font-semibold max-lg:leading-[1.15] max-lg:sm:text-base lg:flex-row lg:whitespace-nowrap lg:text-xs lg:leading-none"
+                className="inline-flex max-w-full items-center justify-center text-center max-atlas-header:min-w-0 max-atlas-header:flex-col max-atlas-header:gap-0 max-atlas-header:py-0.5 max-atlas-header:text-xs max-atlas-header:font-semibold max-atlas-header:leading-[1.15] max-atlas-header:sm:text-sm atlas-header:flex-row atlas-header:whitespace-nowrap"
                 style={{
                   borderColor: "rgba(165, 243, 252, 0.6)",
                   backgroundColor: "rgba(34, 211, 238, 0.2)",
@@ -941,17 +943,21 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                   boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
                 }}
               >
-                <span className="contents lg:hidden">
-                  <span className="block w-full text-center">{SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[0]}</span>
+                <span className="contents atlas-header:hidden">
+                  <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
+                    {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[0]}
+                  </span>
                   {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1] ? (
-                    <span className="block w-full text-center">{SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1]}</span>
+                    <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
+                      {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1]}
+                    </span>
                   ) : null}
                 </span>
-                <span className="hidden lg:inline">{SWITCH_TO_GLOBE_VIEW_LABEL}</span>
+                <span className="hidden atlas-header:inline">{SWITCH_TO_GLOBE_VIEW_LABEL}</span>
               </Link>
             </Button>
           </div>
-          <div className="absolute right-0 top-0 z-10 lg:relative lg:top-auto lg:right-auto lg:flex lg:min-w-0 lg:justify-end lg:self-center">
+          <div className="absolute right-0 top-0 z-10 atlas-header:relative atlas-header:top-auto atlas-header:right-auto atlas-header:flex atlas-header:min-w-0 atlas-header:justify-end atlas-header:self-center">
             <AtlasQuickHelpDialog />
           </div>
           </div>

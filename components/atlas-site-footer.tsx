@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,12 @@ export function AtlasSiteFooter({
   layout = "fixed",
 }: AtlasSiteFooterProps) {
   const inner = (
-    <div className="mx-auto flex max-w-[calc(100vw-1rem)] flex-col items-center justify-center gap-y-0.5 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:flex-row sm:gap-x-2 sm:gap-y-0 sm:text-sm">
+    <div
+      className={cn(
+        "mx-auto flex max-w-[calc(100vw-1rem)] flex-col items-center justify-center gap-y-0.5 px-2 text-xs text-slate-300 sm:max-w-none sm:flex-row sm:gap-x-2 sm:gap-y-0 sm:text-sm",
+        layout === "inline" ? "py-1" : "py-2"
+      )}
+    >
       <span className="text-center">
         Latest Data Update: {latestDataUpdateCet}
       </span>
@@ -64,7 +70,13 @@ export function AtlasSiteFooter({
               </p>
               <p>
                 <span className="font-medium text-slate-100">Maintainer:</span>{" "}
-                AI Atlas Team
+                Ran{" "}
+                <a
+                  href="mailto:allenheran@gmail.com"
+                  className="text-cyan-300 underline underline-offset-2 hover:text-cyan-200"
+                >
+                  allenheran@gmail.com
+                </a>
               </p>
               <div className="space-y-1.5 rounded-md border border-slate-800/80 bg-slate-900/70 p-3 text-xs text-slate-400">
                 <p className="font-medium uppercase tracking-wide text-slate-300">
@@ -95,7 +107,7 @@ export function AtlasSiteFooter({
 
   if (layout === "inline") {
     return (
-      <footer className="pointer-events-auto mt-10 border-t border-[#2f2f2f] pt-6 pb-8 text-slate-300">
+      <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-3 pb-5 text-slate-300">
         {inner}
       </footer>
     )

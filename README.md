@@ -1,93 +1,110 @@
-# 🗺️ AI Atlas
+# 🌍 AI Atlas
 
-**AI Atlas** is a modern, full-stack web application designed to serve as a comprehensive directory and exploration tool for the rapidly evolving AI ecosystem. Whether you are mapping out real world AI use cases, related companies, AI Atlas provides a clean, fast, and responsive interface to manage and discover AI resources.
+**AI Atlas** tracks real-world AI deployments across industries and countries — updated daily by an automated agent pipeline.
 
-The application UI was rapidly prototyped using [v0 by Vercel](https://v0.dev) and developed with the [Cursor AI editor](https://cursor.sh/), leveraging a powerful modern React stack.
-
-Live Demo: [https://v0-ai-nine-gules.vercel.app](https://v0-ai-nine-gules.vercel.app)
+🔗 **Live:** [v0-ai-nine-gules.vercel.app](https://v0-ai-nine-gules.vercel.app)
 
 ---
 
-## ✨ Key Features
+## What It Does
 
-* 🔍 **Comprehensive Directory:** Browse, filter, and search through a curated atlas of AI use cases and related organizations.
-* ⚡ **Lightning Fast UI:** Built on the Next.js App Router for optimized rendering, faster page loads, and seamless client-side navigation.
-* 🗄️ **Robust Backend:** Powered by Supabase (PostgreSQL) for secure data storage, user authentication, and real-time data fetching.
-* 🎨 **Accessible & Responsive Design:** A beautiful, minimalist interface built from the ground up using Tailwind CSS and highly customizable `shadcn/ui` components.
-* 🤖 **AI-Assisted Daily update** AI automated workflow via OpenClaw for daily updates
-  
-## 🛠️ Tech Stack
+AI Atlas collects, structures, and displays verified AI use cases from 110+ sources daily. It is not a curated list — it is a living database maintained by an agentic workflow that runs every day.
 
-### Frontend
-* **Framework:** [Next.js](https://nextjs.org/) (App Router)
-* **Language:** [TypeScript](https://www.typescriptlang.org/)
-* **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-* **UI Components:** [shadcn/ui](https://ui.shadcn.com/) & Radix UI
-
-### Backend & Tooling
-* **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL)
-* **Package Manager:** [pnpm](https://pnpm.io/)
-* **Deployment:** [Vercel](https://vercel.com/)
-* **Development Environment:** Configured for [Cursor](https://cursor.sh/)
+- **672+ use cases** across 47 countries and 65 industries
+- **Two views:** Interactive 3D globe and a filterable index table
+- **Weekly blog:** AI deployment trends and insights generated from the week's data
+- **Daily updates:** Automated agent pipeline adds new cases each day
 
 ---
 
-## 🚀 Getting Started
+## Why I Built This
 
-Follow these instructions to set up the project locally for development.
+This project started as a personal curiosity: I wanted to see where AI was actually being deployed in the real world, not just in headlines. It became a hands-on learning ground for agentic AI systems — building, breaking, and rebuilding the data pipeline taught me more about AI agents than any course could.
+
+The frontend was vibe-coded using [v0 by Vercel](https://v0.dev) and [Cursor](https://cursor.sh/). The data pipeline runs on [OpenClaw](https://github.com/openclaw) with harness engineering principles — structured skill files, pre/post-run hooks, subagent responsibility splitting, and a weekly human-in-the-loop review cycle.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js (App Router), TypeScript, Tailwind CSS |
+| UI Components | shadcn/ui, Radix UI |
+| Database | Supabase (PostgreSQL) |
+| Globe | Three.js / WebGL |
+| Agent Pipeline | OpenClaw, Claude |
+| Deployment | Vercel |
+
+---
+
+## Project Structure
+/app              # Next.js App Router pages and layouts
+/components       # Reusable UI components
+/lib              # Supabase client and utility functions
+/hooks            # Custom React hooks
+/data             # Static data and config
+/supabase/migrations  # PostgreSQL schema migrations
+/scripts          # Data pipeline scripts
+
+---
+
+## Data Pipeline
+
+The agent pipeline runs daily and follows a 4-layer architecture:
+
+1. **Collection** — Queries 110+ sources using a search fallback chain (Tavily → Exa → fallback search tools)
+2. **Quality gate** — Validates records against structured rules in `ai-atlas-data-quality/SKILL.md`
+3. **Deduplication** — Merges duplicates and resolves missing company references
+4. **Publishing** — Approved records are written to Supabase and surfaced in the app
+
+A weekly human-in-the-loop review cycle catches quality issues that automated rules cannot detect.
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-Ensure you have the following installed on your machine:
-* [Node.js](https://nodejs.org/) (v18.17 or higher)
-* [pnpm](https://pnpm.io/installation)
-* [Supabase CLI](https://supabase.com/docs/guides/cli) (for managing local migrations)
+- [Node.js](https://nodejs.org/) v18.17+
+- [pnpm](https://pnpm.io/installation)
+- A [Supabase](https://supabase.com/) project
 
-### Local Installation
+### Local Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/Ran-git-hub/AI_Atlas.git](https://github.com/Ran-git-hub/AI_Atlas.git)
-   cd AI_Atlas
+```bash
+# Clone the repo
+git clone https://github.com/Ran-git-hub/AI_Atlas.git
+cd AI_Atlas
 
-2. **Install dependencies:**
-   ```bash
-   pnpm install
+# Install dependencies
+pnpm install
 
-3. **Configure Environment Variables:**
-Create a `.env.local` file in the root directory and add your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+# Configure environment variables
+cp .env.example .env.local
+# Add your Supabase credentials to .env.local
 
-4. **Set up the Database:**
-Link your local environment to your Supabase project and apply the existing database migrations:
+# Apply database migrations
+npx supabase link --project-ref your-project-ref
+npx supabase db pull
 
-    ```bash
-    npx supabase link --project-ref your-project-ref
-    npx supabase db pull
-    ```
+# Start the dev server
+pnpm dev
+```
 
-5. **Start the development server:**
-   ```Bash
-   pnpm dev
-   ```
-   Open http://localhost:3000 with your browser to see the app in action.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-## 📂 Architecture Overview
-/app: Contains the Next.js App Router logic, pages, and layouts.
+---
 
-/components: Houses reusable UI elements, including pre-configured shadcn/ui components.
+## Background Reading
 
-/supabase/migrations: Contains the SQL files required to build the PostgreSQL schema.
+If you're interested in how this project was built and the engineering decisions behind it:
 
-/lib: Contains utility functions, including the Supabase client initialization.
+- [Harness Engineering for AI Agents](https://www.linkedin.com/in/your-profile) — LinkedIn post on restructuring the data pipeline
+- [AI Atlas Weekly Blog](https://v0-ai-nine-gules.vercel.app/blog) — Weekly reports generated from the pipeline data
 
-/hooks: Custom React hooks for managing state and database subscriptions.
+---
 
-## 🤝 Contributing
-Contributions are welcome! If you have suggestions or want to add features to the Atlas, please feel free to fork the repository, make your changes, and open a Pull Request.
+## License
 
-## 📄 License
-This project is licensed under the [MIT License](https://choosealicense.com/licenses/mit/).
+MIT

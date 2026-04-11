@@ -1,6 +1,8 @@
+import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { BlogPostListCard } from "@/components/blog/blog-post-list-card"
 import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
+import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
@@ -11,7 +13,10 @@ export const metadata = {
 }
 
 export default async function BlogPage() {
-  const posts = await getBlogPosts()
+  const [posts, latestDataUpdateCet] = await Promise.all([
+    getBlogPosts(),
+    getLatestAtlasDataUpdateCetDisplay(),
+  ])
 
   return (
     <main
@@ -55,6 +60,10 @@ export default async function BlogPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
+        <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
       </div>
     </main>
   )

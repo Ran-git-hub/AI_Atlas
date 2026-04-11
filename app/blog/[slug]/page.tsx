@@ -1,10 +1,12 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getAdjacentBlogPosts, getBlogPostBySlug } from "@/lib/data-blog"
 import { isWeeklyBlogPost } from "@/lib/types-blog"
 import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-report-content"
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
+import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 
 export const dynamic = "force-dynamic"
 
@@ -44,7 +46,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     notFound()
   }
 
-  const { prev, next } = await getAdjacentBlogPosts(post)
+  const [{ prev, next }, latestDataUpdateCet] = await Promise.all([
+    getAdjacentBlogPosts(post),
+    getLatestAtlasDataUpdateCetDisplay(),
+  ])
   const isWeekly = isWeeklyBlogPost(post)
 
   return (
@@ -142,6 +147,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <div />
           )}
         </div>
+      </div>
+
+      <div className="mx-auto mt-6 max-w-7xl px-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
+        <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
       </div>
     </main>
   )

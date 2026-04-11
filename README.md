@@ -10,10 +10,9 @@
 
 AI Atlas collects, structures, and displays verified AI use cases from 110+ sources daily. It is not a curated list — it is a living database maintained by an agentic workflow that runs every day.
 
-- **672+ use cases** across 47 countries and 65 industries
+- **Daily updates:** Automated agent runs in OpenClaw pipeline adds new cases each day
 - **Two views:** Interactive 3D globe and a filterable index table
 - **Weekly blog:** AI deployment trends and insights generated from the week's data
-- **Daily updates:** Automated agent pipeline adds new cases each day
 
 ---
 
@@ -93,15 +92,6 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
-
----
-
-## Background Reading
-
-If you're interested in how this project was built and the engineering decisions behind it:
-
-- [Harness Engineering for AI Agents](https://www.linkedin.com/in/your-profile) — LinkedIn post on restructuring the data pipeline
-- [AI Atlas Weekly Blog](https://v0-ai-nine-gules.vercel.app/blog) — Weekly reports generated from the pipeline data
 
 ---
 

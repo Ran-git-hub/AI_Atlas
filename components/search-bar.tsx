@@ -210,35 +210,36 @@ export function SearchBar({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
       <div className="mx-auto w-full min-w-0 max-w-7xl pointer-events-auto" ref={rootRef}>
-        <div className="relative flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:gap-x-3 lg:gap-y-2 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+        <div className="relative flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <AtlasLogoMark
-                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 lg:h-9 lg:w-9"
-                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] lg:h-[1.45rem] lg:w-[1.45rem]"
+                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 atlas-header:h-9 atlas-header:w-9"
+                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] atlas-header:h-[1.45rem] atlas-header:w-[1.45rem]"
               />
-              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base lg:text-base lg:text-lg">
+              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base atlas-header:text-base atlas-header:text-lg">
                 AI Atlas
               </span>
             </div>
-            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] lg:hidden">
+            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] atlas-header:hidden">
               <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[0]}</span>
               {ATLAS_TAGLINE_MOBILE_LINES[1] ? (
                 <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[1]}</span>
               ) : null}
             </p>
-            <AtlasSiteTagline className="hidden min-w-0 max-w-md lg:block lg:flex-[0_1_auto] lg:text-center lg:text-sm lg:leading-snug lg:tracking-wide" />
+            <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
             <Button
               asChild
               variant="outline"
               className={cn(
                 "pointer-events-auto min-w-0 shrink",
                 viewSwitchButtonClassName,
-                "max-lg:!h-auto max-lg:min-h-0 max-lg:max-w-[6.25rem] max-lg:shrink max-lg:px-1.5 max-lg:py-1 lg:max-w-none lg:shrink-0 lg:px-3"
+                "max-atlas-header:!h-auto max-atlas-header:min-h-0 max-atlas-header:max-w-[6.25rem] max-atlas-header:shrink max-atlas-header:px-1.5 max-atlas-header:py-1 atlas-header:max-w-none atlas-header:shrink-0 atlas-header:px-3",
+                "atlas-header:!text-sm atlas-header:!font-medium atlas-header:!leading-snug atlas-header:!tracking-wide atlas-header:antialiased"
               )}
             >
               <Link
                 href="/use-cases"
-                className="inline-flex max-w-full items-center justify-center text-center max-lg:min-w-0 max-lg:flex-col max-lg:gap-0 max-lg:py-0.5 max-lg:text-sm max-lg:font-semibold max-lg:leading-[1.15] max-lg:sm:text-base lg:flex-row lg:whitespace-nowrap lg:text-xs lg:leading-none"
+                className="inline-flex max-w-full items-center justify-center text-center max-atlas-header:min-w-0 max-atlas-header:flex-col max-atlas-header:gap-0 max-atlas-header:py-0.5 max-atlas-header:text-xs max-atlas-header:font-semibold max-atlas-header:leading-[1.15] max-atlas-header:sm:text-sm atlas-header:flex-row atlas-header:whitespace-nowrap"
                 style={{
                   borderColor: "rgba(165, 243, 252, 0.6)",
                   backgroundColor: "rgba(34, 211, 238, 0.2)",
@@ -246,13 +247,17 @@ export function SearchBar({
                   boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
                 }}
               >
-                <span className="contents lg:hidden">
-                  <span className="block w-full text-center">{SWITCH_TO_INDEX_VIEW_MOBILE_LINES[0]}</span>
+                <span className="contents atlas-header:hidden">
+                  <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
+                    {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[0]}
+                  </span>
                   {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1] ? (
-                    <span className="block w-full text-center">{SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1]}</span>
+                    <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
+                      {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1]}
+                    </span>
                   ) : null}
                 </span>
-                <span className="hidden lg:inline">{SWITCH_TO_INDEX_VIEW_LABEL}</span>
+                <span className="hidden atlas-header:inline">{SWITCH_TO_INDEX_VIEW_LABEL}</span>
               </Link>
             </Button>
         </div>

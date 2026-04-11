@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,13 @@ export function AtlasSiteFooter({
       <div className="flex items-center justify-center gap-2">
         <span className="hidden text-slate-600 sm:inline">|</span>
         <span>© 2026 AI Atlas</span>
+        <span className="text-slate-600">|</span>
+        <Link
+          href="/blog"
+          className="px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
+        >
+          Blog
+        </Link>
         <span className="text-slate-600">|</span>
         <Dialog>
           <DialogTrigger asChild>

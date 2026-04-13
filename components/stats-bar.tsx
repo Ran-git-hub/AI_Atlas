@@ -29,9 +29,9 @@ export function StatsBar({
             onClick={() => onStatClick("companies")}
             className="flex items-center gap-2 rounded-lg bg-slate-800/40 px-2 py-2 text-left transition-colors hover:bg-slate-800/70"
           >
-            <Database className="h-4 w-4 text-cyan-400" />
-            <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalCompanies}</span> Organizations
+            <Database className="h-4 w-4 shrink-0 text-cyan-400" />
+            <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalCompanies}</span> Organizations
             </span>
           </button>
           <button
@@ -39,9 +39,9 @@ export function StatsBar({
             onClick={() => onStatClick("countries")}
             className="flex items-center gap-2 rounded-lg bg-slate-800/40 px-2 py-2 text-left transition-colors hover:bg-slate-800/70"
           >
-            <MapPin className="h-4 w-4 text-cyan-400" />
-            <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalCountries}</span> Countries
+            <MapPin className="h-4 w-4 shrink-0 text-cyan-400" />
+            <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalCountries}</span> Countries
             </span>
           </button>
           <button
@@ -49,9 +49,9 @@ export function StatsBar({
             onClick={() => onStatClick("industries")}
             className="flex items-center gap-2 rounded-lg bg-slate-800/40 px-2 py-2 text-left transition-colors hover:bg-slate-800/70"
           >
-            <Layers className="h-4 w-4 text-cyan-400" />
-            <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalIndustries}</span> Industries
+            <Layers className="h-4 w-4 shrink-0 text-cyan-400" />
+            <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalIndustries}</span> Industries
             </span>
           </button>
           <button
@@ -59,9 +59,10 @@ export function StatsBar({
             onClick={() => onStatClick("useCases")}
             className="flex items-center gap-2 rounded-lg bg-slate-800/40 px-2 py-2 text-left transition-colors hover:bg-slate-800/70"
           >
-            <Sparkles className="h-4 w-4 text-[#3cb371]" />
-            <span className="text-xs text-slate-300">
-              <span className="font-semibold text-white">{totalUseCases}</span> Use cases
+            <Sparkles className="h-4 w-4 shrink-0 text-[#3cb371]" />
+            <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalUseCases}</span>{" "}
+              {"Use\u00A0cases"}
             </span>
           </button>
         </div>
@@ -76,9 +77,10 @@ export function StatsBar({
             onClick={() => onStatClick("companies")}
             className="flex items-center gap-2 transition-colors hover:text-cyan-300"
           >
-            <Database className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalCompanies}</span> Organizations
+            <Database className="h-4 w-4 shrink-0 text-cyan-400" />
+            <span className="flex flex-col items-center gap-0 text-center leading-tight text-sm text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalCompanies}</span>
+              <span>Organizations</span>
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />
@@ -87,9 +89,10 @@ export function StatsBar({
             onClick={() => onStatClick("countries")}
             className="flex items-center gap-2 transition-colors hover:text-cyan-300"
           >
-            <MapPin className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalCountries}</span> Countries
+            <MapPin className="h-4 w-4 shrink-0 text-cyan-400" />
+            <span className="flex flex-col items-center gap-0 text-center leading-tight text-sm text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalCountries}</span>
+              <span>Countries</span>
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />
@@ -98,9 +101,10 @@ export function StatsBar({
             onClick={() => onStatClick("industries")}
             className="flex items-center gap-2 transition-colors hover:text-cyan-300"
           >
-            <Layers className="h-4 w-4 text-cyan-400" />
-            <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalIndustries}</span> Industries
+            <Layers className="h-4 w-4 shrink-0 text-cyan-400" />
+            <span className="flex flex-col items-center gap-0 text-center leading-tight text-sm text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalIndustries}</span>
+              <span>Industries</span>
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />
@@ -109,9 +113,10 @@ export function StatsBar({
             onClick={() => onStatClick("useCases")}
             className="flex items-center gap-2 transition-colors hover:text-cyan-300"
           >
-            <Sparkles className="h-4 w-4 text-[#3cb371]" />
-            <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">{totalUseCases}</span> Use cases
+            <Sparkles className="h-4 w-4 shrink-0 text-[#3cb371]" />
+            <span className="flex flex-col items-center gap-0 text-center leading-tight text-sm text-slate-300">
+              <span className="font-semibold tabular-nums text-white">{totalUseCases}</span>
+              <span>Use cases</span>
             </span>
           </button>
         </div>

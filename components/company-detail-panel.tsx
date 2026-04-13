@@ -1,16 +1,73 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { X, ExternalLink, MapPin, Building2, Calendar } from "lucide-react"
-import type { CompanyWithCoords } from "@/lib/types"
+import { useEffect, useMemo, useState } from "react"
+import { X, ExternalLink, MapPin, Building2, Calendar, Layers } from "lucide-react"
+import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
+import { useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
+import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
+import { cn } from "@/lib/utils"
+
+function normalizeOrgName(v: string | null | undefined): string {
+  return (v ?? "").trim().toLowerCase().replace(/\s+/g, " ")
+}
+
+function relatedUseCasesForCompany(
+  company: CompanyWithCoords,
+  useCases: UseCaseWithCoords[]
+): UseCaseWithCoords[] {
+  const id = String(company.id).trim()
+  const nameKey = normalizeOrgName(company.name)
+  const filtered = useCases.filter((u) => {
+    if (u.company_id && String(u.company_id).trim() === id) return true
+    const un = normalizeOrgName(u.company_name ?? undefined)
+    return Boolean(nameKey && un && un === nameKey)
+  })
+  return filtered.sort((a, b) => {
+    const ma = Date.parse(a.updated_at ?? a.created_at ?? "")
+    const mb = Date.parse(b.updated_at ?? b.created_at ?? "")
+    const ta = Number.isFinite(ma) ? ma : 0
+    const tb = Number.isFinite(mb) ? mb : 0
+    return tb - ta
+  })
+}
+
+function useCaseSummaryText(u: UseCaseWithCoords): string {
+  const d = u.description?.trim()
+  return d || "—"
+}
+
+function formatCompanyDateEn(iso: string): string {
+  const t = Date.parse(iso)
+  if (!Number.isFinite(t)) return iso
+  return new Date(t).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
+/** Related use case card: show footer only when `updated_at` exists (same rule as company row). */
+function useCaseUpdatedFooterLine(u: UseCaseWithCoords): string | null {
+  const raw = u.updated_at?.trim()
+  if (!raw) return null
+  return `Updated: ${formatCompanyDateEn(raw)}`
+}
 
 interface CompanyDetailPanelProps {
   company: CompanyWithCoords
+  /** Full catalog (not globe-filtered) so the panel lists every case for this organization. */
+  useCases: UseCaseWithCoords[]
   onClose: () => void
+  onRelatedUseCaseClick?: (useCase: UseCaseWithCoords) => void
 }
 
-export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps) {
+export function CompanyDetailPanel({
+  company,
+  useCases,
+  onClose,
+  onRelatedUseCaseClick,
+}: CompanyDetailPanelProps) {
   const [faviconError, setFaviconError] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const faviconUrl = getGoogleFaviconUrl(company.website_url)
@@ -19,7 +76,14 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
     setFaviconError(false)
     setLogoError(false)
   }, [company.id, company.website_url, company.logo_url])
-  
+
+  const relatedUseCases = useMemo(
+    () => relatedUseCasesForCompany(company, useCases),
+    [company, useCases]
+  )
+
+  const companyUpdatedAt = company.updated_at?.trim() ?? ""
+
   return (
     <div
       data-company-detail-panel
@@ -87,6 +151,65 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
             </p>
           </div>
 
+          {/* Related use cases (newest first by updated_at, else created_at) */}
+          <div className="space-y-3">
+            <h4 className="flex items-center gap-2 text-sm font-medium uppercase tracking-wider text-slate-500">
+              <Layers className="h-3.5 w-3.5 text-cyan-400/80" aria-hidden />
+              Related use cases
+            </h4>
+            {relatedUseCases.length === 0 ? (
+              <p className="text-sm text-slate-500">
+                No use cases linked to this organization in the dataset.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {relatedUseCases.map((uc) => {
+                  const dateLine = useCaseUpdatedFooterLine(uc)
+                  const interactive = Boolean(onRelatedUseCaseClick)
+                  const cardClass = cn(
+                    "group w-full rounded-lg border border-slate-700/60 bg-slate-800/40 p-3 text-left transition-colors",
+                    interactive &&
+                      "cursor-pointer hover:border-cyan-500/35 hover:bg-slate-800/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40"
+                  )
+                  const inner = (
+                    <>
+                      <span
+                        className="block text-base font-bold leading-snug underline decoration-2 underline-offset-[2px]"
+                        style={{
+                          color: USE_CASE_PANEL_ACCENT,
+                          textDecorationColor: USE_CASE_PANEL_ACCENT,
+                        }}
+                      >
+                        {useCaseDisplayName(uc)}
+                      </span>
+                      <span className="mt-1.5 block text-sm leading-relaxed text-slate-400">
+                        {useCaseSummaryText(uc)}
+                      </span>
+                      {dateLine ? (
+                        <span className="mt-2 block text-xs text-slate-600">{dateLine}</span>
+                      ) : null}
+                    </>
+                  )
+                  return (
+                    <li key={uc.id}>
+                      {interactive ? (
+                        <button
+                          type="button"
+                          className={cardClass}
+                          onClick={() => onRelatedUseCaseClick?.(uc)}
+                        >
+                          {inner}
+                        </button>
+                      ) : (
+                        <div className={cardClass}>{inner}</div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
@@ -106,13 +229,13 @@ export function CompanyDetailPanel({ company, onClose }: CompanyDetailPanelProps
             </div>
           </div>
 
-          {/* Created Date */}
-          {company.created_at && (
+          {/* Only when the company row has updated_at from the DB */}
+          {companyUpdatedAt ? (
             <div className="flex items-center gap-2 text-slate-500 text-xs">
               <Calendar className="h-3.5 w-3.5" />
-              <span>Added: {new Date(company.created_at).toLocaleDateString()}</span>
+              <span>Updated: {formatCompanyDateEn(companyUpdatedAt)}</span>
             </div>
-          )}
+          ) : null}
 
           {/* Website Link */}
           {company.website_url && (

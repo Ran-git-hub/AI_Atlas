@@ -9,6 +9,7 @@ export interface Company {
   headquarters_country: string
   city: string
   created_at: string
+  updated_at?: string | null
 }
 
 // Company with coordinates for the globe

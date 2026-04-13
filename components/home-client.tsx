@@ -104,6 +104,8 @@ export function HomeClient({
 }: HomeClientProps) {
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
   const [selectedUseCase, setSelectedUseCase] = useState<UseCaseWithCoords | null>(null)
+  /** Company to restore when user backs out of use-case panel (only set from company → related use case). */
+  const [useCaseReturnCompany, setUseCaseReturnCompany] = useState<CompanyWithCoords | null>(null)
   const [showInstructions, setShowInstructions] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -133,6 +135,7 @@ export function HomeClient({
     if (!uc) return
     setShowInstructions(false)
     setSelectedCompany(null)
+    setUseCaseReturnCompany(null)
     setSelectedUseCase(uc)
     setFlyTo({ lat: uc.lat, lng: uc.lng })
     setFlyToNonce((n) => n + 1)
@@ -220,19 +223,40 @@ export function HomeClient({
 
   const handleCompanyClick = useCallback((company: CompanyWithCoords) => {
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
     setSelectedCompany(company)
     setShowInstructions(false)
   }, [])
 
   const handleUseCaseClick = useCallback((useCase: UseCaseWithCoords) => {
+    setUseCaseReturnCompany(null)
     setSelectedCompany(null)
     setSelectedUseCase(useCase)
     setShowInstructions(false)
   }, [])
 
+  const handleOpenUseCaseFromCompanyPanel = useCallback(
+    (useCase: UseCaseWithCoords) => {
+      if (!selectedCompany) return
+      setUseCaseReturnCompany(selectedCompany)
+      setSelectedCompany(null)
+      setSelectedUseCase(useCase)
+      setShowInstructions(false)
+    },
+    [selectedCompany]
+  )
+
+  const handleReturnToCompanyFromUseCasePanel = useCallback(() => {
+    if (!useCaseReturnCompany) return
+    setSelectedUseCase(null)
+    setSelectedCompany(useCaseReturnCompany)
+    setUseCaseReturnCompany(null)
+  }, [useCaseReturnCompany])
+
   const handleClosePanel = useCallback(() => {
     setSelectedCompany(null)
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
   }, [])
 
   const handleClearSearch = useCallback(() => {
@@ -277,10 +301,12 @@ export function HomeClient({
     setShowInstructions(false)
     if (hit.type === "company") {
       setSelectedUseCase(null)
+      setUseCaseReturnCompany(null)
       setSelectedCompany(hit.item)
       setFlyTo({ lat: hit.item.lat, lng: hit.item.lng })
       setFlyToNonce((n) => n + 1)
     } else {
+      setUseCaseReturnCompany(null)
       setSelectedCompany(null)
       setSelectedUseCase(hit.item)
       setFlyTo({ lat: hit.item.lat, lng: hit.item.lng })
@@ -313,12 +339,14 @@ export function HomeClient({
     })
     setSelectedCompany(null)
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
   }, [])
 
   const handleIndustrySelectAll = useCallback(() => {
     setSelectedIndustries([])
     setSelectedCompany(null)
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
   }, [])
 
   const handleCountryToggle = useCallback((country: string) => {
@@ -331,12 +359,14 @@ export function HomeClient({
     })
     setSelectedCompany(null)
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
   }, [])
 
   const handleCountrySelectAll = useCallback(() => {
     setSelectedCountries([])
     setSelectedCompany(null)
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
   }, [])
 
   const handlePanelCompanySelect = useCallback((company: CompanyWithCoords) => {
@@ -367,6 +397,7 @@ export function HomeClient({
     setSearchRecentOnly(false)
     setSelectedCompany(null)
     setSelectedUseCase(null)
+    setUseCaseReturnCompany(null)
     setStatsPanelOpen(false)
   }, [])
 
@@ -476,11 +507,21 @@ export function HomeClient({
 
       {/* Company detail panel */}
       {selectedCompany && (
-        <CompanyDetailPanel company={selectedCompany} onClose={handleClosePanel} />
+        <CompanyDetailPanel
+          company={selectedCompany}
+          useCases={safeUseCases}
+          onClose={handleClosePanel}
+          onRelatedUseCaseClick={handleOpenUseCaseFromCompanyPanel}
+        />
       )}
 
       {selectedUseCase && (
-        <UseCaseDetailPanel useCase={selectedUseCase} onClose={handleClosePanel} />
+        <UseCaseDetailPanel
+          useCase={selectedUseCase}
+          onClose={handleClosePanel}
+          returnToCompany={useCaseReturnCompany}
+          onReturnToCompany={handleReturnToCompanyFromUseCasePanel}
+        />
       )}
 
       {/* Overlay when panel is open */}

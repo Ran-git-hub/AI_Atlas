@@ -1,4 +1,3 @@
-import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function UseCasesLoading() {
@@ -20,7 +19,11 @@ export default function UseCasesLoading() {
               <Skeleton className="h-2 w-full rounded bg-slate-700/40" />
               <Skeleton className="h-2 w-[88%] rounded bg-slate-700/40" />
             </div>
-            <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
+            {/* Match UseCasesTable: keep tagline as skeleton until real page replaces loading UI */}
+            <div className="hidden min-w-0 max-w-md flex-col items-center gap-1 atlas-header:flex atlas-header:flex-[0_1_auto]">
+              <Skeleton className="h-3.5 w-full max-w-[22rem] rounded bg-slate-700/40" />
+              <Skeleton className="h-3 w-[min(100%,18rem)] rounded bg-slate-700/35" />
+            </div>
             <Skeleton className="h-[2.25rem] w-[6.25rem] shrink-0 rounded-full bg-slate-700/50 atlas-header:h-8 atlas-header:w-[9.5rem]" />
           </div>
           <div className="absolute right-0 top-0 z-10 atlas-header:relative atlas-header:top-auto atlas-header:right-auto atlas-header:flex atlas-header:min-w-0 atlas-header:justify-end atlas-header:self-center">

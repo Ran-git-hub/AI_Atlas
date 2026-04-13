@@ -1,15 +1,19 @@
 "use client"
 
 import { useState } from "react"
-import { X, ExternalLink, Sparkles } from "lucide-react"
-import { useCaseDisplayName, type UseCaseWithCoords } from "@/lib/types"
+import { X, ExternalLink, Sparkles, ChevronLeft } from "lucide-react"
+import { useCaseDisplayName, type CompanyWithCoords, type UseCaseWithCoords } from "@/lib/types"
+import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 
 interface UseCaseDetailPanelProps {
   useCase: UseCaseWithCoords
   onClose: () => void
+  /** When opened from company panel → related use case; enables back navigation. */
+  returnToCompany?: CompanyWithCoords | null
+  onReturnToCompany?: () => void
 }
 
-const ACCENT = "#3cb371"
+const ACCENT = USE_CASE_PANEL_ACCENT
 const NA = "Not Available"
 
 function isUseCaseRecent24h(useCase: UseCaseWithCoords): boolean {
@@ -24,7 +28,12 @@ function isProbablyUrl(key: string, value: string): boolean {
   return /url|link|href|website/i.test(key)
 }
 
-export function UseCaseDetailPanel({ useCase, onClose }: UseCaseDetailPanelProps) {
+export function UseCaseDetailPanel({
+  useCase,
+  onClose,
+  returnToCompany = null,
+  onReturnToCompany,
+}: UseCaseDetailPanelProps) {
   const [imageError, setImageError] = useState(false)
   const title = useCaseDisplayName(useCase)
   const showHeaderImage = Boolean(useCase.image_url?.trim()) && !imageError
@@ -44,6 +53,20 @@ export function UseCaseDetailPanel({ useCase, onClose }: UseCaseDetailPanelProps
           className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md border-b"
           style={{ borderColor: `${ACCENT}22` }}
         >
+          {returnToCompany && onReturnToCompany ? (
+            <div className="border-b border-slate-800/80 px-4 pt-3 pb-2">
+              <button
+                type="button"
+                onClick={onReturnToCompany}
+                className="inline-flex max-w-full items-center gap-1.5 rounded-lg px-2 py-2 text-left text-base font-medium text-slate-300 transition-colors hover:bg-slate-800/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
+              >
+                <ChevronLeft className="h-6 w-6 shrink-0" aria-hidden />
+                <span className="min-w-0 truncate">
+                  Back to <span className="text-slate-100">{returnToCompany.name}</span>
+                </span>
+              </button>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between p-4">
             <h2 className="text-lg font-semibold text-white">Use case</h2>
             <button

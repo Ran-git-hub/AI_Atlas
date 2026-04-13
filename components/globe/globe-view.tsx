@@ -1625,6 +1625,7 @@ export function GlobeView({
           applyMarkerVisualState(container, dot, d)
 
           if (!isMobileLikeInput) {
+            let shouldResumeAfterHover = false
             const syncTooltipPosition = () => {
               showSharedTooltip(d, container)
             }
@@ -1632,15 +1633,18 @@ export function GlobeView({
             container.addEventListener("mouseenter", () => {
               dot.style.transform = "scale(1.5)"
               syncTooltipPosition()
+              const controls = globeRef.current?.controls?.()
+              shouldResumeAfterHover = Boolean(controls?.autoRotate)
               pauseRotation()
             })
 
             container.addEventListener("mouseleave", () => {
               dot.style.transform = "scale(1)"
               hideSharedTooltip()
-              if (!isPanelOpenRef.current && !userPausedRef.current) {
+              if (shouldResumeAfterHover && !isPanelOpenRef.current && !userPausedRef.current) {
                 resumeRotation()
               }
+              shouldResumeAfterHover = false
             })
           }
 

@@ -1,17 +1,8 @@
--- Migration: Add URL NOT NULL constraint to AI_Atlas_Use_Cases
+-- Migration: Fix autonomous_ingest_v2 function with correct column names
 -- Date: 2026-04-13
--- Purpose: Ensure every use case has a source URL to prevent bad data from search snippets
+-- AI_Atlas_Companies columns: id, name, description, industry, website_url, logo_url, headquarters_country, created_at, city, latitude, longitude, last_ingested_at
+-- AI_Atlas_Use_Cases columns: id, company_id, type, title, summary, content, industry, continent, country, city, latitude, longitude, published_at, status, is_trending, source_name, confidence_score, created_at, URL
 
--- Step 1: Ensure no NULL URLs exist (safety check)
-DELETE FROM AI_Atlas_Use_Cases WHERE URL IS NULL OR URL = '';
-
--- Step 2: Add NOT NULL constraint to URL column
-ALTER TABLE AI_Atlas_Use_Cases ALTER COLUMN URL SET NOT NULL;
-
--- Step 3: Add NOT NULL constraint to source_name column (source is also required)
-ALTER TABLE AI_Atlas_Use_Cases ALTER COLUMN source_name SET NOT NULL;
-
--- Step 4: Update autonomous_ingest_v2 function to validate URL before insert
 CREATE OR REPLACE FUNCTION autonomous_ingest_v2(
   p_company_name TEXT,
   p_website TEXT,
@@ -31,7 +22,6 @@ DECLARE
   v_company_id UUID;
   v_case_id UUID;
 BEGIN
-  -- Validate required fields
   IF p_company_name IS NULL OR p_company_name = '' THEN
     RAISE EXCEPTION 'Company name is required';
   END IF;
@@ -44,32 +34,33 @@ BEGIN
     RAISE EXCEPTION 'Case content must be at least 100 characters';
   END IF;
   
-  -- URL validation: must not be null or empty
   IF p_url IS NULL OR p_url = '' THEN
-    RAISE EXCEPTION 'URL is required — search snippets cannot be used as content. A valid source URL must be provided.';
+    RAISE EXCEPTION 'URL is required';
   END IF;
   
   IF p_source_name IS NULL OR p_source_name = '' THEN
-    RAISE EXCEPTION 'source_name is required — please provide the original article or press release source name.';
+    RAISE EXCEPTION 'source_name is required';
   END IF;
 
-  -- Find or create company
-  SELECT id INTO v_company_id FROM AI_Atlas_Companies 
+  -- Find company by name
+  SELECT id INTO v_company_id FROM "AI_Atlas_Companies" 
   WHERE LOWER(name) = LOWER(p_company_name) LIMIT 1;
   
+  -- Create company if not exists
   IF v_company_id IS NULL THEN
-    INSERT INTO AI_Atlas_Companies (name, website, industry, headquarters_country, city, continent)
-    VALUES (p_company_name, p_website, p_industry, p_country, p_city, p_continent)
+    INSERT INTO "AI_Atlas_Companies" (name, website_url, industry, headquarters_country, city, created_at)
+    VALUES (p_company_name, p_website, p_industry, p_country, p_city, NOW())
     RETURNING id INTO v_company_id;
   END IF;
 
   -- Insert use case
-  INSERT INTO AI_Atlas_Use_Cases (
-    company_id, title, URL, source_name, country, city, continent,
-    latitude, longitude, industry, type, content, status, confidence_score
+  INSERT INTO "AI_Atlas_Use_Cases" (
+    company_id, type, title, summary, content, industry, continent, country, city,
+    latitude, longitude, published_at, status, source_name, confidence_score, created_at, URL
   ) VALUES (
-    v_company_id, p_case_title, p_url, p_source_name, p_country, p_city, p_continent,
-    p_case_lat, p_case_lng, p_industry, p_case_type, p_case_content, 'published', 0.8
+    v_company_id, p_case_type, p_case_title, LEFT(p_case_content, 200), p_case_content,
+    p_industry, p_continent, p_country, p_city,
+    p_case_lat, p_case_lng, NOW(), 'published', p_source_name, 0.8, NOW(), p_url
   ) RETURNING id INTO v_case_id;
 
   RETURN QUERY SELECT v_case_id;

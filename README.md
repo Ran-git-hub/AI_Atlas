@@ -4,8 +4,6 @@
 
 🔗 **Live:** https://v0-ai-atlas.vercel.app 
 
-markdown# 🌍 AI Atlas
-
 > Daily updates on real-world AI deployments worldwide.
 
 **AI Atlas** is a living database of real-world AI deployments — automatically collected, structured, and published every day by an agentic pipeline. It tracks how organizations across industries and countries are actually using AI, not just talking about it.

@@ -2,7 +2,7 @@
 
 **AI Atlas** tracks real-world AI deployments across industries and countries — updated daily by an automated agent pipeline.
 
-🔗 **Live:** [v0-ai-nine-gules.vercel.app](https://v0-ai-nine-gules.vercel.app)
+🔗 **Live:** https://v0-ai-atlas.vercel.app 
 
 ---
 

@@ -4,23 +4,67 @@
 
 🔗 **Live:** https://v0-ai-atlas.vercel.app 
 
----
+markdown# 🌍 AI Atlas
 
-## What It Does
+> Daily updates on real-world AI deployments worldwide.
 
-AI Atlas collects, structures, and displays verified AI use cases from 110+ sources daily. It is not a curated list — it is a living database maintained by an agentic workflow that runs every day.
+**AI Atlas** is a living database of real-world AI deployments — automatically collected, structured, and published every day by an agentic pipeline. It tracks how organizations across industries and countries are actually using AI, not just talking about it.
 
-- **Daily updates:** Automated agent runs in OpenClaw pipeline adds new cases each day
-- **Two views:** Interactive 3D globe and a filterable index table
-- **Weekly blog:** AI deployment trends and insights generated from the week's data
+⭐ **Built by:** A non-developer using AI-assisted tools — v0, Cursor, and Claude
 
 ---
 
-## Why I Built This
 
-This project started as a personal curiosity: I wanted to see where AI was actually being deployed in the real world, not just in headlines. It became a hands-on learning ground for agentic AI systems — building, breaking, and rebuilding the data pipeline taught me more about AI agents than any course could.
+<img width="1156" height="1126" alt="截屏2026-04-18 20 56 42" src="https://github.com/user-attachments/assets/bff12a8a-090b-464e-9cbc-73e47a103254" />
 
-The frontend was vibe-coded using [v0 by Vercel](https://v0.dev) and [Cursor](https://cursor.sh/). The data pipeline runs on [OpenClaw](https://github.com/openclaw) with harness engineering principles — structured skill files, pre/post-run hooks, subagent responsibility splitting, and a weekly human-in-the-loop review cycle.
+---
+
+## What Makes This Different
+
+Most AI tracking projects are manually curated lists that go stale. AI Atlas runs a daily agentic pipeline that:
+
+- Queries across industries and geographies
+- Validates, deduplicates, and structures each record automatically
+- Publishes new cases to the live app every day
+
+As of April 2026: **667 use cases · 477 organizations · 47 countries · 65 industries**
+
+---
+
+## Features
+
+### 🌐 Interactive Globe View
+Explore AI deployments on a 3D globe. Each marker represents a real organization deploying AI. Rotate, zoom, and click to explore.
+
+### 📊 Index View
+A fully filterable and searchable table of all use cases. Filter by industry, country, or keyword. Sort by date to see the latest deployments first.
+
+### 🔍 Search & Filter
+Full-text search across use case titles, descriptions, and organizations. Filter by industry and country simultaneously.
+
+---
+
+## Data Pipeline Architecture
+
+The pipeline runs daily and follows a 4-layer process:
+Layer 1: Collection
+└── 10-12 targeted queries/day
+└── Search fallback chain: Tavily → Exa MCP → xcrawl-search → DuckDuckGo
+└── Geographic rotation to ensure global coverage
+Layer 2: Quality Gate
+└── Validates against rules in ai-atlas-data-quality/SKILL.md
+└── Minimum content length enforcement
+└── Source credibility check
+Layer 3: Deduplication & Enrichment
+└── Merges duplicate records
+└── Resolves missing company references
+└── Links to existing organizations in database
+Layer 4: Publishing
+└── Approved records written to Supabase
+└── Live app updated automatically
+└── Weekly blog generated from accumulated data
+
+**Human-in-the-loop:** A weekly review cycle catches quality issues that automated rules cannot detect — misclassified content, hallucinated records, and borderline cases.
 
 ---
 
@@ -28,36 +72,24 @@ The frontend was vibe-coded using [v0 by Vercel](https://v0.dev) and [Cursor](ht
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js (App Router), TypeScript, Tailwind CSS |
-| UI Components | shadcn/ui, Radix UI |
+| Frontend | Next.js (App Router), TypeScript |
+| Styling | Tailwind CSS, shadcn/ui, Radix UI |
 | Database | Supabase (PostgreSQL) |
 | Globe | Three.js / WebGL |
 | Agent Pipeline | OpenClaw, Claude |
 | Deployment | Vercel |
+| Development | Cursor, v0 by Vercel |
 
 ---
 
 ## Project Structure
-/app              # Next.js App Router pages and layouts
-/components       # Reusable UI components
-/lib              # Supabase client and utility functions
-/hooks            # Custom React hooks
-/data             # Static data and config
-/supabase/migrations  # PostgreSQL schema migrations
-/scripts          # Data pipeline scripts
-
----
-
-## Data Pipeline
-
-The agent pipeline runs daily and follows a 4-layer architecture:
-
-1. **Collection** — Queries 110+ sources using a search fallback chain (Tavily → Exa → fallback search tools)
-2. **Quality gate** — Validates records against structured rules in `ai-atlas-data-quality/SKILL.md`
-3. **Deduplication** — Merges duplicates and resolves missing company references
-4. **Publishing** — Approved records are written to Supabase and surfaced in the app
-
-A weekly human-in-the-loop review cycle catches quality issues that automated rules cannot detect.
+/app                    # Next.js App Router pages and layouts
+/components             # Reusable UI components
+/lib                    # Supabase client and utility functions
+/hooks                  # Custom React hooks
+/data                   # Static data and config
+/supabase/migrations    # PostgreSQL schema migrations
+/scripts                # Data pipeline scripts
 
 ---
 
@@ -80,8 +112,9 @@ cd AI_Atlas
 pnpm install
 
 # Configure environment variables
-cp .env.example .env.local
-# Add your Supabase credentials to .env.local
+# Create .env.local and add your Supabase credentials
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Apply database migrations
 npx supabase link --project-ref your-project-ref
@@ -92,6 +125,23 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
+
+---
+
+## Background Reading
+
+If you're interested in how this was built:
+
+- [Harness Engineering for AI Agents](https://www.linkedin.com/in/YOUR_PROFILE) — How I restructured the pipeline using SKILL files, memory, and failure reflex loops
+- [AI Atlas Weekly Blog](https://v0-ai-nine-gules.vercel.app/blog) — Weekly reports generated from the pipeline
+
+---
+
+## Data Sources & Disclaimer
+
+Data is sourced from company websites, public announcements, and industry reports. Locations, categories, and links are best-effort and may contain inaccuracies. Information is provided for reference only — please verify with official sources.
+
+Company names, logos, and trademarks belong to their respective owners.
 
 ---
 

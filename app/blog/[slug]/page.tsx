@@ -63,13 +63,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="mt-4 max-w-4xl border-t border-slate-800/80 pt-4">
             <Link
               href="/blog"
-              className="mb-3 inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-cyan-400"
+              className="mb-5 inline-flex items-center gap-2 rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-4 py-2.5 text-base font-medium text-cyan-300 transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/15 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
             >
               ← All posts
             </Link>
 
             {isWeekly && post.weekStart && post.weekEnd ? (
-              <div className="mb-2 flex items-center gap-2 text-xs text-cyan-400">
+              <div className="mb-3 flex items-center gap-2 text-sm text-cyan-400">
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
@@ -81,14 +81,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 {formatWeekRange(post.weekStart, post.weekEnd)}
               </div>
             ) : (
-              <div className="mb-2 text-xs text-cyan-400">Article · {formatArticleMeta(post.publishedAt)}</div>
+              <div className="mb-3 text-sm text-cyan-400">Article · {formatArticleMeta(post.publishedAt)}</div>
             )}
 
-            <h1 className="mb-2 text-xl font-bold text-[#f5f5f5]">{post.title}</h1>
+            <h1 className="mb-3 text-3xl font-bold leading-tight text-[#f5f5f5] md:text-4xl">{post.title}</h1>
 
-            <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-2">
               {post.tags.map((tag) => (
-                <span key={tag} className="rounded bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-400">
+                <span key={tag} className="rounded bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-300">
                   {tag}
                 </span>
               ))}
@@ -104,11 +104,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <BlogArticleBody content={post.content} />
         )}
 
-        <div className="mt-8 flex items-center justify-between border-t border-slate-800 pt-5">
+        <div className="mt-10 flex items-center justify-between border-t border-slate-800 pt-6">
           {prev ? (
             <Link
               href={`/blog/${prev.slug}`}
-              className="group flex max-w-[45%] items-center gap-2 rounded-lg border border-slate-800 bg-[#1a1a1a] px-3 py-2 text-xs transition-all hover:border-cyan-500/40"
+              className="group flex max-w-[45%] items-center gap-2 rounded-lg border border-slate-800 bg-[#1a1a1a] px-3.5 py-2.5 text-sm transition-all hover:border-cyan-500/40"
             >
               <svg
                 className="h-3 w-3 shrink-0 text-slate-400 transition-colors group-hover:text-cyan-400"
@@ -129,7 +129,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {next ? (
             <Link
               href={`/blog/${next.slug}`}
-              className="group flex max-w-[45%] items-center gap-2 rounded-lg border border-slate-800 bg-[#1a1a1a] px-3 py-2 text-xs transition-all hover:border-cyan-500/40"
+              className="group flex max-w-[45%] items-center gap-2 rounded-lg border border-slate-800 bg-[#1a1a1a] px-3.5 py-2.5 text-sm transition-all hover:border-cyan-500/40"
             >
               <span className="truncate text-slate-300 transition-colors group-hover:text-cyan-400">
                 {next.title}

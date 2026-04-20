@@ -2,13 +2,13 @@ import type { WeeklyReportContent } from "@/lib/types-weekly-report"
 
 function StatCard({ label, value, icon }: { label: string; value: number | string; icon: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-[#1a1a1a] px-3 py-2">
+    <div className="flex items-center gap-2.5 rounded-lg border border-slate-800 bg-[#1a1a1a] px-3.5 py-2.5">
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-cyan-500/10 text-cyan-400">
         {icon}
       </div>
-      <div>
-        <div className="text-lg font-bold text-[#f5f5f5]">{value}</div>
-        <div className="text-[10px] text-slate-400">{label}</div>
+      <div className="min-w-0 flex items-baseline gap-2">
+        <div className="text-lg font-bold leading-none text-[#f5f5f5]">{value}</div>
+        <div className="truncate whitespace-nowrap text-sm leading-none text-slate-300">{label}</div>
       </div>
     </div>
   )

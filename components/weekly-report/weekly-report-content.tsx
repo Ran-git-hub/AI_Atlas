@@ -74,7 +74,7 @@ function SectionHeader({
       <h2
         className={cn(
           "font-semibold",
-          compact ? "text-sm" : "text-base",
+          compact ? "text-base" : "text-lg",
           titleClassName ?? "text-[#f5f5f5]",
         )}
         style={titleStyle}
@@ -104,11 +104,11 @@ function UnderTheHoodPanel({ children }: { children: React.ReactNode }) {
             <div className="min-w-0 pt-0.5">
               <h2
                 id="weekly-under-the-hood-heading"
-                className="text-sm font-semibold tracking-tight text-slate-100"
+                className="text-base font-semibold tracking-tight text-slate-100"
               >
                 Under the Hood
               </h2>
-              <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-400">
                 Pipeline and operations behind the headline numbers—search tuning, data checks, internal notes, next
                 steps, and linked case IDs.
               </p>
@@ -191,8 +191,8 @@ export function WeeklyReportContentRenderer({
           <div className="space-y-1.5">
             {content.trends.map((t, i) => (
               <div key={i} className="rounded-lg border border-slate-800 bg-[#1a1a1a] px-3 py-2">
-                <h4 className="mb-0.5 text-sm font-medium text-cyan-400">{t.title}</h4>
-                <p className="text-xs text-slate-400">{t.description}</p>
+                <h4 className="mb-1 text-base font-medium text-cyan-400">{t.title}</h4>
+                <p className="text-sm text-slate-300">{t.description}</p>
               </div>
             ))}
           </div>
@@ -215,9 +215,9 @@ export function WeeklyReportContentRenderer({
               />
               {content.searchStrategy.queryPerformance && content.searchStrategy.queryPerformance.length > 0 && (
                 <div className="mb-3 space-y-1.5">
-                  <h3 className="text-xs font-medium text-slate-400">Query Performance</h3>
+                  <h3 className="text-sm font-medium text-slate-300">Query Performance</h3>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
+                    <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-slate-800 text-left text-slate-500">
                           <th className="pb-1.5 pr-3 font-medium">Query</th>
@@ -228,11 +228,11 @@ export function WeeklyReportContentRenderer({
                       <tbody>
                         {content.searchStrategy.queryPerformance.map((q, i) => (
                           <tr key={i} className="border-b border-slate-800/50 text-slate-300">
-                            <td className="py-1.5 pr-3 font-mono text-[10px]">{q.query}</td>
+                            <td className="py-1.5 pr-3 font-mono text-xs">{q.query}</td>
                             <td className="py-1.5 pr-3">
-                              <span className="rounded bg-cyan-500/10 px-1.5 py-0.5 text-[10px] text-cyan-400">{q.hitRate}</span>
+                              <span className="rounded bg-cyan-500/10 px-2 py-0.5 text-xs text-cyan-300">{q.hitRate}</span>
                             </td>
-                            <td className="py-1.5 text-slate-400">{q.notes}</td>
+                            <td className="py-1.5 text-slate-300">{q.notes}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -242,10 +242,10 @@ export function WeeklyReportContentRenderer({
               )}
               {content.searchStrategy.newQueriesAdded && content.searchStrategy.newQueriesAdded.length > 0 && (
                 <div>
-                  <h3 className="mb-1.5 text-xs font-medium text-slate-400">New Queries Added</h3>
+                  <h3 className="mb-1.5 text-sm font-medium text-slate-300">New Queries Added</h3>
                   <div className="flex flex-wrap gap-1.5">
                     {content.searchStrategy.newQueriesAdded.map((q, i) => (
-                      <span key={i} className="rounded bg-slate-800/90 px-2 py-0.5 text-[10px] font-mono text-slate-300">
+                      <span key={i} className="rounded bg-slate-800/90 px-2 py-1 text-xs font-mono text-slate-300">
                         {q}
                       </span>
                     ))}
@@ -269,12 +269,12 @@ export function WeeklyReportContentRenderer({
               <div className="space-y-1.5">
                 {content.dataQuality.issues.map((issue, i) => (
                   <div key={i} className="flex items-start gap-2 rounded-lg border border-slate-600/25 bg-[#32333e] px-3 py-2">
-                    <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded bg-amber-500/10 text-[10px] font-bold text-amber-400">
+                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-amber-500/10 text-xs font-bold text-amber-400">
                       {issue.count}
                     </span>
                     <div>
-                      <p className="text-xs font-medium text-[#f5f5f5]">{issue.issue}</p>
-                      <p className="text-[10px] text-slate-400">{issue.handling}</p>
+                      <p className="text-sm font-medium text-[#f5f5f5]">{issue.issue}</p>
+                      <p className="text-xs text-slate-300">{issue.handling}</p>
                     </div>
                   </div>
                 ))}
@@ -302,7 +302,7 @@ export function WeeklyReportContentRenderer({
                 {content.observations.map((insight, i) => (
                   <li key={i} className="flex gap-2 rounded-lg border border-slate-600/25 bg-[#32333e] px-3 py-2">
                     <span className="mt-1 h-1 w-1 flex-shrink-0 rounded-full bg-cyan-400/90" />
-                    <p className="text-xs text-slate-300">{insight}</p>
+                    <p className="text-sm text-slate-200">{insight}</p>
                   </li>
                 ))}
               </ul>
@@ -324,22 +324,22 @@ export function WeeklyReportContentRenderer({
                 {nextSteps.map((step: NextStep, i: number) => (
                   <li key={i} className="rounded-lg border border-slate-600/25 bg-[#32333e] px-3 py-2">
                     <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <span className="flex h-4 min-w-[1.25rem] items-center justify-center rounded bg-cyan-500/10 text-[10px] font-medium text-cyan-400">
+                      <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded bg-cyan-500/10 text-xs font-medium text-cyan-400">
                         {i + 1}
                       </span>
                       {step.priority ? (
-                        <span className="rounded bg-slate-700/80 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-400">
+                        <span className="rounded bg-slate-700/80 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
                           {step.priority}
                         </span>
                       ) : null}
                       {step.file ? (
-                        <span className="truncate font-mono text-[10px] text-slate-500" title={step.file}>
+                        <span className="truncate font-mono text-xs text-slate-400" title={step.file}>
                           {step.file}
                         </span>
                       ) : null}
                     </div>
-                    {step.issue ? <p className="text-xs font-medium text-slate-200">{step.issue}</p> : null}
-                    {step.action ? <p className="mt-0.5 text-[11px] text-slate-400">{step.action}</p> : null}
+                    {step.issue ? <p className="text-sm font-medium text-slate-200">{step.issue}</p> : null}
+                    {step.action ? <p className="mt-1 text-xs text-slate-300">{step.action}</p> : null}
                   </li>
                 ))}
               </ul>
@@ -367,13 +367,13 @@ export function WeeklyReportContentRenderer({
                   <OpenUseCaseDetailButton
                     key={id}
                     useCaseId={id}
-                    className="rounded-lg border border-slate-600/35 bg-[#32333e] px-2 py-1 text-[10px] text-cyan-400/95 transition-colors hover:border-cyan-500/40"
+                    className="rounded-lg border border-slate-600/35 bg-[#32333e] px-2.5 py-1 text-xs text-cyan-400/95 transition-colors hover:border-cyan-500/40"
                   >
                     {id.slice(0, 8)}…
                   </OpenUseCaseDetailButton>
                 ))}
                 {relatedCaseIds.length > 20 && (
-                  <span className="px-2 py-1 text-[10px] text-slate-500">+{relatedCaseIds.length - 20} more</span>
+                  <span className="px-2 py-1 text-xs text-slate-400">+{relatedCaseIds.length - 20} more</span>
                 )}
               </div>
             </div>

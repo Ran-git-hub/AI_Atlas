@@ -1,12 +1,13 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-export type AtlasView = "globe" | "use-cases" | "industries"
+export type AtlasView = "globe" | "use-cases" | "industries" | "blog"
 
 const VIEWS: Array<{ id: AtlasView; label: string; href: string }> = [
   { id: "globe", label: "Globe", href: "/" },
   { id: "use-cases", label: "Use Cases", href: "/use-cases" },
   { id: "industries", label: "Industries", href: "/industries" },
+  { id: "blog", label: "Blog", href: "/blog" },
 ]
 
 export function ViewNavigation({

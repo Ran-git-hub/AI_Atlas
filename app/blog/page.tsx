@@ -1,7 +1,7 @@
 import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { BlogPostListCard } from "@/components/blog/blog-post-list-card"
-import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
+import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 
 const blogShellPad =
@@ -25,7 +25,7 @@ export default async function BlogPage() {
     >
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={blogShellPad}>
-          <AtlasSiteBrandStrip />
+          <AtlasAppTopRow activeView="blog" />
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
             <h1 className="mb-1 text-2xl font-bold text-[#f5f5f5]">AI Atlas Blog</h1>
             <p className="text-pretty text-sm text-slate-400">

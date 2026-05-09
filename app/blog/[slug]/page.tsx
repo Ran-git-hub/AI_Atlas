@@ -5,7 +5,7 @@ import { getAdjacentBlogPosts, getBlogPostBySlug } from "@/lib/data-blog"
 import { isWeeklyBlogPost } from "@/lib/types-blog"
 import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-report-content"
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
-import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
+import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 
 export const dynamic = "force-dynamic"
@@ -59,7 +59,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     >
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={blogShellPad}>
-          <AtlasSiteBrandStrip />
+          <AtlasAppTopRow activeView="blog" />
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
             <Link
               href="/blog"

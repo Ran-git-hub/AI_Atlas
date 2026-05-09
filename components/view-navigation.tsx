@@ -20,7 +20,7 @@ export function ViewNavigation({
     <nav
       aria-label="AI Atlas views"
       className={cn(
-        "pointer-events-auto flex max-w-full items-center rounded-full border border-white/10 bg-slate-950/45 p-1 backdrop-blur-md [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "pointer-events-auto flex max-w-full items-center rounded-full border border-white/10 bg-slate-950/45 p-1.5 backdrop-blur-md [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         // Narrow viewports: wrap below brand row — full row, centered pill (no horizontal header scroll).
         "max-atlas-header:w-full max-atlas-header:basis-full max-atlas-header:justify-center max-atlas-header:overflow-x-visible",
         "atlas-header:w-auto atlas-header:basis-auto atlas-header:justify-start atlas-header:overflow-x-auto",
@@ -40,7 +40,7 @@ export function ViewNavigation({
               href={view.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-semibold leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] atlas-header:text-sm",
+                "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212] atlas-header:text-sm",
                 active
                   ? greenView
                     ? "border border-[#43cc93]/35 bg-[#43cc93]/15 text-[#7ee2b5] shadow-[0_0_0_1px_rgba(67,204,147,0.18)] focus-visible:ring-[#43cc93]/60"

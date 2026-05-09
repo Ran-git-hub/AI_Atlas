@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import Link from "next/link"
 import { Search, SlidersHorizontal, Globe, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,11 +9,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
-import { AtlasLogoMark } from "@/components/atlas-logo-mark"
+import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { cn } from "@/lib/utils"
-import { ATLAS_TAGLINE_MOBILE_LINES } from "@/lib/atlas-mobile-header"
-import { ViewNavigation } from "@/components/view-navigation"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
@@ -204,31 +200,9 @@ export function SearchBar({
   const showReset = selectedIndustries.length > 0
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
+    <header className="pointer-events-none fixed top-0 right-0 left-0 z-50 p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))]">
       <div className="mx-auto w-full min-w-0 max-w-7xl pointer-events-auto" ref={rootRef}>
-        <div className="relative flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center [&::-webkit-scrollbar]:hidden">
-            <Link
-              href="/"
-              className="flex shrink-0 items-center gap-1.5 rounded-md outline-none ring-offset-[#0a0a0f] transition-opacity hover:opacity-90 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-cyan-400/45 focus-visible:ring-offset-2 sm:gap-2"
-              aria-label="AI Atlas — Globe home"
-            >
-              <AtlasLogoMark
-                className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 atlas-header:h-9 atlas-header:w-9"
-                iconClassName="h-[1.35rem] w-[1.35rem] text-cyan-400 sm:h-[1.65rem] sm:w-[1.65rem] atlas-header:h-[1.45rem] atlas-header:w-[1.45rem]"
-              />
-              <span className="shrink-0 text-sm font-semibold tracking-tight text-white sm:text-base atlas-header:text-base atlas-header:text-lg">
-                AI Atlas
-              </span>
-            </Link>
-            <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] atlas-header:hidden">
-              <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[0]}</span>
-              {ATLAS_TAGLINE_MOBILE_LINES[1] ? (
-                <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[1]}</span>
-              ) : null}
-            </p>
-            <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
-            <ViewNavigation activeView="globe" />
-        </div>
+        <AtlasAppTopRow activeView="globe" />
 
         <div className="mt-2.5 flex justify-center">
           <div className="flex w-full max-w-2xl items-center gap-3">

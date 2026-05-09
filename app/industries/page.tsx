@@ -1,10 +1,8 @@
 import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getIndustrySummaries } from "@/lib/data-industries"
-import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
+import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustrySummaryCard } from "@/components/industries/industry-summary-card"
-import { ViewNavigation } from "@/components/view-navigation"
-
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
@@ -26,10 +24,7 @@ export default async function IndustriesPage() {
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={industriesShellPad}>
-          <div className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center [&::-webkit-scrollbar]:hidden">
-            <AtlasSiteBrandStrip className="shrink-0" />
-            <ViewNavigation activeView="industries" />
-          </div>
+          <AtlasAppTopRow activeView="industries" />
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-5">
             <p className="mb-2 text-sm font-medium uppercase tracking-wide text-cyan-400">
               Industry Explorer

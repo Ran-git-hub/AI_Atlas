@@ -9,7 +9,7 @@ export function AtlasSiteBrandStrip({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "relative flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible [&::-webkit-scrollbar]:hidden",
+        "relative flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
     >

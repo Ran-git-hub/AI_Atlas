@@ -2,14 +2,12 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getIndustryDetail } from "@/lib/data-industries"
-import { AtlasSiteBrandStrip } from "@/components/atlas-site-brand-strip"
+import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustryBreakdownList } from "@/components/industries/industry-breakdown-list"
 import { IndustryRelatedReports } from "@/components/industries/industry-related-reports"
 import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
-import { ViewNavigation } from "@/components/view-navigation"
-
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
@@ -62,10 +60,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={industriesShellPad}>
-          <div className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center [&::-webkit-scrollbar]:hidden">
-            <AtlasSiteBrandStrip className="shrink-0" />
-            <ViewNavigation activeView="industries" />
-          </div>
+          <AtlasAppTopRow activeView="industries" />
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-5">
             <div className="mb-5 flex flex-wrap items-center gap-2">
               <Link

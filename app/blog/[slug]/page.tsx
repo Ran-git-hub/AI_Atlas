@@ -63,7 +63,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
             <Link
               href="/blog"
-              className="mb-5 inline-flex items-center gap-2 rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-4 py-2.5 text-base font-medium text-cyan-300 transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/15 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+              className="mb-5 inline-flex items-center gap-2 rounded-md border border-cyan-500/35 bg-cyan-500/10 px-3.5 py-1.5 text-sm font-medium text-cyan-300 transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/15 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
             >
               ← All posts
             </Link>

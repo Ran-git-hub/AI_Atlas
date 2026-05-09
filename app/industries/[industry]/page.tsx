@@ -62,9 +62,9 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={industriesShellPad}>
-          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-3 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center [&::-webkit-scrollbar]:hidden">
             <AtlasSiteBrandStrip className="shrink-0" />
-            <ViewNavigation activeView="industries" className="shrink-0" />
+            <ViewNavigation activeView="industries" />
           </div>
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-5">
             <div className="mb-5 flex flex-wrap items-center gap-2">

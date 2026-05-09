@@ -10,7 +10,7 @@ export default function UseCasesLoading() {
 
         <div className="relative w-full min-w-0 atlas-header:grid atlas-header:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] atlas-header:items-center atlas-header:gap-x-3 atlas-header:gap-y-2">
           <div className="hidden min-w-0 atlas-header:block" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto pr-[2.875rem] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible atlas-header:pr-0 [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible pr-[2.875rem] [scrollbar-width:none] atlas-header:justify-center atlas-header:pr-0 [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <Skeleton className="h-8 w-8 shrink-0 rounded-xl bg-slate-700/50 sm:h-10 sm:w-10 atlas-header:h-9 atlas-header:w-9" />
               <Skeleton className="h-5 w-16 shrink-0 rounded bg-slate-700/45 sm:h-5 sm:w-[4.5rem]" />
@@ -24,7 +24,7 @@ export default function UseCasesLoading() {
               <Skeleton className="h-3.5 w-full max-w-[22rem] rounded bg-slate-700/40" />
               <Skeleton className="h-3 w-[min(100%,18rem)] rounded bg-slate-700/35" />
             </div>
-            <Skeleton className="h-[2.25rem] w-[6.25rem] shrink-0 rounded-full bg-slate-700/50 atlas-header:h-8 atlas-header:w-[9.5rem]" />
+            <Skeleton className="mx-auto h-[2.25rem] w-full max-w-[min(100%,22rem)] shrink-0 rounded-full bg-slate-700/50 atlas-header:mx-0 atlas-header:h-8 atlas-header:w-[9.5rem] atlas-header:max-w-none" />
           </div>
           <div className="absolute right-0 top-0 z-10 atlas-header:relative atlas-header:top-auto atlas-header:right-auto atlas-header:flex atlas-header:min-w-0 atlas-header:justify-end atlas-header:self-center">
             <Skeleton className="h-9 w-9 shrink-0 rounded-full bg-slate-700/50 atlas-header:w-20" />

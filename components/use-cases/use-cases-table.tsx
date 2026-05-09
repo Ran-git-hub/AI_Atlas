@@ -901,7 +901,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         </h1>
         <div className="relative w-full min-w-0 atlas-header:grid atlas-header:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] atlas-header:items-center atlas-header:gap-x-3 atlas-header:gap-y-2">
           <div className="hidden min-w-0 atlas-header:block" aria-hidden="true" />
-          <div className="flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain pr-[2.875rem] [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible atlas-header:pr-0 [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain pr-[2.875rem] [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center atlas-header:pr-0 [&::-webkit-scrollbar]:hidden">
             <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               <AtlasLogoMark
                 className="h-8 w-8 shrink-0 sm:h-10 sm:w-10 atlas-header:h-9 atlas-header:w-9"
@@ -918,7 +918,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               ) : null}
             </p>
             <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
-            <ViewNavigation activeView="use-cases" className="max-atlas-header:shrink-0 atlas-header:shrink-0" />
+            <ViewNavigation activeView="use-cases" />
           </div>
           <div className="absolute right-0 top-0 z-10 atlas-header:relative atlas-header:top-auto atlas-header:right-auto atlas-header:flex atlas-header:min-w-0 atlas-header:justify-end atlas-header:self-center">
             <AtlasQuickHelpDialog />

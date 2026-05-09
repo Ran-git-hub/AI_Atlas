@@ -206,7 +206,7 @@ export function SearchBar({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
       <div className="mx-auto w-full min-w-0 max-w-7xl pointer-events-auto" ref={rootRef}>
-        <div className="relative flex min-w-0 max-w-full flex-row flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:flex-wrap atlas-header:justify-center atlas-header:gap-x-3 atlas-header:gap-y-2 atlas-header:overflow-visible [&::-webkit-scrollbar]:hidden">
+        <div className="relative flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center [&::-webkit-scrollbar]:hidden">
             <Link
               href="/"
               className="flex shrink-0 items-center gap-1.5 rounded-md outline-none ring-offset-[#0a0a0f] transition-opacity hover:opacity-90 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-cyan-400/45 focus-visible:ring-offset-2 sm:gap-2"
@@ -227,7 +227,7 @@ export function SearchBar({
               ) : null}
             </p>
             <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
-            <ViewNavigation activeView="globe" className="max-atlas-header:shrink-0 atlas-header:shrink-0" />
+            <ViewNavigation activeView="globe" />
         </div>
 
         <div className="mt-2.5 flex justify-center">

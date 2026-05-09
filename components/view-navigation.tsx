@@ -20,10 +20,7 @@ export function ViewNavigation({
     <nav
       aria-label="AI Atlas views"
       className={cn(
-        "pointer-events-auto flex max-w-full items-center rounded-full border border-white/10 bg-slate-950/45 p-1.5 backdrop-blur-md [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        // Narrow viewports: wrap below brand row — full row, centered pill (no horizontal header scroll).
-        "max-atlas-header:w-full max-atlas-header:basis-full max-atlas-header:justify-center max-atlas-header:overflow-x-visible",
-        "atlas-header:w-auto atlas-header:basis-auto atlas-header:justify-start atlas-header:overflow-x-auto",
+        "pointer-events-auto flex w-fit max-w-full items-center justify-start overflow-x-auto rounded-full border border-white/10 bg-slate-950/45 p-1.5 backdrop-blur-md [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
     >

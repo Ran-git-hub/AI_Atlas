@@ -13,12 +13,8 @@ import {
 import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
 import { AtlasLogoMark } from "@/components/atlas-logo-mark"
 import { cn } from "@/lib/utils"
-import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
-import {
-  ATLAS_TAGLINE_MOBILE_LINES,
-  SWITCH_TO_INDEX_VIEW_LABEL,
-  SWITCH_TO_INDEX_VIEW_MOBILE_LINES,
-} from "@/lib/atlas-mobile-header"
+import { ATLAS_TAGLINE_MOBILE_LINES } from "@/lib/atlas-mobile-header"
+import { ViewNavigation } from "@/components/view-navigation"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
@@ -231,39 +227,7 @@ export function SearchBar({
               ) : null}
             </p>
             <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
-            <Button
-              asChild
-              variant="outline"
-              className={cn(
-                "pointer-events-auto min-w-0 shrink",
-                viewSwitchButtonClassName,
-                "max-atlas-header:!h-auto max-atlas-header:min-h-0 max-atlas-header:max-w-[6.25rem] max-atlas-header:shrink max-atlas-header:px-1.5 max-atlas-header:py-1 atlas-header:max-w-none atlas-header:shrink-0 atlas-header:px-3",
-                "atlas-header:!text-sm atlas-header:!font-medium atlas-header:!leading-snug atlas-header:!tracking-wide atlas-header:antialiased"
-              )}
-            >
-              <Link
-                href="/use-cases"
-                className="inline-flex max-w-full items-center justify-center text-center max-atlas-header:min-w-0 max-atlas-header:flex-col max-atlas-header:gap-0 max-atlas-header:py-0.5 max-atlas-header:text-xs max-atlas-header:font-semibold max-atlas-header:leading-[1.15] max-atlas-header:sm:text-sm atlas-header:flex-row atlas-header:whitespace-nowrap"
-                style={{
-                  borderColor: "rgba(165, 243, 252, 0.6)",
-                  backgroundColor: "rgba(34, 211, 238, 0.2)",
-                  color: "#cffafe",
-                  boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-                }}
-              >
-                <span className="contents atlas-header:hidden">
-                  <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
-                    {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[0]}
-                  </span>
-                  {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1] ? (
-                    <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
-                      {SWITCH_TO_INDEX_VIEW_MOBILE_LINES[1]}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="hidden atlas-header:inline">{SWITCH_TO_INDEX_VIEW_LABEL}</span>
-              </Link>
-            </Button>
+            <ViewNavigation activeView="globe" className="max-atlas-header:shrink-0 atlas-header:shrink-0" />
         </div>
 
         <div className="mt-2.5 flex justify-center">
@@ -385,7 +349,7 @@ export function SearchBar({
                                       {showFavicon ? (
                                         <img
                                           src={faviconSrc}
-                                          alt={company?.name ?? "Company logo"}
+                                          alt={company?.name ?? "Company/Organization logo"}
                                           className="h-full w-full rounded-sm bg-slate-800/90 object-contain p-1"
                                           onError={() => {
                                             if (companyId) markCompanyImageBroken(companyId, faviconSrc)
@@ -394,7 +358,7 @@ export function SearchBar({
                                       ) : showLegacyLogo ? (
                                         <img
                                           src={logoSrc}
-                                          alt={company?.name ?? "Company logo"}
+                                          alt={company?.name ?? "Company/Organization logo"}
                                           className="h-full w-full object-contain p-1"
                                           onError={() => {
                                             if (companyId) markCompanyImageBroken(companyId, logoSrc)
@@ -417,7 +381,7 @@ export function SearchBar({
                                           border: `1px solid ${isCo ? "rgba(34,211,238,0.35)" : "rgba(60,179,113,0.4)"}`,
                                         }}
                                       >
-                                        {isCo ? "Company" : "Use case"}
+                                        {isCo ? "Company/Organization" : "Use case"}
                                       </span>
                                       <span
                                         className="min-w-0 truncate font-medium"
@@ -442,7 +406,7 @@ export function SearchBar({
                         </>
                       ) : showNoResults ? (
                         <div className="px-4 py-3 text-sm text-slate-400">
-                          No matching companies or use cases.
+                          No matching companies/organizations or use cases.
                         </div>
                       ) : (
                         results.map((hit) => {
@@ -479,7 +443,7 @@ export function SearchBar({
                                     {showFavicon ? (
                                       <img
                                         src={faviconSrc}
-                                        alt={company?.name ?? "Company logo"}
+                                        alt={company?.name ?? "Company/Organization logo"}
                                         className="h-full w-full rounded-sm bg-slate-800/90 object-contain p-1"
                                         onError={() => {
                                           if (companyId) markCompanyImageBroken(companyId, faviconSrc)
@@ -488,7 +452,7 @@ export function SearchBar({
                                     ) : showLegacyLogo ? (
                                       <img
                                         src={logoSrc}
-                                        alt={company?.name ?? "Company logo"}
+                                        alt={company?.name ?? "Company/Organization logo"}
                                         className="h-full w-full object-contain p-1"
                                         onError={() => {
                                           if (companyId) markCompanyImageBroken(companyId, logoSrc)
@@ -511,7 +475,7 @@ export function SearchBar({
                                         border: `1px solid ${isCo ? "rgba(34,211,238,0.35)" : "rgba(60,179,113,0.4)"}`,
                                       }}
                                     >
-                                      {isCo ? "Company" : "Use case"}
+                                      {isCo ? "Company/Organization" : "Use case"}
                                     </span>
                                     <span
                                       className="min-w-0 truncate font-medium"
@@ -621,7 +585,7 @@ export function SearchBar({
                         className="border-slate-500/60 bg-slate-800/80 shadow-none data-[state=unchecked]:bg-slate-800/80 data-[state=checked]:border-cyan-400 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-300"
                       />
                       <span className="text-sm text-cyan-300/95 group-hover:text-cyan-200">
-                        Company / Organization
+                        Company/Organization
                       </span>
                     </label>
                     <label className="group flex cursor-pointer items-center gap-3">

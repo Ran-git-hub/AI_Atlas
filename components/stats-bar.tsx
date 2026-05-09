@@ -31,7 +31,7 @@ export function StatsBar({
           >
             <Database className="h-4 w-4 shrink-0 text-cyan-400" />
             <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
-              <span className="font-semibold tabular-nums text-white">{totalCompanies}</span> Organizations
+              <span className="font-semibold tabular-nums text-white">{totalCompanies}</span> Companies/Organizations
             </span>
           </button>
           <button
@@ -41,7 +41,7 @@ export function StatsBar({
           >
             <MapPin className="h-4 w-4 shrink-0 text-cyan-400" />
             <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
-              <span className="font-semibold tabular-nums text-white">{totalCountries}</span> Countries
+              <span className="font-semibold tabular-nums text-white">{totalCountries}</span> Countries/Regions
             </span>
           </button>
           <button
@@ -80,7 +80,7 @@ export function StatsBar({
             <Database className="h-4 w-4 shrink-0 text-cyan-400" />
             <span className="flex flex-col items-center gap-0 text-center leading-tight text-sm text-slate-300">
               <span className="font-semibold tabular-nums text-white">{totalCompanies}</span>
-              <span>Organizations</span>
+              <span>Companies/Organizations</span>
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />
@@ -92,7 +92,7 @@ export function StatsBar({
             <MapPin className="h-4 w-4 shrink-0 text-cyan-400" />
             <span className="flex flex-col items-center gap-0 text-center leading-tight text-sm text-slate-300">
               <span className="font-semibold tabular-nums text-white">{totalCountries}</span>
-              <span>Countries</span>
+              <span>Countries/Regions</span>
             </span>
           </button>
           <div className="h-4 w-px bg-slate-700" />

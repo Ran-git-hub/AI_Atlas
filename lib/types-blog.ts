@@ -21,6 +21,10 @@ export interface BlogPostListItem {
   publishedAt: string
 }
 
+export interface BlogPostRelatedItem extends BlogPostListItem {
+  relatedCaseIds: string[]
+}
+
 export interface BlogPost extends BlogPostListItem {
   content: WeeklyReportContent | BlogArticleContent
   relatedCaseIds: string[]

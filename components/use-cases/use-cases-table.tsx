@@ -28,7 +28,6 @@ import {
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { viewSwitchButtonClassName } from "@/lib/view-switch-button"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -55,11 +54,8 @@ import {
 import { AtlasSiteTagline } from "@/components/atlas-site-tagline"
 import { AtlasLogoMark } from "@/components/atlas-logo-mark"
 import { AtlasQuickHelpDialog } from "@/components/atlas-quick-help-dialog"
-import {
-  ATLAS_TAGLINE_MOBILE_LINES,
-  SWITCH_TO_GLOBE_VIEW_LABEL,
-  SWITCH_TO_GLOBE_VIEW_MOBILE_LINES,
-} from "@/lib/atlas-mobile-header"
+import { ATLAS_TAGLINE_MOBILE_LINES } from "@/lib/atlas-mobile-header"
+import { ViewNavigation } from "@/components/view-navigation"
 import { AdvancedFilterDateField } from "@/components/use-cases/advanced-filter-date-field"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { Toaster } from "@/components/ui/toaster"
@@ -164,9 +160,9 @@ function sortColumnLabel(columnId: string): string {
   const labels: Record<string, string> = {
     title: "Use Case",
     updated_at: "Updated",
-    company: "Organization",
+    company: "Company/Organization",
     industry: "Industry",
-    country: "Country",
+    country: "Country/Region",
     city: "City",
     source: "Source",
   }
@@ -440,7 +436,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             className="-ml-3 text-[#b3b3b3] hover:bg-transparent hover:text-[#d8d8d8] focus-visible:ring-0"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Organization
+            Company/Organization
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
@@ -508,7 +504,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             className="-ml-3 text-[#b3b3b3] hover:bg-transparent hover:text-[#d8d8d8] focus-visible:ring-0"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Country
+            Country/Region
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
@@ -703,15 +699,15 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     }
     if (isMobileTableLayout) {
       parts.push(
-        `${kpiStats.orgs.toLocaleString()} org${kpiStats.orgs === 1 ? "" : "s"}`,
+        `${kpiStats.orgs.toLocaleString()} ${kpiStats.orgs === 1 ? "company/organization" : "companies/organizations"}`,
         `${kpiStats.industries.toLocaleString()} industr${kpiStats.industries === 1 ? "y" : "ies"}`,
-        `${kpiStats.countries.toLocaleString()} countr${kpiStats.countries === 1 ? "y" : "ies"}`
+        `${kpiStats.countries.toLocaleString()} ${kpiStats.countries === 1 ? "country/region" : "countries/regions"}`
       )
     } else {
       parts.push(
-        `${kpiStats.orgs.toLocaleString()} organization${kpiStats.orgs === 1 ? "" : "s"}`,
+        `${kpiStats.orgs.toLocaleString()} ${kpiStats.orgs === 1 ? "company/organization" : "companies/organizations"}`,
         `${kpiStats.industries.toLocaleString()} industr${kpiStats.industries === 1 ? "y" : "ies"}`,
-        `${kpiStats.countries.toLocaleString()} countr${kpiStats.countries === 1 ? "y" : "ies"}`
+        `${kpiStats.countries.toLocaleString()} ${kpiStats.countries === 1 ? "country/region" : "countries/regions"}`
       )
     }
     if (industryFilter.length > 0) {
@@ -721,7 +717,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     }
     if (countryFilter.length > 0) {
       parts.push(
-        `${countryFilter.length} ${countryFilter.length === 1 ? "country" : "countries"}`
+        `${countryFilter.length} ${countryFilter.length === 1 ? "country/region" : "countries/regions"}`
       )
     }
     const q = globalFilter.trim()
@@ -821,7 +817,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       return {
         title: "No results for advanced filters",
         description:
-          "City, Organization, or date range is too restrictive. Clear advanced filters or start with Industry/Country first.",
+          "City, Company/Organization, or date range is too restrictive. Clear advanced filters or start with Industry/Country/Region first.",
       }
     }
     return {
@@ -922,40 +918,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               ) : null}
             </p>
             <AtlasSiteTagline className="hidden min-w-0 max-w-md atlas-header:block atlas-header:flex-[0_1_auto] atlas-header:text-center atlas-header:text-sm atlas-header:leading-snug atlas-header:tracking-wide" />
-            <Button
-              asChild
-              variant="outline"
-              className={cn(
-                "pointer-events-auto min-w-0 shrink",
-                viewSwitchButtonClassName,
-                "max-atlas-header:!h-auto max-atlas-header:min-h-0 max-atlas-header:max-w-[6.25rem] max-atlas-header:shrink max-atlas-header:px-1.5 max-atlas-header:py-1 atlas-header:max-w-none atlas-header:shrink-0",
-                /* Match AtlasSiteTagline on desktop: text-sm font-medium leading-snug tracking-wide */
-                "atlas-header:!text-sm atlas-header:!font-medium atlas-header:!leading-snug atlas-header:!tracking-wide atlas-header:antialiased"
-              )}
-            >
-              <Link
-                href="/"
-                className="inline-flex max-w-full items-center justify-center text-center max-atlas-header:min-w-0 max-atlas-header:flex-col max-atlas-header:gap-0 max-atlas-header:py-0.5 max-atlas-header:text-xs max-atlas-header:font-semibold max-atlas-header:leading-[1.15] max-atlas-header:sm:text-sm atlas-header:flex-row atlas-header:whitespace-nowrap"
-                style={{
-                  borderColor: "rgba(165, 243, 252, 0.6)",
-                  backgroundColor: "rgba(34, 211, 238, 0.2)",
-                  color: "#cffafe",
-                  boxShadow: "0 0 0 1px rgba(103,232,249,0.25)",
-                }}
-              >
-                <span className="contents atlas-header:hidden">
-                  <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
-                    {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[0]}
-                  </span>
-                  {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1] ? (
-                    <span className="block w-full text-center max-atlas-header:text-[11px] max-atlas-header:sm:text-xs">
-                      {SWITCH_TO_GLOBE_VIEW_MOBILE_LINES[1]}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="hidden atlas-header:inline">{SWITCH_TO_GLOBE_VIEW_LABEL}</span>
-              </Link>
-            </Button>
+            <ViewNavigation activeView="use-cases" className="max-atlas-header:shrink-0 atlas-header:shrink-0" />
           </div>
           <div className="absolute right-0 top-0 z-10 atlas-header:relative atlas-header:top-auto atlas-header:right-auto atlas-header:flex atlas-header:min-w-0 atlas-header:justify-end atlas-header:self-center">
             <AtlasQuickHelpDialog />
@@ -972,7 +935,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             setSearchInput(e.target.value)
             setPagination((prev) => ({ ...prev, pageIndex: 0 }))
           }}
-          placeholder="Search Use Case / Organization / Industry ..."
+          placeholder="Search Use Case / Company/Organization / Industry ..."
           className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
         />
         <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
@@ -1053,8 +1016,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                   <Filter className="h-4 w-4 shrink-0" aria-hidden />
                   <span className="min-w-0 truncate">
                     {countryFilter.length > 0
-                      ? `${countryFilter.length} Countries`
-                      : "Filter by Country"}
+                      ? `${countryFilter.length} Countries/Regions`
+                      : "Filter by Country/Region"}
                   </span>
                 </span>
               </Button>
@@ -1067,10 +1030,10 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 onCheckedChange={() => {
                   setCountryFilter([])
                   setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-                  notifyAction("Country filter cleared.")
+                  notifyAction("Country/Region filter cleared.")
                 }}
               >
-                All countries
+                All countries/regions
               </DropdownMenuCheckboxItem>
               {countries.map((country) => (
                 <DropdownMenuCheckboxItem
@@ -1092,8 +1055,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
                     notifyAction(
                       checked
-                        ? `Country filter applied: ${country}.`
-                        : `Country filter removed: ${country}.`
+                        ? `Country/Region filter applied: ${country}.`
+                        : `Country/Region filter removed: ${country}.`
                     )
                   }}
                 >
@@ -1191,7 +1154,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
           <div className="flex min-w-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
             <Building2 className="h-3 w-3" />
-            Organization
+            Company/Organization
           </div>
           <div className="min-w-0 w-full md:w-auto">
             <Select
@@ -1200,15 +1163,15 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 setOrgFilter(value === "all" ? "" : value)
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))
                 notifyAction(
-                  value === "all" ? "Organization filter cleared." : `Organization filter applied: ${value}.`
+                  value === "all" ? "Company/Organization filter cleared." : `Company/Organization filter applied: ${value}.`
                 )
               }}
             >
               <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[200px]">
-                <SelectValue placeholder="Organization" />
+                <SelectValue placeholder="Company/Organization" />
               </SelectTrigger>
               <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
-                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All organizations</SelectItem>
+                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All companies/organizations</SelectItem>
                 {organizations.map((org) => (
                   <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={org} value={org}>
                     {org}
@@ -1274,7 +1237,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           {countryFilter.map((country) => (
             <FilterChip
               key={`country-${country}`}
-              label={`Country: ${country}`}
+              label={`Country/Region: ${country}`}
               onRemove={() => {
                 setCountryFilter((prev) => prev.filter((v) => v !== country))
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))
@@ -1292,7 +1255,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           ) : null}
           {orgFilter ? (
             <FilterChip
-              label={`Organization: ${orgFilter}`}
+              label={`Company/Organization: ${orgFilter}`}
               onRemove={() => {
                 setOrgFilter("")
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))

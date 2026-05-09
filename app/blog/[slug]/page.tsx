@@ -60,7 +60,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={blogShellPad}>
           <AtlasSiteBrandStrip />
-          <div className="mt-4 max-w-4xl border-t border-slate-800/80 pt-4">
+          <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
             <Link
               href="/blog"
               className="mb-5 inline-flex items-center gap-2 rounded-lg border border-cyan-500/35 bg-cyan-500/10 px-4 py-2.5 text-base font-medium text-cyan-300 transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/15 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
@@ -84,7 +84,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               <div className="mb-3 text-sm text-cyan-400">Article · {formatArticleMeta(post.publishedAt)}</div>
             )}
 
-            <h1 className="mb-3 text-3xl font-bold leading-tight text-[#f5f5f5] md:text-4xl">{post.title}</h1>
+            <h1 className="mb-3 text-pretty text-3xl font-bold leading-tight text-[#f5f5f5] md:text-4xl">
+              {post.title}
+            </h1>
 
             <div className="flex flex-wrap items-center gap-2">
               {post.tags.map((tag) => (

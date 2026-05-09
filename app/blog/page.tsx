@@ -26,9 +26,9 @@ export default async function BlogPage() {
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={blogShellPad}>
           <AtlasSiteBrandStrip />
-          <div className="mt-4 max-w-4xl border-t border-slate-800/80 pt-4">
+          <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
             <h1 className="mb-1 text-2xl font-bold text-[#f5f5f5]">AI Atlas Blog</h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-pretty text-sm text-slate-400">
               Reports and analysis on real-world AI deployments, updated regularly.
             </p>
           </div>

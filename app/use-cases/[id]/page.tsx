@@ -192,7 +192,7 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
             <dl className="mt-12 grid gap-10 sm:grid-cols-3">
               {[
                 {
-                  k: "Organization",
+                  k: "Company/Organization",
                   v: firstNonEmpty(row.company_name, row.company_id),
                 },
                 { k: "Industry", v: firstNonEmpty(row.industry) },

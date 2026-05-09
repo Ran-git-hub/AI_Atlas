@@ -41,7 +41,7 @@ function IndexHelpBody() {
   return (
     <ul className="list-disc space-y-2.5 pl-4 text-sm leading-relaxed text-[#d7dedb]">
       <li>
-        <strong className="font-medium text-[#f0f4f1]">Industry and Country:</strong> multi-select filters;
+        <strong className="font-medium text-[#f0f4f1]">Industry and Country/Region:</strong> multi-select filters;
         the menu stays open while you tick several values (use &quot;All&quot; to clear that dimension).
         Values you have picked recently are tagged <span className="whitespace-nowrap">Recent</span> inside
         each list (stored locally in this browser).
@@ -56,16 +56,16 @@ function IndexHelpBody() {
       </li>
       <li>
         <strong className="font-medium text-[#f0f4f1]">Shareable URL:</strong> search text,
-        industry/country selections, sort, visible columns, page, and page size are reflected in the address
+        industry/country-region selections, sort, visible columns, page, and page size are reflected in the address
         bar — copy the link to share the same view.
       </li>
       <li>
         <strong className="font-medium text-[#f0f4f1]">Search:</strong> matches use case title, description,
-        organization name, industry, country, and city text.
+        company/organization name, industry, country/region, and city text.
       </li>
       <li>
         <strong className="font-medium text-[#f0f4f1]">Other filters:</strong> open{" "}
-        <span className="whitespace-nowrap">Other Filters</span> for city, organization, and updated date
+        <span className="whitespace-nowrap">Other Filters</span> for city, company/organization, and updated date
         range.
       </li>
       <li>

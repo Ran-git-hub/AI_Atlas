@@ -27,7 +27,7 @@ export function WeeklyReportStats({ overview }: { overview: WeeklyReportContent[
         }
       />
       <StatCard
-        label="New Companies"
+        label="New Companies/Organizations"
         value={overview.newCompanies}
         icon={
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,7 +36,7 @@ export function WeeklyReportStats({ overview }: { overview: WeeklyReportContent[
         }
       />
       <StatCard
-        label="Countries"
+        label="Countries/Regions"
         value={overview.countriesCount}
         icon={
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

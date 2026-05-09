@@ -144,7 +144,7 @@ export function UseCaseIndexDetailModal({
               ) : null}
             </div>
             <p style={{ margin: "4px 0 0", fontSize: 14, color: "#b3b3b3" }}>
-              Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
+              Company/Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
             </p>
           </div>
           <button

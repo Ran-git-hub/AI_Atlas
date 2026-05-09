@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/server"
 import { normalizeWeeklyReportContent } from "@/lib/normalize-weekly-report-content"
-import type { BlogArticleContent, BlogPost, BlogPostKind, BlogPostListItem } from "@/lib/types-blog"
+import type {
+  BlogArticleContent,
+  BlogPost,
+  BlogPostKind,
+  BlogPostListItem,
+  BlogPostRelatedItem,
+} from "@/lib/types-blog"
 
 export { normalizeWeeklyReportContent } from "@/lib/normalize-weekly-report-content"
 
@@ -27,6 +33,8 @@ type BlogRow = {
 const LIST_SELECT =
   "id, post_kind, slug, week_start, week_end, title, summary, tags, new_use_cases_count, published_at" as const
 
+const RELATED_SELECT = `${LIST_SELECT}, related_case_ids` as const
+
 function asKind(v: string): BlogPostKind {
   return v === "article" ? "article" : "weekly_report"
 }
@@ -43,6 +51,13 @@ function mapListRow(row: BlogRow): BlogPostListItem {
     tags: row.tags ?? [],
     newUseCasesCount: row.new_use_cases_count ?? 0,
     publishedAt: row.published_at,
+  }
+}
+
+function mapRelatedRow(row: BlogRow): BlogPostRelatedItem {
+  return {
+    ...mapListRow(row),
+    relatedCaseIds: (row.related_case_ids ?? []).map(String),
   }
 }
 
@@ -179,6 +194,27 @@ export async function getBlogPosts(): Promise<BlogPostListItem[]> {
   }
 
   return merged
+}
+
+export async function getBlogPostsWithRelatedCaseIds(): Promise<BlogPostRelatedItem[]> {
+  let remote: BlogPostRelatedItem[] = []
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select(RELATED_SELECT)
+      .order("published_at", { ascending: false })
+
+    if (error) {
+      console.error("[blog] getBlogPostsWithRelatedCaseIds", error.message)
+    } else {
+      remote = (data as BlogRow[] | null)?.map(mapRelatedRow) ?? []
+    }
+  } catch (e) {
+    console.error("[blog] getBlogPostsWithRelatedCaseIds", e)
+  }
+
+  return [...remote].sort((a, b) => blogListSortKeyMs(b) - blogListSortKeyMs(a))
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {

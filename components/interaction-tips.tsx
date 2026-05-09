@@ -131,7 +131,7 @@ export function InteractionTips() {
           <div className="ml-1 flex items-center gap-2">
             <span className="inline-flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
-              <span className="text-slate-200">Company</span>
+              <span className="text-slate-200">Company/Organization</span>
             </span>
             <span className="text-slate-500">/</span>
             <span className="inline-flex items-center gap-1.5">

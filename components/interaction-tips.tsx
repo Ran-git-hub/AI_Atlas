@@ -72,8 +72,8 @@ export function InteractionTips() {
 
   return (
     <aside
-      className={`pointer-events-auto fixed left-0 top-1/2 z-30 block h-48 -translate-y-1/2 overflow-visible rounded-xl border border-slate-600/45 bg-slate-900/45 shadow-lg shadow-black/20 backdrop-blur-xl transition-[width] duration-300 ease-out md:left-3 ${
-        collapsed ? "w-12" : "w-72"
+      className={`pointer-events-auto fixed left-[max(0px,env(safe-area-inset-left,0px))] top-1/2 z-30 block -translate-y-1/2 overflow-visible rounded-2xl border border-slate-600/45 bg-slate-950/70 shadow-lg shadow-black/20 backdrop-blur-xl transition-[width] duration-300 ease-out md:left-[max(0.75rem,env(safe-area-inset-left,0px))] ${
+        collapsed ? "h-36 w-12" : "w-fit max-w-[calc(100%-1rem)]"
       }`}
     >
       {/* Collapsed rail (always mounted for smooth transition) */}
@@ -102,7 +102,7 @@ export function InteractionTips() {
 
       {/* Expanded panel content (always mounted for left-right slide) */}
       <div
-        className={`h-full overflow-hidden p-4 transition-opacity duration-200 ease-out ${
+        className={`inline-block w-max min-w-0 max-w-full max-h-[min(60vh,24rem)] overflow-y-auto p-4 transition-opacity duration-200 ease-out [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
           collapsed ? "pointer-events-none opacity-0" : "pointer-events-auto opacity-100"
         }`}
         style={{
@@ -110,56 +110,76 @@ export function InteractionTips() {
           transition: "clip-path 320ms ease-out, opacity 180ms ease-out",
         }}
       >
-        <div className="mb-3 flex items-center justify-start">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-300 underline decoration-slate-500/70 underline-offset-4">
-            <Lightbulb className="h-5 w-5 text-cyan-300" />
-            <span>Interaction Tips</span>
-          </p>
+        <div className="flex min-w-0 items-center justify-between gap-3 border-b border-slate-700/45 pb-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <Lightbulb className="h-5 w-5 shrink-0 text-cyan-300" />
+            <h2 className="min-w-0 truncate text-sm font-semibold uppercase tracking-wider text-slate-200">
+              Interaction Tips
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label="Collapse interaction tips"
+            title="Collapse tips"
+            className={`shrink-0 ${toggleButtonClass}`}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          aria-label="Collapse interaction tips"
-          title="Collapse tips"
-          className={`absolute right-2 top-1/2 -translate-y-1/2 ${toggleButtonClass}`}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
+        <div className="mt-4 space-y-4 text-sm text-slate-200">
+          <section className="space-y-2">
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Markers
+            </h3>
+            <div className="flex flex-col gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="min-w-0 break-words">Company/Organization</span>
+              </div>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3cb371]" />
+                  <span>Use case</span>
+                </div>
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-yellow-300/70" />
+                  <span>New</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
-        <div className="space-y-2 text-sm text-slate-200">
-          <div className="ml-1 flex items-center gap-2">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-cyan-400" />
-              <span className="text-slate-200">Company/Organization</span>
-            </span>
-            <span className="text-slate-500">/</span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#3cb371]" />
-              <span className="text-slate-200">Use case</span>
-            </span>
-            <span className="text-slate-500">/</span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full border border-yellow-300/70" />
-              <span className="text-slate-200">New</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Hand className="h-4 w-4 text-cyan-300" />
-            <span>Drag to rotate the globe</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ZoomIn className="h-4 w-4 text-cyan-300" />
-            <span>Scroll to zoom in or out</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MousePointer2 className="h-4 w-4 text-cyan-300" />
-            <span>Click markers to open details</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 text-cyan-300" />
-            <span>Please wait while details load</span>
-          </div>
+          <section className="space-y-2.5">
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Controls
+            </h3>
+            <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
+              <Hand className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
+              <span className="min-w-0 flex-1 break-words leading-snug">
+                Drag to rotate
+              </span>
+            </div>
+            <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
+              <ZoomIn className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
+              <span className="min-w-0 flex-1 break-words leading-snug">
+                Scroll to zoom
+              </span>
+            </div>
+            <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
+              <MousePointer2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
+              <span className="min-w-0 flex-1 break-words leading-snug">
+                Click marker for details
+              </span>
+            </div>
+            <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
+              <Loader2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
+              <span className="min-w-0 flex-1 break-words leading-snug">
+                Wait while details load
+              </span>
+            </div>
+          </section>
         </div>
       </div>
     </aside>

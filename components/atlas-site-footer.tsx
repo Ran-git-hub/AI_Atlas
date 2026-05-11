@@ -24,7 +24,7 @@ export function AtlasSiteFooter({
   const inner = (
     <div
       className={cn(
-        "mx-auto flex max-w-[calc(100vw-1rem)] flex-col items-center justify-center gap-y-0.5 px-2 text-xs text-slate-300 sm:max-w-none sm:flex-row sm:gap-x-2 sm:gap-y-0 sm:text-sm",
+        "mx-auto flex max-w-[calc(100%-1rem)] flex-col items-center justify-center gap-y-0.5 px-2 text-xs text-slate-300 sm:max-w-none sm:flex-row sm:gap-x-2 sm:gap-y-0 sm:text-sm",
         layout === "inline" ? "py-1" : "py-2"
       )}
     >

@@ -142,6 +142,9 @@ body {
   color-scheme: dark;
   scrollbar-width: thin;
   scrollbar-color: rgba(34, 211, 238, 0.65) rgb(15, 23, 42);
+  /* With `scrollbar-gutter: stable`, `100vw` / `innerWidth` can exceed the paint width — clip X overflow and paint the gutter the same as the globe shell. */
+  overflow-x: hidden;
+  background-color: rgb(2, 10, 24);
 }
 
 html {

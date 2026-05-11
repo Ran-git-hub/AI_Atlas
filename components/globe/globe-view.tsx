@@ -720,16 +720,26 @@ export function GlobeView({
 
   useEffect(() => {
     setIsClient(true)
-    const updateDimensions = () => {
+  }, [])
+
+  /** Match canvas to the actual globe host — `window.innerWidth`/`100vw` can exceed the layout width when `scrollbar-gutter: stable` is set, leaving a bright strip at the document edge. */
+  useEffect(() => {
+    if (!isClient) return
+    const el = globeContainerRef.current
+    if (!el) return
+    const read = () => {
+      const w = el.clientWidth
+      const h = el.clientHeight
       setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: Math.max(1, Math.floor(w)),
+        height: Math.max(1, Math.floor(h)),
       })
     }
-    updateDimensions()
-    window.addEventListener("resize", updateDimensions)
-    return () => window.removeEventListener("resize", updateDimensions)
-  }, [])
+    read()
+    const ro = new ResizeObserver(() => read())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isClient])
 
   // Mobile-like input devices (no hover + coarse pointer): reduce DOM + animation work.
   // This avoids degrading touchscreen laptops that still have hover-capable input.
@@ -1680,7 +1690,7 @@ export function GlobeView({
       />
       <div
         ref={tooltipRef}
-        className="pointer-events-none invisible absolute z-20 w-[min(280px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-[calc(100%+20px)] rounded-[10px] border bg-[rgba(2,10,24,0.95)] px-4 py-3 text-white opacity-0 shadow-[0_0_20px] backdrop-blur-xl transition-opacity duration-200"
+        className="pointer-events-none invisible absolute z-20 w-[min(280px,calc(100%-2rem))] -translate-x-1/2 -translate-y-[calc(100%+20px)] rounded-[10px] border bg-[rgba(2,10,24,0.95)] px-4 py-3 text-white opacity-0 shadow-[0_0_20px] backdrop-blur-xl transition-opacity duration-200"
       />
     </div>
   )

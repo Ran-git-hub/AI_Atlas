@@ -344,7 +344,7 @@ export function SearchBar({
                                     </div>
                                   ) : null}
                                   <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                    <div className="flex min-w-0 items-center gap-2">
+                                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                                       <span
                                         className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                                         style={{
@@ -357,18 +357,18 @@ export function SearchBar({
                                       >
                                         {isCo ? "Company/Organization" : "Use case"}
                                       </span>
-                                      <span
-                                        className="min-w-0 truncate font-medium"
-                                        style={{ color: isCo ? CYAN : GREEN }}
-                                      >
-                                        {hitLabel(hit)}
-                                      </span>
-                                      {isRecent ? (
+                                      {!isCo && isRecent ? (
                                         <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
                                           New
                                         </span>
                                       ) : null}
                                     </div>
+                                    <span
+                                      className="min-w-0 break-words font-medium leading-snug"
+                                      style={{ color: isCo ? CYAN : GREEN }}
+                                    >
+                                      {hitLabel(hit)}
+                                    </span>
                                     <span className="truncate text-xs text-slate-500">
                                       {hitSubtitle(hit)}
                                     </span>
@@ -438,7 +438,7 @@ export function SearchBar({
                                   </div>
                                 ) : null}
                                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                  <div className="flex min-w-0 items-center gap-2">
+                                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                                     <span
                                       className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                                       style={{
@@ -451,18 +451,18 @@ export function SearchBar({
                                     >
                                       {isCo ? "Company/Organization" : "Use case"}
                                     </span>
-                                    <span
-                                      className="min-w-0 truncate font-medium"
-                                      style={{ color: isCo ? CYAN : GREEN }}
-                                    >
-                                      {hitLabel(hit)}
-                                    </span>
-                                    {isRecent ? (
+                                    {!isCo && isRecent ? (
                                       <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
                                         New
                                       </span>
                                     ) : null}
                                   </div>
+                                  <span
+                                    className="min-w-0 break-words font-medium leading-snug"
+                                    style={{ color: isCo ? CYAN : GREEN }}
+                                  >
+                                    {hitLabel(hit)}
+                                  </span>
                                   <span className="truncate text-xs text-slate-500">
                                     {hitSubtitle(hit)}
                                   </span>

@@ -124,6 +124,37 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
+### Environment variables
+
+Add a `.env.local` file in the repo root (it is gitignored — do not commit secrets).
+
+| Variable | When required | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | App + maintenance scripts | Supabase project URL (Dashboard → Settings → API) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | App | Supabase anon (public) key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-side scripts / admin flows only | Service role JWT — never expose to the browser or client bundles |
+| `NEXT_DEV_LAN_ORIGINS` | Optional | Comma-separated hosts Next may treat as allowed dev origins when you open the dev server from another device on the LAN. Defaults to `localhost` and `127.0.0.1`. See `next.config.mjs`. |
+
+### Dev server on your LAN
+
+`pnpm dev` listens on all interfaces (`0.0.0.0`). If you open the app from a phone or tablet at something like `http://192.168.x.x:3000` and the globe stays on “Loading…”, set your machine’s LAN address in `NEXT_DEV_LAN_ORIGINS` before starting dev, for example:
+
+```bash
+export NEXT_DEV_LAN_ORIGINS=localhost,127.0.0.1,192.168.1.42
+pnpm dev
+```
+
+### Maintenance scripts
+
+**Weekly report** (reads published use cases for a week; optional `--save` writes to the database):
+
+```bash
+npx tsx scripts/generate-weekly-report.ts --dry-run
+# npx tsx scripts/generate-weekly-report.ts --week=2026-04-04 --save
+```
+
+Uses the same `.env.local` as the app: `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+
 ---
 
 ## Background Reading

@@ -12,6 +12,9 @@
  *   --dry-run    Preview the report without saving
  *   --week=      Specify the week start date (default: last Friday)
  *   --save       Save the report to the database
+ *
+ * Environment (`.env.local`, same as `npm run dev`):
+ *   NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 
 import { config } from "dotenv"
@@ -46,11 +49,23 @@ function formatWeekRange(weekStart: string, weekEnd: string): string {
   return `${start.toLocaleDateString("en-US", options)} – ${end.toLocaleDateString("en-US", options)}, ${end.getFullYear()}`
 }
 
+/** Same project URL as the Next.js app (`NEXT_PUBLIC_SUPABASE_URL` in `.env.local`). */
+function getSupabaseProjectBaseUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  if (!raw) {
+    console.error(
+      "[generate-weekly-report] Missing NEXT_PUBLIC_SUPABASE_URL. Add it to .env.local (Supabase Dashboard → Settings → API → Project URL), same as for `npm run dev`."
+    )
+    process.exit(1)
+  }
+  return raw.replace(/\/+$/, "")
+}
+
 async function fetchWeeklyData(weekStart: string, weekEnd: string) {
-  const supabase = createServiceRoleClient()
+  const projectBase = getSupabaseProjectBaseUrl()
 
   // Fetch use cases for this week via REST API (more reliable than supabase-js for date filters)
-  const url = `https://vxjtsdhaoujjbyzjzmrw.supabase.co/rest/v1/AI_Atlas_Use_Cases?select=id,title,company_id,industry,country,published_at,type,content,URL&status=eq.published&published_at=gte.${encodeURIComponent(weekStart + "T00:00:00.000Z")}&published_at=lte.${encodeURIComponent(weekEnd + "T23:59:59.999Z")}&order=published_at.desc`
+  const url = `${projectBase}/rest/v1/AI_Atlas_Use_Cases?select=id,title,company_id,industry,country,published_at,type,content,URL&status=eq.published&published_at=gte.${encodeURIComponent(weekStart + "T00:00:00.000Z")}&published_at=lte.${encodeURIComponent(weekEnd + "T23:59:59.999Z")}&order=published_at.desc`
 
   const response = await fetch(url, {
     headers: {
@@ -72,7 +87,7 @@ async function fetchWeeklyData(weekStart: string, weekEnd: string) {
   let companyMap = new Map<string, string>()
 
   if (companyIds.length > 0) {
-    const companiesUrl = `https://vxjtsdhaoujjbyzjzmrw.supabase.co/rest/v1/AI_Atlas_Companies?id=in.(${companyIds.map(id => encodeURIComponent(id)).join(",")})&select=id,name`
+    const companiesUrl = `${projectBase}/rest/v1/AI_Atlas_Companies?id=in.(${companyIds.map(id => encodeURIComponent(id)).join(",")})&select=id,name`
     const companiesResponse = await fetch(companiesUrl, {
       headers: {
         "apikey": process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",

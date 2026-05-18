@@ -1,178 +1,202 @@
-# 🌍 AI Atlas
+# AI Atlas
 
-**AI Atlas** tracks real-world AI deployments across industries and countries — updated daily by an automated agent pipeline.
+AI Atlas is a public web app for exploring real-world AI deployments across companies, industries, and countries.
 
-🔗 **Live:** https://v0-ai-atlas.vercel.app 
+The app combines an interactive globe, a searchable use case index, industry pages, and a blog/weekly report system backed by Supabase.
 
-> Daily updates on real-world AI deployments worldwide.
+Live app: https://v0-ai-atlas.vercel.app
 
-**AI Atlas** is a living database of real-world AI deployments — automatically collected, structured, and published every day by an agentic pipeline. It tracks how organizations across industries and countries are actually using AI, not just talking about it.
+## What It Tracks
 
-⭐ **Built by:** A non-developer using AI-assisted tools — v0, Cursor, and Claude
+AI Atlas focuses on deployed or announced AI use cases, not general AI news. Each record is intended to describe:
 
----
+- the organization using or building the system
+- the industry or sector involved
+- the country, city, or deployment location
+- the source URL or reference material
+- the use case description and related metadata
 
+Data is collected and structured by an automated research pipeline, then published to the app for browsing and analysis.
 
-<img width="1156" height="1126" alt="截屏2026-04-18 20 56 42" src="https://github.com/user-attachments/assets/bff12a8a-090b-464e-9cbc-73e47a103254" />
+## Main Features
 
----
+### Interactive Globe
 
-## What Makes This Different
+The home page shows companies and use cases on a 3D globe. Users can search, filter, select map markers, and open detail panels for individual organizations or deployments.
 
-Most AI tracking projects are manually curated lists that go stale. AI Atlas runs a daily agentic pipeline that:
+### Use Case Index
 
-- Queries across industries and geographies
-- Validates, deduplicates, and structures each record automatically
-- Publishes new cases to the live app every day
+The `/use-cases` page provides a searchable and filterable table of all tracked deployments. It supports keyword search, industry filters, country filters, sorting, pagination, column visibility, and detail modals.
 
-As of April 2026: **667 use cases · 477 organizations · 47 countries · 65 industries**
+### Industry Explorer
 
----
+The `/industries` pages group use cases by industry and summarize activity by company, country, recent deployments, and related weekly reports.
 
-## Features
+### Blog And Weekly Reports
 
-### 🌐 Interactive Globe View
-Explore AI deployments on a 3D globe. Each marker represents a real organization deploying AI. Rotate, zoom, and click to explore.
-
-### 📊 Index View
-A fully filterable and searchable table of all use cases. Filter by industry, country, or keyword. Sort by date to see the latest deployments first.
-
-### 🔍 Search & Filter
-Full-text search across use case titles, descriptions, and organizations. Filter by industry and country simultaneously.
-
----
-
-## Data Pipeline Architecture
-
-The pipeline runs daily and follows a 4-layer process:
-Layer 1: Collection
-└── 10-12 targeted queries/day
-└── Search fallback chain: Tavily → Exa MCP → xcrawl-search → DuckDuckGo
-└── Geographic rotation to ensure global coverage
-Layer 2: Quality Gate
-└── Validates against rules in ai-atlas-data-quality/SKILL.md
-└── Minimum content length enforcement
-└── Source credibility check
-Layer 3: Deduplication & Enrichment
-└── Merges duplicate records
-└── Resolves missing company references
-└── Links to existing organizations in database
-Layer 4: Publishing
-└── Approved records written to Supabase
-└── Live app updated automatically
-└── Weekly blog generated from accumulated data
-
-**Human-in-the-loop:** A weekly review cycle catches quality issues that automated rules cannot detect — misclassified content, hallucinated records, and borderline cases.
-
----
+The `/blog` pages render analysis posts and generated weekly reports from Supabase. Weekly reports include highlights, trends, related case IDs, tags, and summary statistics.
 
 ## Tech Stack
 
 | Layer | Technology |
-|---|---|
-| Frontend | Next.js (App Router), TypeScript |
-| Styling | Tailwind CSS, shadcn/ui, Radix UI |
-| Database | Supabase (PostgreSQL) |
-| Globe | Three.js / WebGL |
-| Agent Pipeline | OpenClaw, Claude |
+| --- | --- |
+| App framework | Next.js App Router |
+| Language | TypeScript |
+| UI | React, Tailwind CSS, shadcn/ui, Radix UI |
+| Globe | Three.js, react-globe.gl |
+| Tables | TanStack Table |
+| Database | Supabase Postgres |
+| Local report storage | SQLite via better-sqlite3 |
 | Deployment | Vercel |
-| Development | Cursor, v0 by Vercel |
-
----
 
 ## Project Structure
-/app                    # Next.js App Router pages and layouts
-/components             # Reusable UI components
-/lib                    # Supabase client and utility functions
-/hooks                  # Custom React hooks
-/data                   # Static data and config
-/supabase/migrations    # PostgreSQL schema migrations
-/scripts                # Data pipeline scripts
 
----
+```text
+app/                    Next.js routes, layouts, pages, and API handlers
+components/             Reusable UI and feature components
+components/globe/       Interactive globe implementation
+components/use-cases/   Use case table and detail modal components
+components/blog/        Blog article and list components
+components/industries/  Industry summary and detail components
+lib/                    Data access, Supabase clients, types, utilities
+hooks/                  Shared React hooks
+scripts/                Maintenance and content generation scripts
+supabase/migrations/    Database migrations and policies
+data/                   Local SQLite weekly report database
+```
 
-## Getting Started
+## Core Routes
 
-### Prerequisites
+| Route | Purpose |
+| --- | --- |
+| `/` | Globe-based exploration experience |
+| `/use-cases` | Full use case index |
+| `/use-cases/[id]` | Shareable use case detail page |
+| `/industries` | Industry summary index |
+| `/industries/[industry]` | Industry detail page |
+| `/blog` | Blog and weekly report index |
+| `/blog/[slug]` | Blog post or weekly report detail |
+| `/api/use-cases/[id]` | JSON endpoint for a single normalized use case |
 
-- [Node.js](https://nodejs.org/) v18.17+
-- [pnpm](https://pnpm.io/installation)
-- A [Supabase](https://supabase.com/) project
+## Data Model
 
-### Local Setup
+The app primarily reads from these Supabase tables:
+
+- `AI_Atlas_Companies`
+- `AI_Atlas_Use_Cases`
+- `AI_Atlas_Blog_Posts`
+
+The data layer is implemented in:
+
+- `lib/data.ts` for companies, use cases, coordinates, and latest update timestamps
+- `lib/data-blog.ts` for blog and weekly report reads
+- `lib/data-industries.ts` for industry aggregation
+- `lib/blog-admin.ts` for weekly report upserts
+
+Server-side reads prefer `SUPABASE_SERVICE_ROLE_KEY` when available so the app can read data even when row-level security policies are incomplete. Public browser code only uses the anon key.
+
+## Prerequisites
+
+- Node.js 18.17 or newer
+- pnpm
+- A Supabase project
+
+## Local Setup
+
+Install dependencies:
 
 ```bash
-# Clone the repo
-git clone https://github.com/Ran-git-hub/AI_Atlas.git
-cd AI_Atlas
-
-# Install dependencies
 pnpm install
+```
 
-# Configure environment variables
-# Create .env.local and add your Supabase credentials
+Create `.env.local` in the repository root:
+
+```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Apply database migrations
-npx supabase link --project-ref your-project-ref
-npx supabase db pull
-
-# Start the dev server
-pnpm dev
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the app.
+`SUPABASE_SERVICE_ROLE_KEY` is only needed for server-side admin reads and maintenance scripts. Do not expose it in client code or commit it to git.
 
-### Environment variables
-
-Add a `.env.local` file in the repo root (it is gitignored — do not commit secrets).
-
-| Variable | When required | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | App + maintenance scripts | Supabase project URL (Dashboard → Settings → API) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | App | Supabase anon (public) key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-side scripts / admin flows only | Service role JWT — never expose to the browser or client bundles |
-| `NEXT_DEV_LAN_ORIGINS` | Optional | Comma-separated hosts Next may treat as allowed dev origins when you open the dev server from another device on the LAN. Defaults to `localhost` and `127.0.0.1`. See `next.config.mjs`. |
-
-### Dev server on your LAN
-
-`pnpm dev` listens on all interfaces (`0.0.0.0`). If you open the app from a phone or tablet at something like `http://192.168.x.x:3000` and the globe stays on “Loading…”, set your machine’s LAN address in `NEXT_DEV_LAN_ORIGINS` before starting dev, for example:
+Run the development server:
 
 ```bash
-export NEXT_DEV_LAN_ORIGINS=localhost,127.0.0.1,192.168.1.42
 pnpm dev
 ```
 
-### Maintenance scripts
+Open:
 
-**Weekly report** (reads published use cases for a week; optional `--save` writes to the database):
+```text
+http://localhost:3000
+```
+
+## Environment Variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key used by the app |
+| `SUPABASE_SERVICE_ROLE_KEY` | Recommended | Server-only key for privileged reads and maintenance scripts |
+| `NEXT_DEV_LAN_ORIGINS` | Optional | Comma-separated dev origins for testing from another device on the LAN |
+| `BLOG_DISABLE_WEEKLY_STUB` | Optional | Set to `true` or `1` to disable fallback weekly report stubs |
+
+## Available Scripts
+
+```bash
+pnpm dev      # Start the Next.js dev server
+pnpm build    # Build the production app
+pnpm start    # Start the production server
+pnpm lint     # Run ESLint
+```
+
+## Weekly Report Generation
+
+Generate a preview without saving:
 
 ```bash
 npx tsx scripts/generate-weekly-report.ts --dry-run
-# npx tsx scripts/generate-weekly-report.ts --week=2026-04-04 --save
 ```
 
-Uses the same `.env.local` as the app: `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+Generate a report for a specific week:
 
----
+```bash
+npx tsx scripts/generate-weekly-report.ts --week=2026-04-04 --dry-run
+```
 
-## Background Reading
+Save or update the weekly report in Supabase:
 
-If you're interested in how this was built:
+```bash
+npx tsx scripts/generate-weekly-report.ts --week=2026-04-04 --save
+```
 
-- [Harness Engineering for AI Agents](https://www.linkedin.com/in/YOUR_PROFILE) — How I restructured the pipeline using SKILL files, memory, and failure reflex loops
-- [AI Atlas Weekly Blog](https://v0-ai-nine-gules.vercel.app/blog) — Weekly reports generated from the pipeline
+The script reads published use cases for the selected week, builds highlights and trend summaries, and upserts a `weekly_report` row into `AI_Atlas_Blog_Posts`.
 
----
+## Database Setup
 
-## Data Sources & Disclaimer
+Database migrations live in `supabase/migrations`.
 
-Data is sourced from company websites, public announcements, and industry reports. Locations, categories, and links are best-effort and may contain inaccuracies. Information is provided for reference only — please verify with official sources.
+Typical Supabase workflow:
+
+```bash
+npx supabase link --project-ref your-project-ref
+npx supabase db push
+```
+
+Use the Supabase SQL editor if you prefer applying individual migration files manually.
+
+## Security Notes
+
+- `.env.local` is ignored by git and should contain all local secrets.
+- `SUPABASE_SERVICE_ROLE_KEY` must remain server-only.
+- `/api/use-cases/[id]` is a public JSON endpoint. Only expose fields that are safe for public readers.
+- Avoid committing local database files, generated reports, private paths, or machine-specific configuration unless they are intentionally part of the public project.
+
+## Data Disclaimer
+
+AI Atlas data is compiled from public sources such as company websites, announcements, public reports, and related materials. Records are best-effort and may contain incomplete or outdated information. Verify important details against original sources before relying on them.
 
 Company names, logos, and trademarks belong to their respective owners.
-
----
 
 ## License
 

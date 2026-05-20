@@ -7,7 +7,6 @@ import { CompanyDetailPanel } from "@/components/company-detail-panel"
 import { UseCaseDetailPanel } from "@/components/use-case-detail-panel"
 import { StatsBar } from "@/components/stats-bar"
 import { StatsJumpPanel, type StatsJumpKind } from "@/components/stats-jump-panel"
-import { Instructions } from "@/components/instructions"
 import { InteractionTips } from "@/components/interaction-tips"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import {
@@ -106,7 +105,6 @@ export function HomeClient({
   const [selectedUseCase, setSelectedUseCase] = useState<UseCaseWithCoords | null>(null)
   /** Company to restore when user backs out of use-case panel (only set from company → related use case). */
   const [useCaseReturnCompany, setUseCaseReturnCompany] = useState<CompanyWithCoords | null>(null)
-  const [showInstructions, setShowInstructions] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [flyTo, setFlyTo] = useState<GlobeFlyTo | null>(null)
@@ -133,7 +131,6 @@ export function HomeClient({
     const id = String(raw)
     const uc = safeUseCases.find((u) => String(u.id) === id)
     if (!uc) return
-    setShowInstructions(false)
     setSelectedCompany(null)
     setUseCaseReturnCompany(null)
     setSelectedUseCase(uc)
@@ -225,14 +222,12 @@ export function HomeClient({
     setSelectedUseCase(null)
     setUseCaseReturnCompany(null)
     setSelectedCompany(company)
-    setShowInstructions(false)
   }, [])
 
   const handleUseCaseClick = useCallback((useCase: UseCaseWithCoords) => {
     setUseCaseReturnCompany(null)
     setSelectedCompany(null)
     setSelectedUseCase(useCase)
-    setShowInstructions(false)
   }, [])
 
   const handleOpenUseCaseFromCompanyPanel = useCallback(
@@ -241,7 +236,6 @@ export function HomeClient({
       setUseCaseReturnCompany(selectedCompany)
       setSelectedCompany(null)
       setSelectedUseCase(useCase)
-      setShowInstructions(false)
     },
     [selectedCompany]
   )
@@ -298,7 +292,6 @@ export function HomeClient({
     debouncedSearch.length > 0 && searchResults.length === 0
 
   const handleSearchSelectHit = useCallback((hit: UnifiedSearchHit) => {
-    setShowInstructions(false)
     if (hit.type === "company") {
       setSelectedUseCase(null)
       setUseCaseReturnCompany(null)
@@ -464,11 +457,6 @@ export function HomeClient({
 
       {/* Interaction tips */}
       <InteractionTips />
-      {showInstructions && (
-        <div className="md:hidden">
-          <Instructions />
-        </div>
-      )}
 
       {/* Stats bar */}
       <StatsBar 

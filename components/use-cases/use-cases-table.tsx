@@ -80,6 +80,11 @@ const MAX_RECENT_FILTER_PICKS = 5
 const RECENT_INDUSTRIES_KEY = "use-cases:recent-filter-industries:v1"
 const RECENT_COUNTRIES_KEY = "use-cases:recent-filter-countries:v1"
 const TABLE_DENSITY_STORAGE_KEY = "use-cases:table-density:v1"
+const UNCATEGORIZED_INDUSTRY = "Uncategorized"
+
+function displayIndustry(value: string | null | undefined): string {
+  return value?.trim() || UNCATEGORIZED_INDUSTRY
+}
 
 function loadRecentFilterPicks(key: string): string[] {
   try {
@@ -451,11 +456,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       },
       {
         id: "industry",
-        accessorFn: (row) => row.industry ?? "",
+        accessorFn: (row) => displayIndustry(row.industry),
         filterFn: (row, _id, value) => {
           const selected = Array.isArray(value) ? (value as string[]) : []
           if (selected.length === 0) return true
-          const current = row.original.industry?.trim() ?? ""
+          const current = displayIndustry(row.original.industry)
           return selected.includes(current)
         },
         size: 180,
@@ -479,7 +484,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                 : "text-sm leading-relaxed"
             )}
           >
-            {row.original.industry ?? ""}
+            {displayIndustry(row.original.industry)}
           </div>
         ),
       },
@@ -668,8 +673,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     for (const r of data) {
       const org = (r.company_name ?? r.company_id ?? "").trim()
       if (org) orgs.add(org)
-      const ind = (r.industry ?? "").trim()
-      if (ind) inds.add(ind)
+      inds.add(displayIndustry(r.industry))
       const ctr = (r.country ?? "").trim()
       if (ctr) ctrs.add(ctr)
     }
@@ -752,7 +756,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
   const industries = React.useMemo(
     () =>
-      Array.from(new Set(rows.map((r) => r.industry?.trim()).filter(Boolean) as string[])).sort((a, b) =>
+      Array.from(new Set(rows.map((r) => displayIndustry(r.industry)))).sort((a, b) =>
         a.localeCompare(b)
       ),
     [rows]

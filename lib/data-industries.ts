@@ -34,6 +34,8 @@ type IndustryBucket = {
   rows: UseCaseCatalogRow[]
 }
 
+const UNCATEGORIZED_INDUSTRY = "Uncategorized"
+
 function cleanValue(value: string | null | undefined): string {
   return value?.trim() ?? ""
 }
@@ -99,8 +101,7 @@ function buildIndustryBuckets(rows: UseCaseCatalogRow[]): IndustryBucket[] {
   const bySlug = new Map<string, IndustryBucket>()
 
   for (const row of rows) {
-    const industry = cleanValue(row.industry)
-    if (!industry) continue
+    const industry = cleanValue(row.industry) || UNCATEGORIZED_INDUSTRY
 
     const slug = slugifyTaxonomyValue(industry)
     if (!slug) continue

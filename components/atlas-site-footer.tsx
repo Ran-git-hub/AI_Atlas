@@ -24,16 +24,16 @@ export function AtlasSiteFooter({
   const inner = (
     <div
       className={cn(
-        "mx-auto flex max-w-[calc(100%-1rem)] flex-col items-center justify-center gap-y-0.5 px-2 text-xs text-slate-300 sm:max-w-none sm:flex-row sm:gap-x-2 sm:gap-y-0 sm:text-sm",
+        "mx-auto flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-2 text-xs text-slate-300 sm:max-w-none sm:text-sm",
         layout === "inline" ? "py-1" : "py-2"
       )}
     >
-      <span className="text-center">
+      <span className="whitespace-nowrap text-center">
         Latest Data Update: {latestDataUpdateCet}
       </span>
-      <div className="flex items-center justify-center gap-2">
-        <span className="hidden text-slate-600 sm:inline">|</span>
-        <span>© 2026 AI Atlas</span>
+      <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+        <span className="text-slate-600">|</span>
+        <span className="whitespace-nowrap">© 2026 AI Atlas</span>
         <span className="text-slate-600">|</span>
         <Link
           href="/blog"
@@ -114,7 +114,7 @@ export function AtlasSiteFooter({
   }
 
   return (
-    <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 w-full -translate-x-1/2 px-2 sm:w-auto sm:px-0">
+    <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 w-full -translate-x-1/2 px-2">
       {inner}
     </div>
   )

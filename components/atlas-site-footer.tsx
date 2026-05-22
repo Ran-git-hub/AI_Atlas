@@ -77,6 +77,15 @@ export function AtlasSiteFooter({
                 >
                   allenheran@gmail.com
                 </a>
+                {" · "}
+                <a
+                  href="https://www.linkedin.com/in/ran-he-1968885"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-cyan-300 underline underline-offset-2 hover:text-cyan-200"
+                >
+                  LinkedIn
+                </a>
               </p>
               <div className="space-y-1.5 rounded-md border border-slate-800/80 bg-slate-900/70 p-3 text-xs text-slate-400">
                 <p className="font-medium uppercase tracking-wide text-slate-300">

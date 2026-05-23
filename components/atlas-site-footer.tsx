@@ -36,10 +36,10 @@ export function AtlasSiteFooter({
         <span className="whitespace-nowrap">© 2026 AI Atlas</span>
         <span className="text-slate-600">|</span>
         <Link
-          href="/blog"
+          href="/quality"
           className="px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
         >
-          Blog
+          Data Quality Dashboard
         </Link>
         <span className="text-slate-600">|</span>
         <Dialog>

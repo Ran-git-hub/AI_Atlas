@@ -7,14 +7,14 @@ import {
   CheckCircle2,
   Database,
   Filter,
-  Layers,
-  Link2,
   RefreshCw,
   ShieldCheck,
   Sparkles,
   Target,
   type LucideIcon,
 } from "lucide-react"
+import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
+import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { cn } from "@/lib/utils"
 
 type Severity = "critical" | "warning" | "info"
@@ -174,14 +174,14 @@ function TableSummaryCard({
             <Icon className={cn("h-5 w-5", meta.accent)} />
           </div>
           <div>
-            <div className="text-xs font-medium uppercase tracking-wide text-slate-400">{table}</div>
+            <div className="text-sm font-medium uppercase tracking-wide text-slate-400">{table}</div>
             <div className="mt-0.5 flex items-baseline gap-1.5">
-              <span className="text-3xl font-semibold tabular-nums text-white">{score}</span>
+              <span className="text-3xl font-semibold tabular-nums text-white">{score.toFixed(1)}</span>
               <span className="text-sm font-semibold text-slate-400">/100</span>
             </div>
           </div>
         </div>
-        <span className={cn("rounded-md border px-2 py-0.5 text-xs font-semibold", tone.chip)}>
+        <span className={cn("rounded-md border px-2.5 py-1 text-sm font-semibold", tone.chip)}>
           {tone.label}
         </span>
       </div>
@@ -189,48 +189,48 @@ function TableSummaryCard({
       <div className="mt-3 grid gap-3 lg:grid-cols-[0.55fr_1.45fr]">
         <div className="grid grid-cols-2 gap-2">
           <div className="flex min-h-20 flex-col items-center justify-center rounded-lg border border-slate-700/70 bg-slate-950/45 px-3 py-2 text-center">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">Records</div>
-            <div className="mt-1 text-lg font-semibold tabular-nums text-white">{records.toLocaleString()}</div>
+            <div className="text-sm uppercase tracking-wide text-slate-500">Records</div>
+            <div className="mt-1 text-xl font-semibold tabular-nums text-white">{records.toLocaleString()}</div>
           </div>
           <div className="flex min-h-20 flex-col items-center justify-center rounded-lg border border-slate-700/70 bg-slate-950/45 px-3 py-2 text-center">
-            <div className="text-[11px] uppercase tracking-wide text-slate-500">Rules</div>
-            <div className="mt-1 text-lg font-semibold tabular-nums text-white">{rules}</div>
+            <div className="text-sm uppercase tracking-wide text-slate-500">Rules</div>
+            <div className="mt-1 text-xl font-semibold tabular-nums text-white">{rules}</div>
           </div>
         </div>
 
         <div className="rounded-lg border border-slate-700/70 bg-slate-950/35 px-3 py-2">
           <div className="mb-2 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Failures By Severity</div>
-              <div className="mt-0.5 text-xs font-semibold tabular-nums text-slate-100">{totalFailures.toLocaleString()} total failures</div>
+              <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Failures By Severity</div>
+              <div className="mt-0.5 text-sm font-semibold tabular-nums text-slate-100">{totalFailures.toLocaleString()} total failures</div>
             </div>
-            <div className="text-[11px] text-slate-500">High x60 · Medium x25 · Low x5</div>
+            <div className="text-sm text-slate-500">High x3 · Medium x2 · Low x1</div>
           </div>
 
           {[
-            { label: "High", value: highFailures, weight: "x60", valueClass: "text-slate-100 font-bold" },
-            { label: "Medium", value: mediumFailures, weight: "x25", valueClass: "text-slate-200 font-semibold" },
-            { label: "Low", value: lowFailures, weight: "x5", valueClass: "text-slate-300 font-semibold" },
+            { label: "High", value: highFailures, weight: "x3", valueClass: "text-slate-100 font-bold" },
+            { label: "Medium", value: mediumFailures, weight: "x2", valueClass: "text-slate-200 font-semibold" },
+            { label: "Low", value: lowFailures, weight: "x1", valueClass: "text-slate-300 font-semibold" },
           ].map((item) => (
             <div key={item.label} className="grid grid-cols-[4.5rem_1fr_4rem] items-center gap-2 py-1">
-              <div className="text-xs text-slate-400">{item.label}</div>
+              <div className="text-sm text-slate-400">{item.label}</div>
               <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
                 <div
                   className="h-full rounded-full bg-slate-400"
                   style={{ width: `${(item.value / maxFailures) * 100}%` }}
                 />
               </div>
-              <div className="text-right text-xs">
+              <div className="text-right text-sm">
                 <span className={cn("tabular-nums", item.valueClass)}>{item.value.toLocaleString()}</span>
-                <span className="ml-1 text-[10px] text-slate-500">{item.weight}</span>
+                <span className="ml-1 text-xs text-slate-500">{item.weight}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-2 text-[11px] leading-4 text-slate-500">
-        Score = 100 - weighted failure penalty normalized by record count.
+      <div className="mt-2 text-sm leading-5 text-slate-500">
+        Rule score = 100 - failure rate x severity multiplier. Table score is the weighted average.
       </div>
     </div>
   )
@@ -409,7 +409,7 @@ function TableQualitySection({
   )
 }
 
-export function QualityDashboard() {
+export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet: string }) {
   const [data, setData] = useState<QualityResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -461,6 +461,9 @@ export function QualityDashboard() {
   if (error) {
     return (
       <main className="min-h-screen bg-slate-950 p-6 text-white">
+        <div className="mx-auto mb-5 max-w-7xl">
+          <AtlasAppTopRow />
+        </div>
         <div className="mx-auto max-w-4xl rounded-lg border border-red-400/30 bg-slate-900/80 p-8 text-center">
           <AlertTriangle className="mx-auto h-8 w-8 text-red-300" />
           <h1 className="mt-4 text-xl font-semibold">Data quality dashboard failed to load</h1>
@@ -472,6 +475,9 @@ export function QualityDashboard() {
             <RefreshCw className="h-4 w-4" />
             Retry
           </button>
+        </div>
+        <div className="mx-auto mt-8 max-w-7xl">
+          <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
         </div>
       </main>
     )
@@ -505,7 +511,10 @@ export function QualityDashboard() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_15%_0%,rgba(34,211,238,0.12),transparent_34%),radial-gradient(circle_at_85%_8%,rgba(60,179,113,0.13),transparent_30%),linear-gradient(180deg,#020a18_0%,#0f172a_48%,#020617_100%)] text-white">
       <header className="border-b border-slate-700/70 bg-slate-950/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto max-w-7xl px-6 py-3">
+          <AtlasAppTopRow />
+        </div>
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-slate-800/80 px-6 py-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
             <div className="rounded-md border border-cyan-300/30 bg-cyan-300/10 p-2">
               <Database className="h-5 w-5 text-cyan-300" />
@@ -547,28 +556,41 @@ export function QualityDashboard() {
 
         {data ? (
           <>
-            <section className={cn("rounded-lg border bg-slate-900/70 p-2.5 backdrop-blur-md", scoreTone.chip)}>
+            <section className="rounded-lg border border-slate-700/70 bg-slate-900/70 p-2.5 backdrop-blur-md">
               <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="h-5 w-5" />
                   <div>
-                    <div className="text-xs font-semibold uppercase tracking-wide opacity-90">Overall Quality Score</div>
-                    <div className="mt-1 text-xs text-slate-300">
-                      Overall = Use Cases score x {useCaseWeight}% + Companies score x {companyWeight}%. Green at 95% or above,
-                      orange below 95%, red below 90%.
+                    <div className="text-lg font-semibold uppercase tracking-wide opacity-90">Overall Quality Score</div>
+                    <div className="mt-1 text-base text-slate-300">
+                      Overall = Use Cases score x {useCaseWeight}% + Companies score x {companyWeight}%. High severity
+                      failures reduce each rule score more strongly than Medium or Low failures.
+                    </div>
+                    <div className="mt-2 space-y-0.5 text-base leading-7 text-slate-400">
+                      <p>Failure rate = failed records / checked records x 100.</p>
+                      <p>Rule score = 100 - failure rate x severity multiplier. High x3, Medium x2, Low x1.</p>
+                      <p>Table score = weighted average of rule scores using the same High x3, Medium x2, Low x1 weights.</p>
+                      <p>Color code: green at 95 or above, orange from 90 to below 95, red below 90.</p>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl font-semibold leading-none tabular-nums text-white">{data.scores.overall}</span>
-                  <span className="text-base font-semibold text-slate-300">/100</span>
-                  <span className="rounded-md border border-cyan-300/25 bg-cyan-300/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-200">
+                <div className="w-full rounded-lg border border-slate-700/70 bg-slate-950/45 p-3 lg:w-72">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-semibold leading-none tabular-nums text-white">{data.scores.overall.toFixed(1)}</span>
+                      <span className="text-base font-semibold text-slate-300">/100</span>
+                    </div>
+                    <span className={cn("rounded-md border px-2.5 py-1 text-sm font-semibold", scoreTone.chip)}>
+                      {scoreTone.label}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+                    <div className={cn("h-full rounded-full", scoreTone.bar)} style={{ width: `${Math.max(0, Math.min(100, data.scores.overall))}%` }} />
+                  </div>
+                  <div className="mt-2 text-sm font-semibold text-cyan-200">
                     {totalRecords.toLocaleString()} records
-                  </span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2 h-1 overflow-hidden rounded-full bg-slate-950/60">
-                <div className={cn("h-full rounded-full", scoreTone.bar)} style={{ width: `${data.scores.overall}%` }} />
               </div>
             </section>
 
@@ -654,23 +676,11 @@ export function QualityDashboard() {
               rules={tableRules.Companies}
               filteredRules={filteredTableRules.Companies}
             />
-
-            <section className="rounded-xl border border-slate-700/70 bg-slate-900/55 p-2.5 backdrop-blur-md">
-              <div className="flex items-start gap-3">
-                <Link2 className="mt-0.5 h-4 w-4 text-cyan-300" />
-                <div>
-                  <h2 className="text-base font-semibold">Status Thresholds</h2>
-                  <p className="mt-1 text-xs leading-5 text-slate-400">
-                    Each table score is the pass rate across that table's rule checks. Overall is weighted by record
-                    count across Use Cases and Companies. Green means 95% or higher, orange means below 95% and at
-                    least 90%, and red means below 90%.
-                  </p>
-                </div>
-                <Layers className="ml-auto hidden h-4 w-4 text-slate-500 sm:block" />
-              </div>
-            </section>
           </>
         ) : null}
+      </div>
+      <div className="mx-auto mt-8 max-w-7xl px-6 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]">
+        <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
       </div>
     </main>
   )

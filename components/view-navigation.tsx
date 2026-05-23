@@ -14,7 +14,7 @@ export function ViewNavigation({
   activeView,
   className,
 }: {
-  activeView: AtlasView
+  activeView?: AtlasView
   className?: string
 }) {
   return (

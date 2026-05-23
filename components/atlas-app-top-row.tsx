@@ -10,7 +10,7 @@ export function AtlasAppTopRow({
   activeView,
   className,
 }: {
-  activeView: AtlasView
+  activeView?: AtlasView
   className?: string
 }) {
   return (

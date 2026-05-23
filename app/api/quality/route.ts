@@ -215,6 +215,22 @@ type RuleResult = {
   samples: IssueSample[]
 }
 
+const SEVERITY_SCORE_WEIGHTS: Record<RuleResult["severity"], number> = {
+  critical: 3,
+  warning: 2,
+  info: 1,
+}
+
+const SEVERITY_FAILURE_MULTIPLIERS: Record<RuleResult["severity"], number> = {
+  critical: 3,
+  warning: 2,
+  info: 1,
+}
+
+function roundScore(value: number): number {
+  return Math.round(value * 10) / 10
+}
+
 function isBlank(value: unknown): boolean {
   return value === null || value === undefined || (typeof value === "string" && value.trim() === "")
 }
@@ -631,30 +647,26 @@ export async function GET() {
 
   const tableScore = (table: RuleResult["table"]) => {
     const tableRules = rules.filter((rule) => rule.table === table)
-    const recordCount = table === "Use Cases" ? useCases.length : companies.length
-    if (recordCount <= 0) return 100
+    let weightedScore = 0
+    let totalWeight = 0
 
-    const highFailures = tableRules
-      .filter((rule) => rule.severity === "critical")
-      .reduce((sum, rule) => sum + rule.failed, 0)
-    const mediumFailures = tableRules
-      .filter((rule) => rule.severity === "warning")
-      .reduce((sum, rule) => sum + rule.failed, 0)
-    const lowFailures = tableRules
-      .filter((rule) => rule.severity === "info")
-      .reduce((sum, rule) => sum + rule.failed, 0)
+    for (const rule of tableRules) {
+      if (rule.total <= 0) continue
+      const weight = SEVERITY_SCORE_WEIGHTS[rule.severity]
+      const failureRate = (rule.failed / rule.total) * 100
+      const ruleScore = Math.max(0, 100 - failureRate * SEVERITY_FAILURE_MULTIPLIERS[rule.severity])
+      weightedScore += ruleScore * weight
+      totalWeight += weight
+    }
 
-    const penalty =
-      (highFailures / recordCount) * 60 +
-      (mediumFailures / recordCount) * 25 +
-      (lowFailures / recordCount) * 5
+    if (totalWeight <= 0) return 100
 
-    return Math.max(0, Math.round(100 - Math.min(100, penalty)))
+    return roundScore(Math.max(0, weightedScore / totalWeight))
   }
 
   const useCaseScore = tableScore("Use Cases")
   const companyScore = tableScore("Companies")
-  const score = Math.round(useCaseScore * 0.9 + companyScore * 0.1)
+  const score = roundScore(useCaseScore * 0.9 + companyScore * 0.1)
 
   const criticalFailures = rules
     .filter((rule) => rule.severity === "critical")

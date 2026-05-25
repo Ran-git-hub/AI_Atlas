@@ -22,7 +22,10 @@ import {
   Columns3,
   ExternalLink,
   Filter,
+  Globe2,
+  Layers3,
   MapPin,
+  TrendingUp,
   X,
 } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
@@ -170,6 +173,141 @@ function sortColumnLabel(columnId: string): string {
   return labels[columnId] ?? columnId.replaceAll("_", " ")
 }
 
+type RankedInsight = {
+  label: string
+  count: number
+}
+
+type RelatedUseCase = {
+  row: UseCaseCatalogRow
+  reasons: string[]
+  score: number
+}
+
+const RELATED_STOP_WORDS = new Set([
+  "about",
+  "after",
+  "agent",
+  "across",
+  "also",
+  "and",
+  "are",
+  "artificial",
+  "based",
+  "case",
+  "company",
+  "deploy",
+  "deployed",
+  "deploying",
+  "deployment",
+  "from",
+  "for",
+  "into",
+  "its",
+  "the",
+  "this",
+  "through",
+  "use",
+  "uses",
+  "using",
+  "with",
+])
+
+function rankedCounts(values: string[], limit: number): RankedInsight[] {
+  const counts = new Map<string, number>()
+  for (const value of values) {
+    const label = value.trim()
+    if (!label) continue
+    counts.set(label, (counts.get(label) ?? 0) + 1)
+  }
+  return Array.from(counts, ([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, limit)
+}
+
+function isWithinDays(value: string | null | undefined, days: number): boolean {
+  const ts = Date.parse(value ?? "")
+  return Number.isFinite(ts) && Date.now() - ts <= days * 24 * 60 * 60 * 1000
+}
+
+function cleanComparable(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? ""
+}
+
+function useCaseTokens(row: UseCaseCatalogRow): Set<string> {
+  const text = [
+    useCaseDisplayName(row),
+    row.description,
+    row.sector,
+    row.industry,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+
+  const words = text.match(/[a-z0-9]{3,}/g) ?? []
+  return new Set(words.filter((word) => !RELATED_STOP_WORDS.has(word)))
+}
+
+function relatedUseCasesFor(
+  row: UseCaseCatalogRow,
+  rows: UseCaseCatalogRow[],
+  limit = 6
+): RelatedUseCase[] {
+  const baseCompany = cleanComparable(row.company_name || row.company_id)
+  const baseIndustry = cleanComparable(row.industry)
+  const baseCountry = cleanComparable(row.country)
+  const baseCity = cleanComparable(row.city)
+  const baseTokens = useCaseTokens(row)
+
+  return rows
+    .filter((candidate) => candidate.id !== row.id)
+    .map((candidate) => {
+      let score = 0
+      const reasons: string[] = []
+      const company = cleanComparable(candidate.company_name || candidate.company_id)
+      const industry = cleanComparable(candidate.industry)
+      const country = cleanComparable(candidate.country)
+      const city = cleanComparable(candidate.city)
+
+      if (baseCompany && company && baseCompany === company) {
+        score += 10
+        reasons.push("Same company")
+      }
+      if (baseIndustry && industry && baseIndustry === industry) {
+        score += 7
+        reasons.push("Same industry")
+      }
+      if (baseCountry && country && baseCountry === country) {
+        score += 4
+        reasons.push("Same country")
+      }
+      if (baseCity && city && baseCity === city) {
+        score += 3
+        reasons.push("Same city")
+      }
+
+      let sharedTerms = 0
+      for (const token of useCaseTokens(candidate)) {
+        if (baseTokens.has(token)) sharedTerms += 1
+      }
+      if (sharedTerms > 0) {
+        score += Math.min(sharedTerms, 8)
+        if (reasons.length < 2) reasons.push(`${sharedTerms} shared terms`)
+      }
+
+      return { row: candidate, reasons, score }
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      const bTime = Date.parse(b.row.updated_at ?? b.row.created_at ?? "") || 0
+      const aTime = Date.parse(a.row.updated_at ?? a.row.created_at ?? "") || 0
+      return bTime - aTime
+    })
+    .slice(0, limit)
+}
+
 export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCasesTableProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -257,9 +395,43 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   })
   const [pageJumpInput, setPageJumpInput] = React.useState(String(Math.max(initialState.page, 1)))
   const [activeDetail, setActiveDetail] = React.useState<UseCaseCatalogRow | null>(null)
+  const activeDetailRef = React.useRef<UseCaseCatalogRow | null>(null)
+  activeDetailRef.current = activeDetail
+  const detailHistoryRef = React.useRef<UseCaseCatalogRow[]>([])
+  const [detailHistoryLen, setDetailHistoryLen] = React.useState(0)
+  const activeDetailRelated = React.useMemo(
+    () => (activeDetail ? relatedUseCasesFor(activeDetail, rows) : []),
+    [activeDetail, rows]
+  )
 
   const openDetail = React.useCallback((row: UseCaseCatalogRow) => {
+    detailHistoryRef.current = []
+    setDetailHistoryLen(0)
     setActiveDetail(row)
+  }, [])
+
+  const openRelatedDetail = React.useCallback((row: UseCaseCatalogRow) => {
+    const current = activeDetailRef.current
+    if (current && current.id !== row.id) {
+      detailHistoryRef.current = [...detailHistoryRef.current, current]
+      setDetailHistoryLen(detailHistoryRef.current.length)
+    }
+    setActiveDetail(row)
+  }, [])
+
+  const goBackInDetail = React.useCallback(() => {
+    const h = detailHistoryRef.current
+    const previous = h.at(-1)
+    if (!previous) return
+    detailHistoryRef.current = h.slice(0, -1)
+    setDetailHistoryLen(detailHistoryRef.current.length)
+    setActiveDetail(previous)
+  }, [])
+
+  const closeDetail = React.useCallback(() => {
+    detailHistoryRef.current = []
+    setDetailHistoryLen(0)
+    setActiveDetail(null)
   }, [])
 
   const [viewportWidth, setViewportWidth] = React.useState(1024)
@@ -610,8 +782,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         return next
       })
     },
-    onGlobalFilterChange: setGlobalFilter,
-    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: (value) => setGlobalFilter(value),
+    onColumnFiltersChange: (updater) => {
+      const next = typeof updater === "function" ? updater(columnFilters) : updater
+      setColumnFilters(next)
+    },
     onPaginationChange: setPagination,
     onColumnVisibilityChange: setColumnVisibility,
     globalFilterFn: (row, _columnId, filterValue) => {
@@ -665,8 +840,31 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     })
   }, [filteredOriginals, dateAfter, dateBefore])
 
+  const insightRows = dateAfter || dateBefore ? dateFilteredRows : filteredOriginals
+
+  const insightStats = React.useMemo(() => {
+    const recent30 = insightRows.filter((row) =>
+      isWithinDays(row.updated_at ?? row.created_at, 30)
+    ).length
+    const topIndustries = rankedCounts(
+      insightRows.map((row) => displayIndustry(row.industry)),
+      3
+    )
+    const topCountries = rankedCounts(
+      insightRows.map((row) => row.country ?? ""),
+      3
+    )
+
+    return {
+      recent30,
+      topIndustries,
+      topCountries,
+      shareOfDataset: rows.length > 0 ? Math.round((insightRows.length / rows.length) * 100) : 0,
+    }
+  }, [insightRows, rows.length])
+
   const kpiStats = React.useMemo(() => {
-    const data = dateAfter || dateBefore ? dateFilteredRows : filteredOriginals
+    const data = insightRows
     const orgs = new Set<string>()
     const inds = new Set<string>()
     const ctrs = new Set<string>()
@@ -684,7 +882,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       industries: inds.size,
       countries: ctrs.size,
     }
-  }, [dateFilteredRows, filteredOriginals, dateAfter, dateBefore, rows.length])
+  }, [insightRows, rows.length])
 
   const activeQuerySummary = React.useMemo(() => {
     const parts: string[] = []
@@ -863,6 +1061,18 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     notifyAction("All filters cleared.")
   }
 
+  const applyIndustryInsight = React.useCallback((industry: string) => {
+    setIndustryFilter([industry])
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    notifyAction(`Industry insight applied: ${industry}.`)
+  }, [notifyAction])
+
+  const applyCountryInsight = React.useCallback((country: string) => {
+    setCountryFilter([country])
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+    notifyAction(`Country/Region insight applied: ${country}.`)
+  }, [notifyAction])
+
   React.useEffect(() => {
     const params = new URLSearchParams()
     if (globalFilter.trim()) params.set("q", globalFilter.trim())
@@ -903,18 +1113,44 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       </div>
 
       <div className="mt-2.5 flex flex-col gap-3">
-      {/* Toolbar */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-center">
-        <Input
-          value={searchInput}
-          onChange={(e) => {
-            setSearchInput(e.target.value)
-            setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-          }}
-          placeholder="Search Use Case / Company/Organization / Industry ..."
-          className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
-        />
-        <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
+        <section
+          className="grid gap-2 md:grid-cols-3"
+          aria-label="Use case insights"
+        >
+          <InsightMetric
+            icon={<TrendingUp className="h-4 w-4" aria-hidden />}
+            label="Recent 30 Days"
+            value={insightStats.recent30.toLocaleString()}
+            detail="updated in the last 30 days"
+          />
+          <InsightRankList
+            icon={<Layers3 className="h-4 w-4" aria-hidden />}
+            label="Top industries"
+            items={insightStats.topIndustries}
+            emptyLabel="No industries in this view"
+            onPick={applyIndustryInsight}
+          />
+          <InsightRankList
+            icon={<Globe2 className="h-4 w-4" aria-hidden />}
+            label="Top countries/regions"
+            items={insightStats.topCountries}
+            emptyLabel="No countries/regions in this view"
+            onPick={applyCountryInsight}
+          />
+        </section>
+
+        {/* Toolbar */}
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <Input
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value)
+              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+            }}
+            placeholder="Search Use Case / Company/Organization / Industry ..."
+            className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
+          />
+          <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -1275,6 +1511,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           aria-live="polite"
         >
           {activeQuerySummary}
+          {filteredRowCount !== rows.length ? ` · ${insightStats.shareOfDataset}% of dataset` : ""}
         </p>
         <div
           className="flex w-full shrink-0 justify-stretch sm:w-auto sm:justify-end"
@@ -1486,7 +1723,14 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
       {/* Detail Modal — same module as blog deep-links (Index view, not Globe side panel) */}
       {activeDetail ? (
-        <UseCaseIndexDetailModalPortal detail={activeDetail} onClose={() => setActiveDetail(null)} />
+        <UseCaseIndexDetailModalPortal
+          detail={activeDetail}
+          relatedUseCases={activeDetailRelated}
+          onRelatedUseCaseClick={openRelatedDetail}
+          onBack={goBackInDetail}
+          canGoBack={detailHistoryLen > 0}
+          onClose={closeDetail}
+        />
       ) : null}
 
       <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
@@ -1508,5 +1752,72 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
         <X className="h-3 w-3" />
       </button>
     </span>
+  )
+}
+
+function InsightMetric({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  detail: string
+}) {
+  return (
+    <div className="min-w-0 rounded-lg border border-cyan-500/20 bg-slate-900/50 p-3 shadow-[0_8px_24px_-20px_rgba(34,211,238,0.65)]">
+      <div className="mb-1.5 flex min-w-0 items-center gap-2 text-sm font-semibold uppercase text-[#9ba4a0]">
+        <span className="text-cyan-300">{icon}</span>
+        <span className="min-w-0 truncate">{label}</span>
+      </div>
+      <div className="flex min-w-0 items-baseline gap-2">
+        <span className="text-2xl font-semibold tabular-nums text-[#f5f5f5]">{value}</span>
+        <span className="min-w-0 truncate text-sm text-[#8a8a8a]">{detail}</span>
+      </div>
+    </div>
+  )
+}
+
+function InsightRankList({
+  icon,
+  label,
+  items,
+  emptyLabel,
+  onPick,
+}: {
+  icon: React.ReactNode
+  label: string
+  items: RankedInsight[]
+  emptyLabel: string
+  onPick: (label: string) => void
+}) {
+  return (
+    <div className="min-w-0 rounded-lg border border-cyan-500/20 bg-slate-900/50 p-3 shadow-[0_8px_24px_-20px_rgba(34,211,238,0.65)]">
+      <div className="mb-1.5 flex min-w-0 items-center gap-2 text-sm font-semibold uppercase text-[#9ba4a0]">
+        <span className="text-cyan-300">{icon}</span>
+        <span className="min-w-0 truncate">{label}</span>
+      </div>
+      {items.length > 0 ? (
+        <div className="space-y-1.5">
+          {items.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => onPick(item.label)}
+              className="flex w-full min-w-0 items-center justify-between gap-2 rounded-md px-1.5 py-1 text-left text-sm text-[#d7dedb] hover:bg-white/[0.07] hover:text-white"
+            >
+              <span className="min-w-0 truncate">{item.label}</span>
+              <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-xs tabular-nums text-[#9ba4a0]">
+                {item.count.toLocaleString()}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="text-xs leading-snug text-[#8a8a8a]">{emptyLabel}</div>
+      )}
+    </div>
   )
 }

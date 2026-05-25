@@ -3,7 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ChevronRight, ExternalLink } from "lucide-react"
-import { getUseCaseCatalogRowById } from "@/lib/data"
+import { getUseCaseCatalogRowById, getUseCasesCatalogRows } from "@/lib/data"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -56,6 +56,161 @@ type UseCaseDetailPageProps = {
   params: Promise<{ id: string }>
 }
 
+type RelatedUseCase = {
+  row: UseCaseCatalogRow
+  reasons: string[]
+  score: number
+}
+
+const RELATED_STOP_WORDS = new Set([
+  "about",
+  "after",
+  "agent",
+  "across",
+  "also",
+  "and",
+  "are",
+  "artificial",
+  "based",
+  "case",
+  "company",
+  "deploy",
+  "deployed",
+  "deploying",
+  "deployment",
+  "from",
+  "for",
+  "into",
+  "its",
+  "the",
+  "this",
+  "through",
+  "use",
+  "uses",
+  "using",
+  "with",
+])
+
+function cleanComparable(value: string | null | undefined): string {
+  return value?.trim().toLowerCase() ?? ""
+}
+
+function useCaseTokens(row: UseCaseCatalogRow): Set<string> {
+  const text = [
+    useCaseDisplayName(row),
+    row.description,
+    row.sector,
+    row.industry,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+
+  const words = text.match(/[a-z0-9]{3,}/g) ?? []
+  return new Set(words.filter((word) => !RELATED_STOP_WORDS.has(word)))
+}
+
+function formatCardDate(value: string | null | undefined): string {
+  if (!value) return "Unknown date"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Unknown date"
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
+function relatedUseCasesFor(
+  row: UseCaseCatalogRow,
+  rows: UseCaseCatalogRow[],
+  limit = 6
+): RelatedUseCase[] {
+  const baseCompany = cleanComparable(row.company_name || row.company_id)
+  const baseIndustry = cleanComparable(row.industry)
+  const baseCountry = cleanComparable(row.country)
+  const baseCity = cleanComparable(row.city)
+  const baseTokens = useCaseTokens(row)
+
+  return rows
+    .filter((candidate) => candidate.id !== row.id)
+    .map((candidate) => {
+      let score = 0
+      const reasons: string[] = []
+      const company = cleanComparable(candidate.company_name || candidate.company_id)
+      const industry = cleanComparable(candidate.industry)
+      const country = cleanComparable(candidate.country)
+      const city = cleanComparable(candidate.city)
+
+      if (baseCompany && company && baseCompany === company) {
+        score += 10
+        reasons.push("Same company")
+      }
+      if (baseIndustry && industry && baseIndustry === industry) {
+        score += 7
+        reasons.push("Same industry")
+      }
+      if (baseCountry && country && baseCountry === country) {
+        score += 4
+        reasons.push("Same country")
+      }
+      if (baseCity && city && baseCity === city) {
+        score += 3
+        reasons.push("Same city")
+      }
+
+      let sharedTerms = 0
+      for (const token of useCaseTokens(candidate)) {
+        if (baseTokens.has(token)) sharedTerms += 1
+      }
+      if (sharedTerms > 0) {
+        score += Math.min(sharedTerms, 8)
+        if (reasons.length < 2) reasons.push(`${sharedTerms} shared terms`)
+      }
+
+      return { row: candidate, reasons, score }
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      const bTime = Date.parse(b.row.updated_at ?? b.row.created_at ?? "") || 0
+      const aTime = Date.parse(a.row.updated_at ?? a.row.created_at ?? "") || 0
+      return bTime - aTime
+    })
+    .slice(0, limit)
+}
+
+function RelatedUseCaseCard({ item }: { item: RelatedUseCase }) {
+  const row = item.row
+  const title = useCaseDisplayName(row)
+  const meta = [
+    row.company_name?.trim(),
+    row.industry?.trim(),
+    row.country?.trim(),
+  ].filter(Boolean)
+  const date = formatCardDate(row.updated_at || row.created_at)
+
+  return (
+    <Link
+      href={`/use-cases/${encodeURIComponent(row.id)}`}
+      className="group block rounded-xl border border-white/10 bg-black/25 p-3 transition-colors hover:border-white/22 hover:bg-white/[0.07] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+      style={{ outlineColor: APPLE.appleBlue }}
+    >
+      <h3 className="line-clamp-3 text-[14px] font-semibold leading-snug tracking-[-0.224px] text-white transition-colors group-hover:text-[#2997ff]">
+        {title}
+      </h3>
+      {meta.length > 0 ? (
+        <p className="mt-2 line-clamp-2 text-[12px] leading-[1.35] tracking-[-0.12px] text-white/50">
+          {meta.join(" · ")}
+        </p>
+      ) : null}
+      <p className="mt-1 text-[12px] leading-[1.35] tracking-[-0.12px] text-white/38">
+        {date}
+      </p>
+    </Link>
+  )
+}
+
 export async function generateMetadata({
   params,
 }: UseCaseDetailPageProps): Promise<Metadata> {
@@ -74,12 +229,16 @@ export async function generateMetadata({
 
 export default async function UseCaseDetailPage({ params }: UseCaseDetailPageProps) {
   const { id } = await params
-  const row = await getUseCaseCatalogRowById(id)
+  const [row, allRows] = await Promise.all([
+    getUseCaseCatalogRowById(id),
+    getUseCasesCatalogRows(),
+  ])
   if (!row) notFound()
 
   const title = useCaseDisplayName(row)
   const subtitle = subtitleForHero(row)
   const ctaUrl = primaryExternalUrl(row)
+  const relatedUseCases = relatedUseCasesFor(row, allRows)
 
   return (
     <div className="min-h-dvh bg-black text-white antialiased">
@@ -232,22 +391,23 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
           className="px-5 py-20 md:py-28"
           style={{ backgroundColor: APPLE.black }}
         >
-          <div className="mx-auto max-w-[980px] text-left">
-            <h2 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.015em] text-white md:text-[40px]">
-              Record fields
-            </h2>
-            <p
-              className="mt-3 max-w-2xl text-[17px] font-normal leading-[1.47] tracking-[-0.023px] text-white/80"
-            >
-              Every column from the source row, in stable order. URLs open in a new
-              tab.
-            </p>
+          <div className="mx-auto grid max-w-[1180px] gap-12 text-left lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+            <div>
+              <h2 className="text-[32px] font-semibold leading-[1.1] tracking-[-0.015em] text-white md:text-[40px]">
+                Record fields
+              </h2>
+              <p
+                className="mt-3 max-w-2xl text-[17px] font-normal leading-[1.47] tracking-[-0.023px] text-white/80"
+              >
+                Every column from the source row, in stable order. URLs open in a new
+                tab.
+              </p>
 
-            <div className="mt-12 space-y-0">
-              {row.fieldEntries.map(({ key, label, value }) => {
-                const trimmed = value.trim()
-                const display = trimmed || "Not Available"
-                const url = trimmed && isProbablyUrl(key, trimmed)
+              <div className="mt-12 space-y-0">
+                {row.fieldEntries.map(({ key, label, value }) => {
+                  const trimmed = value.trim()
+                  const display = trimmed || "Not Available"
+                  const url = trimmed && isProbablyUrl(key, trimmed)
 
                 return (
                   <div
@@ -283,8 +443,32 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
                     )}
                   </div>
                 )
-              })}
+                })}
+              </div>
             </div>
+
+            <aside className="lg:sticky lg:top-20">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                <h2 className="text-[21px] font-semibold leading-[1.19] tracking-[0.231px] text-white">
+                  Related use cases
+                </h2>
+                <p className="mt-2 text-[14px] leading-[1.43] tracking-[-0.224px] text-white/55">
+                  Similar deployments from the catalog.
+                </p>
+
+                {relatedUseCases.length > 0 ? (
+                  <div className="mt-5 space-y-3">
+                    {relatedUseCases.map((item) => (
+                      <RelatedUseCaseCard key={item.row.id} item={item} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-5 text-[14px] leading-[1.43] tracking-[-0.224px] text-white/55">
+                    No related use cases found yet.
+                  </p>
+                )}
+              </div>
+            </aside>
           </div>
         </section>
 

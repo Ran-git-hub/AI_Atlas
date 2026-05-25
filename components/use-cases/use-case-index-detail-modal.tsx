@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { ExternalLink, X } from "lucide-react"
+import { ArrowLeft, ExternalLink, X } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 
@@ -26,11 +26,36 @@ function isProbablyUrl(_key: string, value: string): boolean {
   return true
 }
 
+type RelatedUseCase = {
+  row: UseCaseCatalogRow
+  reasons: string[]
+  score: number
+}
+
+function formatDate(value: string | null | undefined): string {
+  if (!value) return "Unknown date"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Unknown date"
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
 export function UseCaseIndexDetailModal({
   detail,
+  relatedUseCases = [],
+  onRelatedUseCaseClick,
+  onBack,
+  canGoBack = false,
   onClose,
 }: {
   detail: UseCaseCatalogRow
+  relatedUseCases?: RelatedUseCase[]
+  onRelatedUseCaseClick?: (row: UseCaseCatalogRow) => void
+  onBack?: () => void
+  canGoBack?: boolean
   onClose: () => void
 }) {
   const backdropRef = React.useRef<HTMLDivElement>(null)
@@ -75,7 +100,7 @@ export function UseCaseIndexDetailModal({
         style={{
           position: "relative",
           width: "94vw",
-          maxWidth: 960,
+          maxWidth: 1180,
           height: "78dvh",
           maxHeight: "78dvh",
           borderRadius: 16,
@@ -147,81 +172,132 @@ export function UseCaseIndexDetailModal({
               Company/Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close details"
-            style={{
-              flexShrink: 0,
-              padding: 8,
-              borderRadius: 6,
-              border: "none",
-              background: "transparent",
-              color: "#b3b3b3",
-              cursor: "pointer",
-            }}
-          >
-            <X style={{ width: 18, height: 18 }} />
-          </button>
-        </div>
-
-        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-          {detail.fieldEntries.map(({ key, label, value }) => {
-            const trimmed = value.trim()
-            const display = trimmed || "Not Available"
-            const url = trimmed && isProbablyUrl(key, trimmed)
-
-            return (
-              <div
-                key={key}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            {canGoBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Go back"
                 style={{
-                  display: "grid",
-                  gap: 8,
-                  padding: "12px 20px",
-                  borderBottom: "1px solid #2f2f2f",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  border: "1px solid #2f2f2f",
+                  background: "transparent",
+                  color: "#b3b3b3",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 500,
                 }}
               >
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 500, letterSpacing: "0.03em", color: "#8a8a8a" }}>
-                  {label}
-                </p>
-                {url ? (
-                  <a
-                    href={trimmed}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      fontSize: 14,
-                      color: "#43cc93",
-                      textDecoration: "underline",
-                      textDecorationColor: "rgba(67,204,147,0.4)",
-                      textUnderlineOffset: 3,
-                      wordBreak: "break-all",
-                      padding: "4px 0",
-                    }}
-                  >
-                    <ExternalLink style={{ width: 14, height: 14, flexShrink: 0 }} />
-                    {trimmed}
-                  </a>
-                ) : (
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: 14,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                      color: trimmed ? "#f5f5f5" : "#8a8a8a",
-                      fontStyle: trimmed ? "normal" : "italic",
-                    }}
-                  >
-                    {display}
+                <ArrowLeft style={{ width: 14, height: 14, flexShrink: 0 }} />
+                BACK
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close details"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                borderRadius: 6,
+                border: "none",
+                background: "transparent",
+                color: "#b3b3b3",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              <X style={{ width: 18, height: 18 }} />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="detail-panel-scroll-use-case min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+            {detail.fieldEntries.map(({ key, label, value }) => {
+              const trimmed = value.trim()
+              const display = trimmed || "Not Available"
+              const url = trimmed && isProbablyUrl(key, trimmed)
+
+              return (
+                <div
+                  key={key}
+                  style={{
+                    display: "grid",
+                    gap: 8,
+                    padding: "12px 20px",
+                    borderBottom: "1px solid #2f2f2f",
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: 12, fontWeight: 500, letterSpacing: "0.03em", color: "#8a8a8a" }}>
+                    {label}
                   </p>
-                )}
+                  {url ? (
+                    <a
+                      href={trimmed}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 14,
+                        color: "#43cc93",
+                        textDecoration: "underline",
+                        textDecorationColor: "rgba(67,204,147,0.4)",
+                        textUnderlineOffset: 3,
+                        wordBreak: "break-all",
+                        padding: "4px 0",
+                      }}
+                    >
+                      <ExternalLink style={{ width: 14, height: 14, flexShrink: 0 }} />
+                      {trimmed}
+                    </a>
+                  ) : (
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 14,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        color: trimmed ? "#f5f5f5" : "#8a8a8a",
+                        fontStyle: trimmed ? "normal" : "italic",
+                      }}
+                    >
+                      {display}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          <aside className="detail-panel-scroll-use-case min-h-0 overflow-y-auto border-t border-[#2f2f2f] bg-black/15 p-4 lg:border-t-0 lg:border-l">
+            <h4 className="text-sm font-semibold text-white">Related use cases</h4>
+            <p className="mt-1 text-xs leading-relaxed text-[#8a8a8a]">
+              Similar deployments from the catalog.
+            </p>
+            {relatedUseCases.length > 0 ? (
+              <div className="mt-4 space-y-3">
+                {relatedUseCases.map((item) => (
+                  <RelatedUseCaseCard
+                    key={item.row.id}
+                    item={item}
+                    onClick={onRelatedUseCaseClick}
+                  />
+                ))}
               </div>
-            )
-          })}
+            ) : (
+              <p className="mt-4 text-sm text-[#8a8a8a]">No related use cases found yet.</p>
+            )}
+          </aside>
         </div>
       </div>
     </div>
@@ -231,11 +307,62 @@ export function UseCaseIndexDetailModal({
 /** Same portal target as UseCasesTable — avoids stacking issues on mobile. */
 export function UseCaseIndexDetailModalPortal({
   detail,
+  relatedUseCases,
+  onRelatedUseCaseClick,
+  onBack,
+  canGoBack,
   onClose,
 }: {
   detail: UseCaseCatalogRow
+  relatedUseCases?: RelatedUseCase[]
+  onRelatedUseCaseClick?: (row: UseCaseCatalogRow) => void
+  onBack?: () => void
+  canGoBack?: boolean
   onClose: () => void
 }) {
   if (typeof document === "undefined") return null
-  return createPortal(<UseCaseIndexDetailModal detail={detail} onClose={onClose} />, document.body)
+  return createPortal(
+    <UseCaseIndexDetailModal
+      detail={detail}
+      relatedUseCases={relatedUseCases}
+      onRelatedUseCaseClick={onRelatedUseCaseClick}
+      onBack={onBack}
+      canGoBack={canGoBack}
+      onClose={onClose}
+    />,
+    document.body
+  )
+}
+
+function RelatedUseCaseCard({
+  item,
+  onClick,
+}: {
+  item: RelatedUseCase
+  onClick?: (row: UseCaseCatalogRow) => void
+}) {
+  const row = item.row
+  const meta = [
+    row.company_name?.trim(),
+    row.industry?.trim(),
+    row.country?.trim(),
+  ].filter(Boolean)
+
+  return (
+    <button
+      type="button"
+      onClick={() => onClick?.(row)}
+      className="group block w-full rounded-lg border border-white/10 bg-white/[0.04] p-3 text-left transition-colors hover:border-[#43cc93]/45 hover:bg-white/[0.07]"
+    >
+      <h5 className="line-clamp-3 text-sm font-semibold leading-snug text-white group-hover:text-[#43cc93]">
+        {useCaseDisplayName(row)}
+      </h5>
+      {meta.length > 0 ? (
+        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#8a8a8a]">
+          {meta.join(" · ")}
+        </p>
+      ) : null}
+      <p className="mt-1 text-xs text-[#666]">{formatDate(row.updated_at || row.created_at)}</p>
+    </button>
+  )
 }

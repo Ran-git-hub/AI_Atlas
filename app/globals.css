@@ -227,7 +227,7 @@ body::-webkit-scrollbar-thumb:hover {
 .detail-panel-scroll-use-case {
   color-scheme: dark;
   scrollbar-width: thin;
-  scrollbar-color: rgb(60, 179, 113) rgb(15, 23, 42);
+  scrollbar-color: rgb(67, 204, 147) rgb(7, 24, 19);
 }
 
 .detail-panel-scroll-use-case::-webkit-scrollbar {
@@ -237,27 +237,27 @@ body::-webkit-scrollbar-thumb:hover {
 .detail-panel-scroll-use-case::-webkit-scrollbar-track {
   margin: 6px 0;
   border-radius: 8px;
-  background-color: rgb(15, 23, 42) !important;
+  background-color: rgb(7, 24, 19) !important;
   background-clip: padding-box;
 }
 
 .detail-panel-scroll-use-case::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  border: 2px solid rgb(15, 23, 42);
-  background-color: rgba(60, 179, 113, 0.55) !important;
+  border: 2px solid rgb(7, 24, 19);
+  background-color: rgba(67, 204, 147, 0.62) !important;
   background-clip: padding-box;
 }
 
 .detail-panel-scroll-use-case::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(60, 179, 113, 0.8) !important;
+  background-color: rgba(67, 204, 147, 0.82) !important;
 }
 
 .detail-panel-scroll-use-case::-webkit-scrollbar-thumb:active {
-  background-color: rgba(60, 179, 113, 0.95) !important;
+  background-color: rgba(67, 204, 147, 0.95) !important;
 }
 
 .detail-panel-scroll-use-case::-webkit-scrollbar-corner {
-  background-color: rgb(15, 23, 42);
+  background-color: rgb(7, 24, 19);
 }
 
 /* Globe marker pulse animation */

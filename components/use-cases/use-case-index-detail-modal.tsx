@@ -178,22 +178,10 @@ export function UseCaseIndexDetailModal({
                 type="button"
                 onClick={onBack}
                 aria-label="Go back"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  border: "1px solid #2f2f2f",
-                  background: "transparent",
-                  color: "#b3b3b3",
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 500,
-                }}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[#43cc93]/35 bg-[#43cc93]/10 px-3 py-2 text-sm font-medium text-[#7ee0b2] transition-colors hover:border-[#43cc93]/60 hover:bg-[#43cc93]/15 hover:text-[#a8f0cc]"
               >
                 <ArrowLeft style={{ width: 14, height: 14, flexShrink: 0 }} />
-                BACK
+                Back
               </button>
             ) : null}
             <button

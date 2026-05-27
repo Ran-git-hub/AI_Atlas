@@ -22,7 +22,6 @@ config({ path: ".env.local" })
 
 import { upsertWeeklyBlogPost } from "../lib/blog-admin"
 import { createServiceRoleClient } from "../lib/supabase/service-role"
-import { toDateString, nowString } from "../lib/sqlite"
 import type { WeeklyReportContent, WeeklyReportHighlight, WeeklyReportTrend } from "../lib/types-weekly-report"
 
 // CLI args
@@ -31,6 +30,14 @@ const dryRun = args.includes("--dry-run")
 const save = args.includes("--save")
 const weekArg = args.find((a) => a.startsWith("--week="))
 const weekStartArg = weekArg ? weekArg.split("=")[1] : null
+
+function toDateString(date: Date): string {
+  return date.toISOString().split("T")[0]
+}
+
+function nowString(): string {
+  return new Date().toISOString()
+}
 
 function getWeekRange(weekStart: string): { weekStart: string; weekEnd: string } {
   const start = new Date(weekStart)

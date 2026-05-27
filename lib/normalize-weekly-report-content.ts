@@ -1,6 +1,6 @@
 import type { WeeklyReportContent } from "@/lib/types-weekly-report"
 
-/** Normalizes JSON from Supabase, SQLite, or admin upserts into `WeeklyReportContent`. */
+/** Normalizes JSON from Supabase or admin upserts into `WeeklyReportContent`. */
 export function normalizeWeeklyReportContent(raw: unknown): WeeklyReportContent {
   const o = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {}
   const ov = o.overview && typeof o.overview === "object" ? (o.overview as Record<string, unknown>) : {}

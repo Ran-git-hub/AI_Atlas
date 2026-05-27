@@ -46,7 +46,6 @@ The `/blog` pages render analysis posts and generated weekly reports from Supaba
 | Globe | Three.js, react-globe.gl |
 | Tables | TanStack Table |
 | Database | Supabase Postgres |
-| Local report storage | SQLite via better-sqlite3 |
 | Deployment | Vercel |
 
 ## Project Structure
@@ -62,7 +61,6 @@ lib/                    Data access, Supabase clients, types, utilities
 hooks/                  Shared React hooks
 scripts/                Maintenance and content generation scripts
 supabase/migrations/    Database migrations and policies
-data/                   Local SQLite weekly report database
 ```
 
 ## Core Routes

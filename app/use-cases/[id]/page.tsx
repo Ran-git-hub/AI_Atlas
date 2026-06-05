@@ -5,7 +5,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, ChevronRight, ExternalLink } from "lucide-react"
 import { getUseCaseCatalogRowById, getUseCasesCatalogRows } from "@/lib/data"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /** Apple-style tokens from design-md/apple/DESIGN.md */
@@ -183,6 +183,7 @@ function relatedUseCasesFor(
 function RelatedUseCaseCard({ item }: { item: RelatedUseCase }) {
   const row = item.row
   const title = useCaseDisplayName(row)
+  const isPending = isUseCasePendingValidation(row)
   const meta = [
     row.company_name?.trim(),
     row.industry?.trim(),
@@ -199,6 +200,11 @@ function RelatedUseCaseCard({ item }: { item: RelatedUseCase }) {
       <h3 className="line-clamp-3 text-[14px] font-semibold leading-snug tracking-[-0.224px] text-white transition-colors group-hover:text-[#2997ff]">
         {title}
       </h3>
+      {isPending ? (
+        <span className="mt-2 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
+          To be validated
+        </span>
+      ) : null}
       {meta.length > 0 ? (
         <p className="mt-2 line-clamp-2 text-[12px] leading-[1.35] tracking-[-0.12px] text-white/50">
           {meta.join(" · ")}
@@ -239,6 +245,7 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   const subtitle = subtitleForHero(row)
   const ctaUrl = primaryExternalUrl(row)
   const relatedUseCases = relatedUseCasesFor(row, allRows)
+  const isPending = isUseCasePendingValidation(row)
 
   return (
     <div className="min-h-dvh bg-black text-white antialiased">
@@ -279,6 +286,11 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
           >
             AI use case
           </p>
+          {isPending ? (
+            <div className="mt-3 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-3 py-1 text-xs font-semibold text-sky-100">
+              To be validated
+            </div>
+          ) : null}
           <h1
             className="mt-3 max-w-[980px] text-balance text-[clamp(2rem,5vw,3.5rem)] font-semibold leading-[1.07] tracking-[-0.02em] text-white md:tracking-[-0.0175em]"
           >

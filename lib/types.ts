@@ -28,6 +28,7 @@ export interface UseCaseFieldEntry {
 export interface UseCase {
   id: string
   company_id?: string | null
+  status?: "pending" | "published" | "archived" | string | null
   title?: string | null
   name?: string | null
   description?: string | null
@@ -62,6 +63,10 @@ export interface UseCaseCatalogRow extends UseCase {
 export function useCaseDisplayName(u: UseCase): string {
   const t = u.title?.trim() || u.name?.trim()
   return t || "Use case"
+}
+
+export function isUseCasePendingValidation(u: UseCase): boolean {
+  return u.status?.trim().toLowerCase() === "pending"
 }
 
 // City coordinates mapping

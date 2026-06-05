@@ -29,7 +29,7 @@ import {
   X,
 } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -506,6 +506,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         ),
         cell: ({ row }) => {
           const isNew = isUseCaseCatalogRowRecent24h(row.original)
+          const isPending = isUseCasePendingValidation(row.original)
           return (
             <div
               className={cn(
@@ -545,6 +546,16 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
                     )}
                   >
                     New
+                  </span>
+                ) : null}
+                {isPending ? (
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 font-semibold tracking-wide text-sky-100",
+                      tableDensity === "compact" ? "py-0 text-[9px]" : "py-0.5 text-[10px]"
+                    )}
+                  >
+                    To be validated
                   </span>
                 ) : null}
               </div>

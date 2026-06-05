@@ -12,7 +12,7 @@ import {
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { cn } from "@/lib/utils"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
 
 export type UnifiedSearchHit =
@@ -295,6 +295,8 @@ export function SearchBar({
                             const isCo = hit.type === "company"
                             const company = isCo ? hit.item : null
                             const isRecent = !isCo && isUseCaseRecent24h(hit.item as UseCaseWithCoords)
+                            const isPending =
+                              !isCo && isUseCasePendingValidation(hit.item as UseCaseWithCoords)
                             const companyId = company ? String(company.id) : ""
                             const faviconSrc = company ? getGoogleFaviconUrl(company.website_url) : ""
                             const logoSrc = company?.logo_url?.trim() || ""
@@ -362,6 +364,11 @@ export function SearchBar({
                                           New
                                         </span>
                                       ) : null}
+                                      {isPending ? (
+                                        <span className="shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 py-0.5 text-[10px] font-semibold text-sky-100">
+                                          To be validated
+                                        </span>
+                                      ) : null}
                                     </div>
                                     <span
                                       className="min-w-0 break-words font-medium leading-snug"
@@ -387,6 +394,8 @@ export function SearchBar({
                         const isCo = hit.type === "company"
                         const company = isCo ? hit.item : null
                         const isRecent = !isCo && isUseCaseRecent24h(hit.item as UseCaseWithCoords)
+                        const isPending =
+                          !isCo && isUseCasePendingValidation(hit.item as UseCaseWithCoords)
                         const companyId = company ? String(company.id) : ""
                         const faviconSrc = company ? getGoogleFaviconUrl(company.website_url) : ""
                         const logoSrc = company?.logo_url?.trim() || ""
@@ -454,6 +463,11 @@ export function SearchBar({
                                     {!isCo && isRecent ? (
                                       <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
                                         New
+                                      </span>
+                                    ) : null}
+                                    {isPending ? (
+                                      <span className="shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 py-0.5 text-[10px] font-semibold text-sky-100">
+                                        To be validated
                                       </span>
                                     ) : null}
                                   </div>

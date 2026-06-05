@@ -320,6 +320,7 @@ function rowToUseCaseWithCoords(
 ): UseCaseWithCoords | null {
   const id = row.id
   if (id === null || id === undefined || id === "") return null
+  if (String(row.status ?? "").trim().toLowerCase() === "archived") return null
 
   const lat = pickCoord(row, ["lat", "latitude", "Lat", "Latitude"])
   const lng = pickCoord(row, ["lng", "longitude", "lon", "Lng", "Longitude"])
@@ -331,6 +332,7 @@ function rowToUseCaseWithCoords(
   return {
     id: String(id),
     company_id: str(row.company_id),
+    status: str(row.status),
     title: str(row.title ?? row.use_case_title ?? row.case_title),
     name: str(row.name ?? row.use_case_name),
     description: str(row.description ?? row.summary ?? row.details),
@@ -358,6 +360,7 @@ function rowToUseCaseCatalogRow(
 ): UseCaseCatalogRow | null {
   const id = row.id
   if (id === null || id === undefined || id === "") return null
+  if (String(row.status ?? "").trim().toLowerCase() === "archived") return null
 
   const str = (v: unknown) =>
     v === null || v === undefined ? null : String(v)
@@ -372,6 +375,7 @@ function rowToUseCaseCatalogRow(
   return {
     id: String(id),
     company_id: companyId,
+    status: str(row.status),
     title: str(row.title ?? row.use_case_title ?? row.case_title),
     name: str(row.name ?? row.use_case_name),
     description: str(row.description ?? row.summary ?? row.details),

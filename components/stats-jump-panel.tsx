@@ -3,7 +3,7 @@
 import { CheckCheck } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 
 export type StatsJumpKind = "companies" | "countries" | "industries" | "useCases"
 
@@ -109,7 +109,14 @@ export function StatsJumpPanel({
                   onClick={() => onUseCaseSelect(useCase)}
                   className="flex w-full items-center justify-between rounded-lg border border-slate-800/70 bg-slate-900/70 px-3 py-2 text-left text-sm text-slate-200 transition-colors hover:border-emerald-500/40 hover:text-emerald-200"
                 >
-                  <span>{useCaseDisplayName(useCase)}</span>
+                  <span className="min-w-0">
+                    <span>{useCaseDisplayName(useCase)}</span>
+                    {isUseCasePendingValidation(useCase) ? (
+                      <span className="ml-2 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 py-0.5 text-[10px] font-semibold text-sky-100">
+                        To be validated
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="text-xs text-slate-400">
                     {[useCase.city, useCase.country].filter(Boolean).join(", ")}
                   </span>

@@ -8,7 +8,12 @@ import {
   companySearchHaystack,
   useCaseSearchHaystack,
 } from "@/lib/search-match"
-import { useCaseDisplayName, type CompanyWithCoords, type UseCaseWithCoords } from "@/lib/types"
+import {
+  isUseCasePendingValidation,
+  useCaseDisplayName,
+  type CompanyWithCoords,
+  type UseCaseWithCoords,
+} from "@/lib/types"
 
 const SEA_GREEN = "#3cb371"
 const SEA_GREEN_RGB = "60, 179, 113"
@@ -20,6 +25,23 @@ export interface GlobeFlyTo {
   lat: number
   lng: number
   altitude?: number
+}
+
+function escapeTooltipHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case "&":
+        return "&amp;"
+      case "<":
+        return "&lt;"
+      case ">":
+        return "&gt;"
+      case '"':
+        return "&quot;"
+      default:
+        return "&#39;"
+    }
+  })
 }
 
 interface GlobeViewProps {
@@ -553,6 +575,11 @@ export function GlobeView({
     const titleRgb = isCompany ? "#22d3ee" : SEA_GREEN
     const badgeBg = isCompany ? "rgba(34, 211, 238, 0.15)" : `rgba(${SEA_GREEN_RGB}, 0.18)`
     const badgeColor = isCompany ? "#22d3ee" : SEA_GREEN
+    const isPending =
+      !isCompany && isUseCasePendingValidation(marker as unknown as UseCaseWithCoords)
+    const safeTitle = escapeTooltipHtml(title)
+    const safeSub = escapeTooltipHtml(sub)
+    const safeBadge = escapeTooltipHtml(badge)
 
     tooltip.style.left = `${rect.left - hostRect.left + rect.width / 2}px`
     tooltip.style.top = `${rect.top - hostRect.top}px`
@@ -560,16 +587,21 @@ export function GlobeView({
     tooltip.style.boxShadow = `0 0 20px rgba(${borderRgb}, 0.3)`
     tooltip.innerHTML = `
       <div style="margin-bottom: 4px; max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; font-size: 14px; font-weight: 600; line-height: 1.35; color: ${titleRgb};">
-        ${title}
+        ${safeTitle}
       </div>
       ${
         sub
-          ? `<div style="margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere; font-size: 12px; color: #94a3b8;">${sub}</div>`
+          ? `<div style="margin-bottom: 6px; word-wrap: break-word; overflow-wrap: anywhere; font-size: 12px; color: #94a3b8;">${safeSub}</div>`
           : ""
       }
       <div style="display: inline-block; max-width: 100%; word-wrap: break-word; overflow-wrap: anywhere; border-radius: 4px; padding: 3px 8px; font-size: 11px; color: ${badgeColor}; background: ${badgeBg};">
-        ${badge}
+        ${safeBadge}
       </div>
+      ${
+        isPending
+          ? `<div style="display: inline-block; margin-left: 6px; max-width: 100%; border: 1px solid rgba(125,211,252,0.45); border-radius: 9999px; padding: 2px 7px; font-size: 10px; font-weight: 700; color: #e0f2fe; background: rgba(125,211,252,0.12);">To be validated</div>`
+          : ""
+      }
     `
     tooltip.style.opacity = "1"
     tooltip.style.visibility = "visible"

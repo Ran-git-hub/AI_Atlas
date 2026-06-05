@@ -2,7 +2,12 @@
 
 import { useState } from "react"
 import { X, ExternalLink, Sparkles, ChevronLeft } from "lucide-react"
-import { useCaseDisplayName, type CompanyWithCoords, type UseCaseWithCoords } from "@/lib/types"
+import {
+  isUseCasePendingValidation,
+  useCaseDisplayName,
+  type CompanyWithCoords,
+  type UseCaseWithCoords,
+} from "@/lib/types"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 
 interface UseCaseDetailPanelProps {
@@ -38,6 +43,7 @@ export function UseCaseDetailPanel({
   const title = useCaseDisplayName(useCase)
   const showHeaderImage = Boolean(useCase.image_url?.trim()) && !imageError
   const isRecent = isUseCaseRecent24h(useCase)
+  const isPending = isUseCasePendingValidation(useCase)
 
   return (
     <div
@@ -67,8 +73,20 @@ export function UseCaseDetailPanel({
               </button>
             </div>
           ) : null}
-          <div className="flex items-center justify-between p-4">
-            <h2 className="text-lg font-semibold text-white">Use case</h2>
+          <div className="flex items-center justify-between gap-3 p-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h2 className="text-lg font-semibold text-white">Use case</h2>
+              {isRecent ? (
+                <span className="inline-flex rounded-full border border-yellow-300/55 bg-yellow-200/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
+                  New
+                </span>
+              ) : null}
+              {isPending ? (
+                <span className="inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
+                  To be validated
+                </span>
+              ) : null}
+            </div>
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-slate-800/80 transition-colors text-slate-400 hover:text-white"
@@ -95,14 +113,11 @@ export function UseCaseDetailPanel({
                 <Sparkles className="h-8 w-8" style={{ color: ACCENT }} />
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-white leading-snug">{title}</h3>
-                {isRecent ? (
-                  <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
-                    New
-                  </span>
-                ) : null}
+            <div className="min-w-0 flex-1">
+              <div>
+                <h3 className="text-xl font-bold leading-snug text-white break-words">
+                  {title}
+                </h3>
               </div>
               <p className="text-slate-500 text-xs mt-1">
                 {/* Intentionally removed internal-columns note */}

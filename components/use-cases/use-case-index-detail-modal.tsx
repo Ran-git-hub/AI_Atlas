@@ -4,7 +4,7 @@ import * as React from "react"
 import { createPortal } from "react-dom"
 import { ArrowLeft, ExternalLink, X } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 
 function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
@@ -165,6 +165,22 @@ export function UseCaseIndexDetailModal({
                   }}
                 >
                   New
+                </span>
+              ) : null}
+              {isUseCasePendingValidation(detail) ? (
+                <span
+                  style={{
+                    flexShrink: 0,
+                    borderRadius: 9999,
+                    border: "1px solid rgba(125,211,252,0.45)",
+                    backgroundColor: "rgba(125,211,252,0.12)",
+                    padding: "2px 8px",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#e0f2fe",
+                  }}
+                >
+                  To be validated
                 </span>
               ) : null}
             </div>

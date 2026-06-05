@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { X, ExternalLink, MapPin, Building2, Calendar, Layers } from "lucide-react"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
@@ -182,6 +182,11 @@ export function CompanyDetailPanel({
                       >
                         {useCaseDisplayName(uc)}
                       </span>
+                      {isUseCasePendingValidation(uc) ? (
+                        <span className="mt-1.5 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
+                          To be validated
+                        </span>
+                      ) : null}
                       <span className="mt-1.5 block text-sm leading-relaxed text-slate-400">
                         {useCaseSummaryText(uc)}
                       </span>

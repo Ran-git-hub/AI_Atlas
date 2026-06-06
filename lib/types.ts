@@ -1,6 +1,7 @@
 // Company data from AI_Atlas_Companies table
 export interface Company {
   id: string
+  status?: "pending" | "published" | "archived" | string | null
   name: string
   description: string
   industry: string

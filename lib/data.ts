@@ -112,6 +112,10 @@ function withWebsiteFallback(company: Company, officialWebsiteById: Map<string, 
   }
 }
 
+function isArchivedStatus(status: unknown): boolean {
+  return String(status ?? "").trim().toLowerCase() === "archived"
+}
+
 export async function getCompanies(): Promise<Company[]> {
   const supabase = await createClient()
   
@@ -133,9 +137,9 @@ export async function getCompanies(): Promise<Company[]> {
   const officialWebsiteById = buildOfficialWebsiteByCompanyId(
     (useCasesResult.data ?? []) as Record<string, unknown>[]
   )
-  return (data || []).map((company) =>
-    withWebsiteFallback(company as Company, officialWebsiteById)
-  )
+  return (data || [])
+    .filter((company) => !isArchivedStatus((company as Company).status))
+    .map((company) => withWebsiteFallback(company as Company, officialWebsiteById))
 }
 
 export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
@@ -191,10 +195,13 @@ export async function getCompanyById(id: string): Promise<Company | null> {
     console.error("Error fetching use case URLs for company website:", useCasesResult.error)
   }
   
+  const company = data as Company
+  if (isArchivedStatus(company.status)) return null
+
   const officialWebsiteById = buildOfficialWebsiteByCompanyId(
     (useCasesResult.data ?? []) as Record<string, unknown>[]
   )
-  return withWebsiteFallback(data as Company, officialWebsiteById)
+  return withWebsiteFallback(company, officialWebsiteById)
 }
 
 function snakeCaseToFieldLabel(key: string): string {
@@ -237,11 +244,12 @@ function normalizeUseCaseFieldKey(key: string): string {
 }
 
 function buildCompanyNameById(
-  rows: { id: unknown; name: unknown }[] | null
+  rows: { id: unknown; name: unknown; status?: unknown }[] | null
 ): Map<string, string> {
   const map = new Map<string, string>()
   for (const r of rows ?? []) {
     if (r.id === null || r.id === undefined) continue
+    if (isArchivedStatus(r.status)) continue
     const id = String(r.id)
     const name =
       r.name === null || r.name === undefined ? "" : String(r.name).trim()
@@ -320,7 +328,7 @@ function rowToUseCaseWithCoords(
 ): UseCaseWithCoords | null {
   const id = row.id
   if (id === null || id === undefined || id === "") return null
-  if (String(row.status ?? "").trim().toLowerCase() === "archived") return null
+  if (isArchivedStatus(row.status)) return null
 
   const lat = pickCoord(row, ["lat", "latitude", "Lat", "Latitude"])
   const lng = pickCoord(row, ["lng", "longitude", "lon", "Lng", "Longitude"])
@@ -360,7 +368,7 @@ function rowToUseCaseCatalogRow(
 ): UseCaseCatalogRow | null {
   const id = row.id
   if (id === null || id === undefined || id === "") return null
-  if (String(row.status ?? "").trim().toLowerCase() === "archived") return null
+  if (isArchivedStatus(row.status)) return null
 
   const str = (v: unknown) =>
     v === null || v === undefined ? null : String(v)
@@ -404,7 +412,7 @@ export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
     createServiceRoleClient() ?? (await createClient())
 
   const [companiesResult, useCasesResult] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select("id, name").order("name"),
+    supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
     supabase
       .from("AI_Atlas_Use_Cases")
       .select("*")
@@ -416,7 +424,7 @@ export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
   }
 
   const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown }[] | null
+    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
   )
 
   if (useCasesResult.error) {
@@ -435,7 +443,7 @@ export async function getUseCasesCatalogRows(): Promise<UseCaseCatalogRow[]> {
     createServiceRoleClient() ?? (await createClient())
 
   const [companiesResult, useCasesResult] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select("id, name").order("name"),
+    supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
     supabase
       .from("AI_Atlas_Use_Cases")
       .select("*")
@@ -447,7 +455,7 @@ export async function getUseCasesCatalogRows(): Promise<UseCaseCatalogRow[]> {
   }
 
   const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown }[] | null
+    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
   )
 
   if (useCasesResult.error) {
@@ -468,7 +476,7 @@ export async function getUseCaseCatalogRowById(
     createServiceRoleClient() ?? (await createClient())
 
   const [companiesResult, useCaseResult] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select("id, name").order("name"),
+    supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
     supabase
       .from("AI_Atlas_Use_Cases")
       .select("*")
@@ -488,7 +496,7 @@ export async function getUseCaseCatalogRowById(
   if (!useCaseResult.data) return null
 
   const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown }[] | null
+    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
   )
 
   return rowToUseCaseCatalogRow(

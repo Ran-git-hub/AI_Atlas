@@ -3,6 +3,7 @@ import { getIndustrySummaries } from "@/lib/data-industries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustrySummaryCard } from "@/components/industries/industry-summary-card"
+import { IndustryUseCaseOverview } from "@/components/industries/industry-use-case-overview"
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
@@ -52,11 +53,14 @@ export default async function IndustriesPage() {
 
       <div className="mx-auto max-w-7xl px-4 py-5 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
         {industries.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {industries.map((industry) => (
-              <IndustrySummaryCard key={industry.slug} industry={industry} />
-            ))}
-          </div>
+          <>
+            <IndustryUseCaseOverview industries={industries} />
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {industries.map((industry) => (
+                <IndustrySummaryCard key={industry.slug} industry={industry} />
+              ))}
+            </div>
+          </>
         ) : (
           <div className="rounded-xl border border-slate-800 bg-[#1a1a1a] px-5 py-12 text-center">
             <h2 className="text-xl font-semibold text-[#f5f5f5]">No industries yet</h2>

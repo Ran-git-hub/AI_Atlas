@@ -65,6 +65,7 @@ type InitialState = {
   q: string
   industry: string
   country: string
+  validation: string
   sort: string
   page: number
   pageSize: number
@@ -341,6 +342,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
   const [orgFilter, setOrgFilter] = React.useState("")
   const [dateAfter, setDateAfter] = React.useState("")
   const [dateBefore, setDateBefore] = React.useState("")
+  const [pendingOnly, setPendingOnly] = React.useState(initialState.validation === "pending")
   const [showAdvanced, setShowAdvanced] = React.useState(false)
   const [tableDensity, setTableDensity] = React.useState<TableDensity>("comfortable")
   const [recentIndustryPicks, setRecentIndustryPicks] = React.useState<string[]>([])
@@ -761,8 +763,13 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     [openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
   )
 
+  const statusFilteredRows = React.useMemo(
+    () => (pendingOnly ? rows.filter(isUseCasePendingValidation) : rows),
+    [pendingOnly, rows]
+  )
+
   const table = useReactTable({
-    data: rows,
+    data: statusFilteredRows,
     columns,
     autoResetPageIndex: false,
     defaultColumn: {
@@ -929,6 +936,9 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         `${countryFilter.length} ${countryFilter.length === 1 ? "country/region" : "countries/regions"}`
       )
     }
+    if (pendingOnly) {
+      parts.push("To be validated")
+    }
     const q = globalFilter.trim()
     if (q) {
       parts.push(q.length > 40 ? `matching "${q.slice(0, 40)}…"` : `matching "${q}"`)
@@ -959,6 +969,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     kpiStats.countries,
     kpiStats.industries,
     kpiStats.orgs,
+    pendingOnly,
     rows.length,
     sorting,
   ])
@@ -998,6 +1009,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
 
   const activeFilterCount =
     (searchInput.trim() ? 1 : 0) +
+    (pendingOnly ? 1 : 0) +
     industryFilter.length +
     countryFilter.length +
     (cityFilter ? 1 : 0) +
@@ -1068,6 +1080,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     setOrgFilter("")
     setDateAfter("")
     setDateBefore("")
+    setPendingOnly(false)
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
     notifyAction("All filters cleared.")
   }
@@ -1089,6 +1102,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     if (globalFilter.trim()) params.set("q", globalFilter.trim())
     if (industryFilter.length > 0) params.set("industry", industryFilter.join(","))
     if (countryFilter.length > 0) params.set("country", countryFilter.join(","))
+    if (pendingOnly) params.set("validation", "pending")
     if (sorting[0]?.id) {
       params.set("sort", `${sorting[0].id}:${sorting[0].desc ? "desc" : "asc"}`)
     }
@@ -1106,6 +1120,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     globalFilter,
     industryFilter,
     countryFilter,
+    pendingOnly,
     columnVisibility,
     sorting,
     pagination.pageIndex,
@@ -1162,22 +1177,22 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
             className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
           />
           <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
-              >
-                <span className="flex w-full min-w-0 items-center justify-center gap-2">
-                  <Filter className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="min-w-0 truncate">
-                    {industryFilter.length > 0
-                      ? `${industryFilter.length} Industries`
-                      : "Filter by Industry"}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[185px]"
+                >
+                  <span className="flex w-full min-w-0 items-center justify-center gap-2">
+                    <Filter className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 truncate">
+                      {industryFilter.length > 0
+                        ? `${industryFilter.length} Industries`
+                        : "Filter by Industry"}
+                    </span>
                   </span>
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="max-h-[608px] overflow-y-auto border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-800/70 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-cyan-500/65 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400/80">
               <DropdownMenuCheckboxItem
                 className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
@@ -1467,6 +1482,15 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
               }}
             />
           ))}
+          {pendingOnly ? (
+            <FilterChip
+              label="To be validated"
+              onRemove={() => {
+                setPendingOnly(false)
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              }}
+            />
+          ) : null}
           {cityFilter ? (
             <FilterChip
               label={`City: ${cityFilter}`}
@@ -1515,9 +1539,39 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-3 sm:gap-y-2">
+      <div className="grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:gap-x-3">
+        <div
+          className="inline-flex h-10 w-full rounded-full border border-slate-700/50 bg-slate-800/60 p-0.5 sm:h-8 sm:w-auto"
+          role="group"
+          aria-label="Table row density"
+        >
+          <button
+            type="button"
+            onClick={() => setTableDensityPersist("compact")}
+            className={cn(
+              "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
+              tableDensity === "compact"
+                ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                : "text-[#9aa39e] hover:text-[#e8eeeb]"
+            )}
+          >
+            Compact
+          </button>
+          <button
+            type="button"
+            onClick={() => setTableDensityPersist("comfortable")}
+            className={cn(
+              "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
+              tableDensity === "comfortable"
+                ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                : "text-[#9aa39e] hover:text-[#e8eeeb]"
+            )}
+          >
+            Comfortable
+          </button>
+        </div>
         <p
-          className="min-w-0 max-w-full break-words text-sm leading-snug text-[#b3b3b3] [overflow-wrap:anywhere] md:flex-1 md:text-[13px]"
+          className="min-w-0 max-w-full break-words text-sm leading-snug text-[#b3b3b3] [overflow-wrap:anywhere] md:text-[13px]"
           role="status"
           aria-live="polite"
         >
@@ -1525,36 +1579,34 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           {filteredRowCount !== rows.length ? ` · ${insightStats.shareOfDataset}% of dataset` : ""}
         </p>
         <div
-          className="flex w-full shrink-0 justify-stretch sm:w-auto sm:justify-end"
+          className="inline-flex h-10 w-full rounded-full border border-slate-700/50 bg-slate-800/60 p-0.5 sm:h-8 sm:w-auto"
           role="group"
-          aria-label="Table row density"
+          aria-label="Validation status filter"
         >
-          <div className="inline-flex h-10 w-full rounded-full border border-slate-700/50 bg-slate-800/60 p-0.5 sm:h-8 sm:w-auto">
-            <button
-              type="button"
-              onClick={() => setTableDensityPersist("compact")}
-              className={cn(
-                "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
-                tableDensity === "compact"
-                  ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
-                  : "text-[#9aa39e] hover:text-[#e8eeeb]"
-              )}
-            >
-              Compact
-            </button>
-            <button
-              type="button"
-              onClick={() => setTableDensityPersist("comfortable")}
-              className={cn(
-                "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
-                tableDensity === "comfortable"
-                  ? "bg-cyan-500/25 text-cyan-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
-                  : "text-[#9aa39e] hover:text-[#e8eeeb]"
-              )}
-            >
-              Comfortable
-            </button>
-          </div>
+          <button
+            type="button"
+            aria-pressed={pendingOnly}
+            onClick={() => {
+              setPendingOnly((prev) => {
+                const next = !prev
+                notifyAction(
+                  next
+                    ? "To be validated filter applied."
+                    : "To be validated filter cleared."
+                )
+                return next
+              })
+              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+            }}
+            className={cn(
+              "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
+              pendingOnly
+                ? "bg-sky-300/20 text-sky-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                : "text-[#9aa39e] hover:text-[#e8eeeb]"
+            )}
+          >
+            To be validated
+          </button>
         </div>
       </div>
 

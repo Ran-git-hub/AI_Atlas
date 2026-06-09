@@ -1,6 +1,5 @@
 "use client"
 
-import { ImageIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 
 function sourceInitial(source: string): string {
@@ -62,7 +61,7 @@ export function NewsCardImage({
     if (!articleUrl) return
 
     const controller = new AbortController()
-    fetch(`/api/news-image?url=${encodeURIComponent(articleUrl)}`, {
+    fetch(`/api/news-image?url=${encodeURIComponent(articleUrl)}&version=2`, {
       signal: controller.signal,
     })
       .then((response) => (response.ok ? response.json() : null))
@@ -109,7 +108,6 @@ export function NewsCardImage({
           <div className="max-w-full truncate text-xs font-semibold text-slate-300">
             {brandLabel(sourceName)}
           </div>
-          <ImageIcon className="h-4 w-4 text-slate-500" />
         </div>
       ) : null}
     </div>

@@ -1,7 +1,7 @@
 "use client"
 
-import { Search, X } from "lucide-react"
-import { useMemo, useState } from "react"
+import { ArrowUp, Search, X } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { useCaseDisplayName } from "@/lib/types"
 import type { NewsItem, NewsTakeContext } from "@/lib/types-news"
@@ -17,6 +17,8 @@ import { NewsListCard } from "@/components/news/news-list-card"
 import { UseCaseIndexDetailModalPortal } from "@/components/use-cases/use-case-index-detail-modal"
 
 type SortMode = "newest" | "oldest" | "source"
+
+const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
 function newsTime(item: NewsItem): number {
   const iso = item.publishedAt ?? item.createdAt
@@ -171,6 +173,9 @@ export function NewsFeed({
   const [source, setSource] = useState("all")
   const [tag, setTag] = useState("all")
   const [sort, setSort] = useState<SortMode>("newest")
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(20)
+  const [showBackToTop, setShowBackToTop] = useState(false)
   const [activeDetail, setActiveDetail] = useState<UseCaseCatalogRow | null>(null)
   const [detailHistory, setDetailHistory] = useState<UseCaseCatalogRow[]>([])
 
@@ -234,7 +239,77 @@ export function NewsFeed({
     return next
   }, [items, queryNorm, source, sort, tag])
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const safePageIndex = Math.min(pageIndex, totalPages - 1)
+  const pageStart = safePageIndex * pageSize
+  const pageEnd = Math.min(pageStart + pageSize, filtered.length)
+  const paginated = filtered.slice(pageStart, pageEnd)
   const hasFilters = queryNorm !== "" || source !== "all" || tag !== "all" || sort !== "newest"
+
+  useEffect(() => {
+    if (pageIndex > totalPages - 1) setPageIndex(totalPages - 1)
+  }, [pageIndex, totalPages])
+
+  useEffect(() => {
+    const updateBackToTop = () => setShowBackToTop(window.scrollY > 520)
+    updateBackToTop()
+    window.addEventListener("scroll", updateBackToTop, { passive: true })
+    return () => window.removeEventListener("scroll", updateBackToTop)
+  }, [])
+
+  const paginationControls = (withTopBorder = false) =>
+    filtered.length > 0 ? (
+      <div
+        className={`flex flex-col gap-3 text-sm md:flex-row md:items-center md:justify-between ${
+          withTopBorder ? "border-t border-slate-800/80 pt-4" : ""
+        }`}
+      >
+        <p className="text-slate-400">
+          Showing {paginated.length} / {filtered.length} filtered news items
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => {
+              setPageSize(Number(value))
+              setPageIndex(0)
+            }}
+          >
+            <SelectTrigger className="h-10 w-[120px] border-slate-800 bg-[#1a1a1a] text-slate-100 focus:ring-cyan-500/20">
+              <span className="text-slate-100">{pageSize} / page</span>
+            </SelectTrigger>
+            <SelectContent className="border-slate-800 bg-slate-950 text-slate-100">
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size} / page
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex h-10 min-w-[76px] items-center justify-center rounded-md border border-slate-800 bg-[#1a1a1a] px-3 text-sm font-medium tabular-nums text-slate-100">
+            {safePageIndex + 1} / {totalPages}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setPageIndex((current) => Math.max(0, current - 1))}
+            disabled={safePageIndex === 0}
+            className="inline-flex h-10 min-w-[84px] items-center justify-center rounded-md border border-slate-800 bg-[#1a1a1a] px-3 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-500/40 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-slate-800 disabled:hover:text-slate-200"
+          >
+            Previous
+          </button>
+          <button
+            type="button"
+            onClick={() => setPageIndex((current) => Math.min(totalPages - 1, current + 1))}
+            disabled={safePageIndex >= totalPages - 1}
+            className="inline-flex h-10 min-w-[84px] items-center justify-center rounded-md border border-slate-800 bg-[#1a1a1a] px-3 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-500/40 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-slate-800 disabled:hover:text-slate-200"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    ) : null
 
   if (items.length === 0) {
     return (
@@ -265,14 +340,23 @@ export function NewsFeed({
           <Input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value)
+              setPageIndex(0)
+            }}
             placeholder="Search title, summary, source, or tag"
             className="border-slate-800 bg-[#1a1a1a] pl-11 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/20"
           />
         </div>
 
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-          <Select value={source} onValueChange={setSource}>
+          <Select
+            value={source}
+            onValueChange={(value) => {
+              setSource(value)
+              setPageIndex(0)
+            }}
+          >
             <SelectTrigger className="w-full border-slate-800 bg-[#1a1a1a] text-slate-100 focus:ring-cyan-500/20 sm:w-[170px]">
               <SelectValue placeholder="Source" />
             </SelectTrigger>
@@ -286,7 +370,13 @@ export function NewsFeed({
             </SelectContent>
           </Select>
 
-          <Select value={tag} onValueChange={setTag}>
+          <Select
+            value={tag}
+            onValueChange={(value) => {
+              setTag(value)
+              setPageIndex(0)
+            }}
+          >
             <SelectTrigger className="w-full border-slate-800 bg-[#1a1a1a] text-slate-100 focus:ring-cyan-500/20 sm:w-[150px]">
               <SelectValue placeholder="Tag" />
             </SelectTrigger>
@@ -300,7 +390,13 @@ export function NewsFeed({
             </SelectContent>
           </Select>
 
-          <Select value={sort} onValueChange={(value) => setSort(value as SortMode)}>
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              setSort(value as SortMode)
+              setPageIndex(0)
+            }}
+          >
             <SelectTrigger className="w-full border-slate-800 bg-[#1a1a1a] text-slate-100 focus:ring-cyan-500/20 sm:w-[150px]">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
@@ -319,6 +415,7 @@ export function NewsFeed({
                 setSource("all")
                 setTag("all")
                 setSort("newest")
+                setPageIndex(0)
               }}
               className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-800 bg-[#1a1a1a] px-3 text-sm font-medium text-slate-300 transition-colors hover:border-cyan-500/40 hover:text-cyan-300"
             >
@@ -329,13 +426,7 @@ export function NewsFeed({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
-        <span>
-          Showing <span className="text-slate-300">{filtered.length}</span> of{" "}
-          <span className="text-slate-300">{items.length}</span>
-        </span>
-        <span className="hidden sm:inline">Sorted by {sort === "source" ? "source" : sort}</span>
-      </div>
+      {paginationControls()}
 
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-slate-800 bg-[#1a1a1a] px-5 py-10 text-center">
@@ -344,11 +435,13 @@ export function NewsFeed({
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((item) => (
+          {paginated.map((item) => (
             <NewsListCard key={item.id} item={item} takeContext={takeContext} onUseCaseClick={openUseCaseDetail} />
           ))}
         </div>
       )}
+
+      {paginationControls(true)}
 
       {activeDetail ? (
         <UseCaseIndexDetailModalPortal
@@ -359,6 +452,19 @@ export function NewsFeed({
           canGoBack={detailHistory.length > 0}
           onClose={closeDetail}
         />
+      ) : null}
+
+      {showBackToTop && !activeDetail ? (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] left-[min(calc(100vw-5.75rem),calc(50%+28rem+0.75rem))] z-40 inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-cyan-500/35 bg-[#101820]/95 px-3 text-xs font-semibold text-cyan-200 shadow-[0_14px_36px_rgba(0,0,0,0.35)] transition-colors hover:border-cyan-400/70 hover:bg-[#13222b] hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/45"
+          aria-label="Back to top"
+          title="Back to top"
+        >
+          <ArrowUp className="h-4 w-4" />
+          Top
+        </button>
       ) : null}
     </div>
   )

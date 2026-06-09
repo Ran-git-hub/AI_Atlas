@@ -13,96 +13,148 @@ const VALID_CONTINENTS = new Set([
   "Antarctica",
 ])
 
-const VALID_GICS = new Set([
+const GICS_INDUSTRIES = new Set([
   "Energy Equipment & Services",
   "Oil, Gas & Consumable Fuels",
   "Chemicals",
   "Construction Materials",
+  "Containers & Packaging",
   "Metals & Mining",
-  "Steel",
-  "Aluminum",
-  "Copper",
-  "Precious Metals & Minerals",
+  "Paper & Forest Products",
   "Aerospace & Defense",
   "Building Products",
   "Construction & Engineering",
-  "Electrical Components & Equipment",
-  "Heavy Electrical Equipment",
+  "Electrical Equipment",
   "Industrial Conglomerates",
-  "Construction Machinery & Heavy Transportation Equipment",
-  "Agricultural & Farm Machinery",
-  "Industrial Machinery & Supplies & Components",
+  "Machinery",
+  "Trading Companies & Distributors",
+  "Commercial Services & Supplies",
+  "Professional Services",
   "Air Freight & Logistics",
-  "Airlines",
+  "Passenger Airlines",
   "Marine Transportation",
   "Ground Transportation",
   "Transportation Infrastructure",
-  "Automobiles & Components",
-  "Consumer Electronics",
-  "Housewares & Specialties",
+  "Automobile Components",
+  "Automobiles",
+  "Household Durables",
   "Leisure Products",
-  "Tourism & Recreation",
-  "Education",
+  "Textiles, Apparel & Luxury Goods",
+  "Hotels, Restaurants & Leisure",
+  "Diversified Consumer Services",
   "Distributors",
   "Broadline Retail",
   "Specialty Retail",
   "Consumer Staples Distribution & Retail",
-  "Food, Beverage & Tobacco",
-  "Household & Personal Care Products",
+  "Beverages",
+  "Food Products",
+  "Tobacco",
+  "Household Products",
+  "Personal Care Products",
   "Health Care Equipment & Supplies",
+  "Health Care Providers & Services",
   "Health Care Technology",
   "Biotechnology",
-  "Life Sciences Tools & Services",
   "Pharmaceuticals",
-  "Health Care Providers & Services",
+  "Life Sciences Tools & Services",
   "Banks",
-  "Financial Exchanges & Data",
-  "Asset Management & Custody Banks",
-  "Investment Banking & Brokerage",
-  "Insurance",
   "Financial Services",
   "Consumer Finance",
   "Capital Markets",
-  "Real Estate",
+  "Mortgage Real Estate Investment Trusts (REITs)",
+  "Insurance",
+  "IT Services",
+  "Software",
+  "Communications Equipment",
+  "Technology Hardware, Storage & Peripherals",
+  "Electronic Equipment, Instruments & Components",
+  "Semiconductors & Semiconductor Equipment",
+  "Diversified Telecommunication Services",
+  "Wireless Telecommunication Services",
+  "Media",
+  "Entertainment",
+  "Interactive Media & Services",
+  "Electric Utilities",
+  "Gas Utilities",
+  "Multi-Utilities",
+  "Water Utilities",
+  "Independent Power and Renewable Electricity Producers",
+  "Diversified REITs",
+  "Industrial REITs",
   "Health Care REITs",
   "Hotel & Resort REITs",
   "Office REITs",
-  "Retail REITs",
   "Residential REITs",
-  "Industrial REITs",
+  "Retail REITs",
   "Specialized REITs",
-  "Internet Software & Services",
-  "IT Consulting & Other Services",
-  "Data Processing & Outsourced Services",
-  "Application Software",
-  "Systems Software",
-  "Technology Hardware Storage",
-  "Communications Equipment",
-  "Technology Hardware & Equipment",
-  "Electronic Equipment & Instruments",
-  "Electronic Components",
-  "Semiconductor Materials & Equipment",
-  "Semiconductors",
-  "Wireless Telecommunication Services",
-  "Telecommunication Services",
-  "Broadcasting",
-  "Cable & Satellite",
-  "Advertising",
-  "Media & Entertainment",
-  "Publishing",
-  "Electric Utilities",
-  "Gas Utilities",
-  "Water Utilities",
-  "Multi-Utilities",
+  "Real Estate Management & Development",
+])
+
+const APPROVED_INDUSTRY_EXCEPTIONS = new Set([
   "Research Institution",
   "Public Sector / Government",
+  "Public Administration",
+])
+
+const GICS_INDUSTRY_ALIASES = new Map([
+  ["Steel", "Metals & Mining"],
+  ["Aluminum", "Metals & Mining"],
+  ["Copper", "Metals & Mining"],
+  ["Precious Metals & Minerals", "Metals & Mining"],
+  ["Electrical Components & Equipment", "Electrical Equipment"],
+  ["Heavy Electrical Equipment", "Electrical Equipment"],
+  ["Construction Machinery & Heavy Transportation Equipment", "Machinery"],
+  ["Agricultural & Farm Machinery", "Machinery"],
+  ["Industrial Machinery & Supplies & Components", "Machinery"],
+  ["Airlines", "Passenger Airlines"],
+  ["Automobile Manufacturers", "Automobiles"],
+  ["Motorcycle Manufacturers", "Automobiles"],
+  ["Automotive Parts & Equipment", "Automobile Components"],
+  ["Auto Parts & Equipment", "Automobile Components"],
+  ["Consumer Electronics", "Household Durables"],
+  ["Housewares & Specialties", "Household Durables"],
+  ["Tourism & Recreation", "Hotels, Restaurants & Leisure"],
+  ["Education", "Diversified Consumer Services"],
+  ["Internet Software & Services", "Software"],
+  ["Application Software", "Software"],
+  ["Systems Software", "Software"],
+  ["IT Consulting & Other Services", "IT Services"],
+  ["Data Processing & Outsourced Services", "IT Services"],
+  ["Technology Hardware Storage", "Technology Hardware, Storage & Peripherals"],
+  ["Electronic Equipment & Instruments", "Electronic Equipment, Instruments & Components"],
+  ["Electronic Components", "Electronic Equipment, Instruments & Components"],
+  ["Semiconductor Materials & Equipment", "Semiconductors & Semiconductor Equipment"],
+  ["Semiconductors", "Semiconductors & Semiconductor Equipment"],
+  ["Broadcasting", "Media"],
+  ["Cable & Satellite", "Media"],
+  ["Advertising", "Media"],
+  ["Publishing", "Media"],
+  ["Financial Exchanges & Data", "Capital Markets"],
+  ["Asset Management & Custody Banks", "Capital Markets"],
+  ["Investment Banking & Brokerage", "Capital Markets"],
 ])
 
 function normalizeTaxonomyValue(value: unknown): string {
   return text(value).toLowerCase().replace(/\s+/g, " ").trim()
 }
 
-const VALID_GICS_NORMALIZED = new Set([...VALID_GICS].map(normalizeTaxonomyValue))
+const GICS_INDUSTRIES_NORMALIZED = new Set([...GICS_INDUSTRIES].map(normalizeTaxonomyValue))
+const APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED = new Set([...APPROVED_INDUSTRY_EXCEPTIONS].map(normalizeTaxonomyValue))
+const GICS_INDUSTRY_ALIAS_NORMALIZED = new Map(
+  [...GICS_INDUSTRY_ALIASES].map(([alias, canonical]) => [
+    normalizeTaxonomyValue(alias),
+    normalizeTaxonomyValue(canonical),
+  ])
+)
+
+function isApprovedIndustry(value: unknown): boolean {
+  const normalized = normalizeTaxonomyValue(value)
+  if (!normalized) return false
+  if (GICS_INDUSTRIES_NORMALIZED.has(normalized)) return true
+  if (APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED.has(normalized)) return true
+  const canonical = GICS_INDUSTRY_ALIAS_NORMALIZED.get(normalized)
+  return Boolean(canonical && GICS_INDUSTRIES_NORMALIZED.has(canonical))
+}
 
 const COUNTRY_CONTINENT: Record<string, string> = {
   Australia: "Oceania",
@@ -215,6 +267,14 @@ type RuleResult = {
   samples: IssueSample[]
 }
 
+type StatusCounts = {
+  total: number
+  published: number
+  pending: number
+  archive: number
+  other: number
+}
+
 const SEVERITY_SCORE_WEIGHTS: Record<RuleResult["severity"], number> = {
   critical: 3,
   warning: 2,
@@ -237,6 +297,37 @@ function isBlank(value: unknown): boolean {
 
 function text(value: unknown): string {
   return typeof value === "string" ? value.trim() : ""
+}
+
+function normalizedStatus(value: unknown): string {
+  return text(value).toLowerCase()
+}
+
+function isPublishedStatus(value: unknown): boolean {
+  return normalizedStatus(value) === "published"
+}
+
+function isArchiveStatus(value: unknown): boolean {
+  const status = normalizedStatus(value)
+  return status === "archive" || status === "archived"
+}
+
+function hasStatusValues(rows: Row[]): boolean {
+  return rows.some((row) => !isBlank(row.status))
+}
+
+function countStatuses(rows: Row[]): StatusCounts {
+  return rows.reduce<StatusCounts>(
+    (counts, row) => {
+      counts.total += 1
+      if (isPublishedStatus(row.status)) counts.published += 1
+      else if (normalizedStatus(row.status) === "pending") counts.pending += 1
+      else if (isArchiveStatus(row.status)) counts.archive += 1
+      else counts.other += 1
+      return counts
+    },
+    { total: 0, published: 0, pending: 0, archive: 0, other: 0 }
+  )
 }
 
 function getNumber(row: Row, keys: string[]): number | null {
@@ -374,10 +465,16 @@ async function fetchAll(table: string): Promise<Row[]> {
 
 export async function GET() {
   const started = performance.now()
-  const [useCases, companies] = await Promise.all([
+  const [allUseCases, allCompanies] = await Promise.all([
     fetchAll("AI_Atlas_Use_Cases"),
     fetchAll("AI_Atlas_Companies"),
   ])
+  const useCaseStatuses = countStatuses(allUseCases)
+  const companyStatuses = countStatuses(allCompanies)
+  const useCases = allUseCases.filter((row) => isPublishedStatus(row.status))
+  const companies = hasStatusValues(allCompanies)
+    ? allCompanies.filter((row) => isPublishedStatus(row.status))
+    : allCompanies
 
   const companyIds = new Set(companies.map((row) => String(row.id)).filter(Boolean))
   const companyById = new Map(companies.map((row) => [String(row.id), row]))
@@ -409,7 +506,7 @@ export async function GET() {
   for (const field of COMPANY_REQUIRED_FIELDS) {
     rules.push(makeRule(
       `company-required-${field}`,
-      `Companies: ${field} is mandatory`,
+      `Companies/Organizations: ${field} is mandatory`,
       "Companies",
       "Completeness",
       "critical",
@@ -420,7 +517,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-coordinates",
-    "Companies: HQ coordinates must be real values",
+    "Companies/Organizations: HQ coordinates must be real values",
     "Companies",
     "Completeness",
     "critical",
@@ -441,7 +538,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-description-length",
-    "Companies: description must be at least 500 characters",
+    "Companies/Organizations: description must be at least 500 characters",
     "Companies",
     "Validity",
     "info",
@@ -509,17 +606,6 @@ export async function GET() {
   ))
 
   rules.push(makeRule(
-    "uc-status",
-    "Use cases: status must be published",
-    "Use Cases",
-    "Validity",
-    "critical",
-    useCases.length,
-    useCases.filter((row) => text(row.status) !== "published"),
-    (row) => `status=${text(row.status) || "(empty)"}`
-  ))
-
-  rules.push(makeRule(
     "uc-type",
     "Use cases: type must be Deployment, Experiment, or Research",
     "Use Cases",
@@ -557,23 +643,23 @@ export async function GET() {
 
   rules.push(makeRule(
     "uc-industry-gics",
-    "Use cases: industry must be approved GICS Level 3 or Research Institution",
+    "Use cases: industry must be approved GICS industry or approved exception",
     "Use Cases",
     "Validity",
     "warning",
     useCases.length,
-    useCases.filter((row) => !VALID_GICS_NORMALIZED.has(normalizeTaxonomyValue(row.industry))),
+    useCases.filter((row) => !isApprovedIndustry(row.industry)),
     (row) => text(row.industry) || "(empty)"
   ))
 
   rules.push(makeRule(
     "company-industry-gics",
-    "Companies: industry must be approved GICS Level 3 or Research Institution",
+    "Companies/Organizations: industry must be approved GICS industry or approved exception",
     "Companies",
     "Validity",
     "warning",
     companies.length,
-    companies.filter((row) => !VALID_GICS_NORMALIZED.has(normalizeTaxonomyValue(row.industry))),
+    companies.filter((row) => !isApprovedIndustry(row.industry)),
     (row) => text(row.industry) || "(empty)"
   ))
 
@@ -612,7 +698,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-logo-null",
-    "Companies: logo_url should remain null",
+    "Companies/Organizations: logo_url should remain null",
     "Companies",
     "Validity",
     "info",
@@ -636,7 +722,7 @@ export async function GET() {
   const duplicateCompanyNameSamples = duplicateSamples(companies, "name")
   rules.push({
     id: "company-name-duplicates",
-    name: "Companies: official company name should be unique",
+    name: "Companies/Organizations: official company/organization name should be unique",
     table: "Companies",
     dimension: "Uniqueness",
     severity: "critical",
@@ -694,6 +780,8 @@ export async function GET() {
     totals: {
       useCases: useCases.length,
       companies: companies.length,
+      useCaseStatuses,
+      companyStatuses,
       criticalFailures,
       warningFailures,
       infoFailures,

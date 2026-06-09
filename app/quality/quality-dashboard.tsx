@@ -55,6 +55,8 @@ type QualityResponse = {
   totals: {
     useCases: number
     companies: number
+    useCaseStatuses: StatusCounts
+    companyStatuses: StatusCounts
     criticalFailures: number
     warningFailures: number
     infoFailures: number
@@ -69,6 +71,14 @@ type QualityResponse = {
     sourceDomain: [string, number][]
     useCaseType: [string, number][]
   }
+}
+
+type StatusCounts = {
+  total: number
+  published: number
+  pending: number
+  archive: number
+  other: number
 }
 
 const DIMENSION_ORDER: Dimension[] = [
@@ -90,8 +100,12 @@ const TABLE_META: Record<TableName, { icon: LucideIcon; accent: string; glow: st
     icon: Building2,
     accent: "text-cyan-300",
     glow: "shadow-[0_0_24px_rgba(34,211,238,0.12)]",
-    description: "Company master data, GICS classification, headquarters, website, and descriptions.",
+    description: "Company/organization master data, GICS classification, headquarters, website, and descriptions.",
   },
+}
+
+function tableDisplayName(table: TableName): string {
+  return table === "Companies" ? "Companies/Organizations" : table
 }
 
 function passRate(rule: RuleResult) {
@@ -143,9 +157,37 @@ function severityLabel(severity: Severity) {
   return "Low"
 }
 
+function ScoreStatusCard({
+  score,
+  tone,
+  className,
+}: {
+  score: number
+  tone: ReturnType<typeof statusTone>
+  className?: string
+}) {
+  return (
+    <div className={cn("w-full rounded-lg border border-slate-700/70 bg-slate-950/45 p-3 sm:w-56 sm:min-w-56 sm:max-w-56 sm:shrink-0", className)}>
+      <div className="flex items-center justify-end gap-3">
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-semibold leading-none tabular-nums text-white">{score.toFixed(1)}</span>
+          <span className="text-base font-semibold text-slate-400">/100</span>
+        </div>
+        <span className={cn("rounded-md border px-2.5 py-1 text-sm font-semibold", tone.chip)}>
+          {tone.label}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
+        <div className={cn("h-full rounded-full", tone.bar)} style={{ width: `${Math.max(0, Math.min(100, score))}%` }} />
+      </div>
+    </div>
+  )
+}
+
 function TableSummaryCard({
   table,
   records,
+  statusCounts,
   score,
   highFailures,
   mediumFailures,
@@ -154,6 +196,7 @@ function TableSummaryCard({
 }: {
   table: TableName
   records: number
+  statusCounts: StatusCounts
   score: number
   highFailures: number
   mediumFailures: number
@@ -165,46 +208,35 @@ function TableSummaryCard({
   const Icon = meta.icon
   const totalFailures = highFailures + mediumFailures + lowFailures
   const maxFailures = Math.max(highFailures, mediumFailures, lowFailures, 1)
+  const stats = [
+    { label: "Published", value: records },
+    { label: "Pending", value: statusCounts.pending },
+    { label: "Archive", value: statusCounts.archive },
+  ]
 
   return (
-    <div className={cn("rounded-xl border border-slate-700/70 bg-slate-900/70 p-3 backdrop-blur-md", meta.glow)}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2">
+    <div className={cn("rounded-xl border border-slate-700/70 bg-slate-900/70 p-4 backdrop-blur-md", meta.glow)}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="mt-3 flex min-w-0 items-center gap-3">
+          <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5">
             <Icon className={cn("h-5 w-5", meta.accent)} />
           </div>
-          <div>
-            <div className="text-sm font-medium uppercase tracking-wide text-slate-400">{table}</div>
-            <div className="mt-0.5 flex items-baseline gap-1.5">
-              <span className="text-3xl font-semibold tabular-nums text-white">{score.toFixed(1)}</span>
-              <span className="text-sm font-semibold text-slate-400">/100</span>
-            </div>
-          </div>
+          <div className="min-w-0 truncate text-sm font-semibold uppercase tracking-wide text-slate-400">{tableDisplayName(table)}</div>
         </div>
-        <span className={cn("rounded-md border px-2.5 py-1 text-sm font-semibold", tone.chip)}>
-          {tone.label}
-        </span>
+
+        <ScoreStatusCard score={score} tone={tone} />
       </div>
 
-      <div className="mt-3 grid gap-3 lg:grid-cols-[0.55fr_1.45fr]">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex min-h-20 flex-col items-center justify-center rounded-lg border border-slate-700/70 bg-slate-950/45 px-3 py-2 text-center">
-            <div className="text-sm uppercase tracking-wide text-slate-500">Records</div>
-            <div className="mt-1 text-xl font-semibold tabular-nums text-white">{records.toLocaleString()}</div>
-          </div>
-          <div className="flex min-h-20 flex-col items-center justify-center rounded-lg border border-slate-700/70 bg-slate-950/45 px-3 py-2 text-center">
-            <div className="text-sm uppercase tracking-wide text-slate-500">Rules</div>
-            <div className="mt-1 text-xl font-semibold tabular-nums text-white">{rules}</div>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-slate-700/70 bg-slate-950/35 px-3 py-2">
-          <div className="mb-2 flex items-center justify-between gap-3">
+      <div className="mt-4 grid gap-3">
+        <div className="rounded-lg border border-slate-700/70 bg-slate-950/35 px-4 py-3">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
             <div>
               <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Failures By Severity</div>
-              <div className="mt-0.5 text-sm font-semibold tabular-nums text-slate-100">{totalFailures.toLocaleString()} total failures</div>
+              <div className="mt-1 text-base font-semibold tabular-nums text-slate-100">{totalFailures.toLocaleString()} total failures</div>
             </div>
-            <div className="text-sm text-slate-500">High x3 · Medium x2 · Low x1</div>
+            <div className="rounded-md border border-slate-700/70 bg-slate-900/60 px-2 py-1 text-xs font-medium text-slate-400">
+              High x3 · Medium x2 · Low x1
+            </div>
           </div>
 
           {[
@@ -212,9 +244,9 @@ function TableSummaryCard({
             { label: "Medium", value: mediumFailures, weight: "x2", valueClass: "text-slate-200 font-semibold" },
             { label: "Low", value: lowFailures, weight: "x1", valueClass: "text-slate-300 font-semibold" },
           ].map((item) => (
-            <div key={item.label} className="grid grid-cols-[4.5rem_1fr_4rem] items-center gap-2 py-1">
-              <div className="text-sm text-slate-400">{item.label}</div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+            <div key={item.label} className="grid grid-cols-[4.75rem_minmax(0,1fr)_4.5rem] items-center gap-3 py-1.5">
+              <div className="text-sm font-medium text-slate-400">{item.label}</div>
+              <div className="h-2 overflow-hidden rounded-full bg-slate-800">
                 <div
                   className="h-full rounded-full bg-slate-400"
                   style={{ width: `${(item.value / maxFailures) * 100}%` }}
@@ -227,11 +259,17 @@ function TableSummaryCard({
             </div>
           ))}
         </div>
+
+        <div className="grid gap-2 sm:grid-cols-3">
+          {stats.map((item) => (
+            <div key={item.label} className="rounded-lg border border-slate-700/70 bg-slate-950/40 px-3 py-2.5">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{item.label}</div>
+              <div className="mt-1 text-2xl font-semibold leading-none tabular-nums text-white">{item.value.toLocaleString()}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-2 text-sm leading-5 text-slate-500">
-        Rule score = 100 - failure rate x severity multiplier. Table score is the weighted average.
-      </div>
     </div>
   )
 }
@@ -368,7 +406,7 @@ function TableQualitySection({
             <Icon className={cn("h-5 w-5", meta.accent)} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">{table}</h2>
+            <h2 className="text-lg font-semibold text-white">{tableDisplayName(table)}</h2>
             <p className="mt-1 max-w-2xl text-sm leading-5 text-slate-400">{meta.description}</p>
           </div>
         </div>
@@ -486,7 +524,6 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
   const scoreTone = statusTone(data?.score ?? 100)
   const useCaseScoreTone = statusTone(data?.scores.useCases ?? 100)
   const companyScoreTone = statusTone(data?.scores.companies ?? 100)
-  const totalRecords = (data?.totals.useCases ?? 0) + (data?.totals.companies ?? 0)
   const useCaseWeight = data?.scores.weights?.useCases ?? 90
   const companyWeight = data?.scores.weights?.companies ?? 10
   const useCaseCriticalFailures = tableRules["Use Cases"]
@@ -522,7 +559,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
             <div>
               <h1 className="text-2xl font-semibold tracking-normal">AI Atlas Data Quality</h1>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">
-                Live dashboard for the AI Atlas quality rules, split by Companies and Use Cases.
+                Live dashboard for the AI Atlas quality rules, split by Companies/Organizations and Use Cases.
               </p>
             </div>
           </div>
@@ -556,39 +593,63 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
 
         {data ? (
           <>
-            <section className="rounded-lg border border-slate-700/70 bg-slate-900/70 p-2.5 backdrop-blur-md">
-              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5" />
-                  <div>
-                    <div className="text-lg font-semibold uppercase tracking-wide opacity-90">Overall Quality Score</div>
-                    <div className="mt-1 text-base text-slate-300">
-                      Overall = Use Cases score x {useCaseWeight}% + Companies score x {companyWeight}%. High severity
-                      failures reduce each rule score more strongly than Medium or Low failures.
-                    </div>
-                    <div className="mt-2 space-y-0.5 text-base leading-7 text-slate-400">
-                      <p>Failure rate = failed records / checked records x 100.</p>
-                      <p>Rule score = 100 - failure rate x severity multiplier. High x3, Medium x2, Low x1.</p>
-                      <p>Table score = weighted average of rule scores using the same High x3, Medium x2, Low x1 weights.</p>
-                      <p>Color code: green at 95 or above, orange from 90 to below 95, red below 90.</p>
-                    </div>
+            <section className="rounded-lg border border-slate-700/70 bg-slate-900/70 p-3.5 backdrop-blur-md">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="mt-1 flex min-w-0 items-center gap-3">
+                  <div className="rounded-lg border border-slate-700 bg-slate-950/45 p-2">
+                    <ShieldCheck className="h-5 w-5 text-emerald-300" />
                   </div>
+                  <div className="text-xl font-semibold uppercase tracking-wide text-slate-100">Overall Quality Score</div>
                 </div>
-                <div className="w-full rounded-lg border border-slate-700/70 bg-slate-950/45 p-3 lg:w-72">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-semibold leading-none tabular-nums text-white">{data.scores.overall.toFixed(1)}</span>
-                      <span className="text-base font-semibold text-slate-300">/100</span>
+
+                <ScoreStatusCard score={data.scores.overall} tone={scoreTone} />
+              </div>
+
+              <div className="mt-3 grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <div className="min-w-0">
+                  <div className="rounded-lg border border-cyan-300/15 bg-cyan-300/[0.04] px-3.5 py-2.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-200/80">Composite Formula</div>
+                    <div className="mt-1 text-base font-medium leading-6 text-slate-200">
+                      Overall = <span className="text-emerald-300">Use Cases score x {useCaseWeight}%</span>
+                      <span className="text-slate-500"> + </span>
+                      <span className="text-cyan-200">Companies/Organizations score x {companyWeight}%</span>
                     </div>
-                    <span className={cn("rounded-md border px-2.5 py-1 text-sm font-semibold", scoreTone.chip)}>
-                      {scoreTone.label}
-                    </span>
                   </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800">
-                    <div className={cn("h-full rounded-full", scoreTone.bar)} style={{ width: `${Math.max(0, Math.min(100, data.scores.overall))}%` }} />
-                  </div>
-                  <div className="mt-2 text-sm font-semibold text-cyan-200">
-                    {totalRecords.toLocaleString()} records
+
+                  <div className="mt-2.5 grid gap-1.5 md:grid-cols-3">
+                    {[
+                      { label: "Failure Rate", value: "failed records / published records x 100" },
+                      { label: "Rule Score", value: "100 - failure rate x severity multiplier", weights: "High x3 · Medium x2 · Low x1" },
+                      { label: "Table Score", value: "weighted average of rule scores", colors: ["Green >= 95", "Orange 90-94.9", "Red < 90"] },
+                    ].map((item, index) => (
+                      <div key={item.label} className="flex min-w-0 items-center gap-2 rounded-md border border-slate-700/70 bg-slate-950/35 px-2.5 py-1.5">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-slate-700 bg-slate-900 text-[11px] font-semibold text-slate-300">
+                          {index + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <span className="text-xs font-semibold uppercase tracking-wide text-slate-300">{item.label}</span>
+                          <span className="ml-2 text-sm leading-5 text-slate-400">{item.value}</span>
+                          {"weights" in item ? (
+                            <span className="ml-2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-900/70 px-1.5 py-0.5 text-xs font-medium text-slate-300">
+                              {item.weights}
+                            </span>
+                          ) : null}
+                          {"colors" in item ? (
+                            <span className="ml-2 inline-flex flex-wrap gap-1 align-middle">
+                              <span className="rounded-md border border-emerald-400/25 bg-emerald-400/10 px-1.5 py-0.5 text-xs font-medium text-emerald-300">
+                                {item.colors[0]}
+                              </span>
+                              <span className="rounded-md border border-amber-300/25 bg-amber-300/10 px-1.5 py-0.5 text-xs font-medium text-amber-200">
+                                {item.colors[1]}
+                              </span>
+                              <span className="rounded-md border border-red-400/25 bg-red-400/10 px-1.5 py-0.5 text-xs font-medium text-red-300">
+                                {item.colors[2]}
+                              </span>
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -598,6 +659,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
               <TableSummaryCard
                 table="Use Cases"
                 records={data.totals.useCases}
+                statusCounts={data.totals.useCaseStatuses}
                 score={data.scores.useCases}
                 highFailures={useCaseCriticalFailures}
                 mediumFailures={useCaseWarningFailures}
@@ -607,6 +669,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
               <TableSummaryCard
                 table="Companies"
                 records={data.totals.companies}
+                statusCounts={data.totals.companyStatuses}
                 score={data.scores.companies}
                 highFailures={companyCriticalFailures}
                 mediumFailures={companyWarningFailures}

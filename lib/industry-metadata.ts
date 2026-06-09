@@ -40,6 +40,12 @@ const INDUSTRY_METADATA: Record<string, IndustryMetadata> = {
   "telecommunication-services": {
     shortDescription: "Telecom operators and services using AI for networks, operations, and customer workflows.",
   },
+  "public-administration": {
+    shortDescription: "Government and public administration organizations applying AI to public services, operations, and policy workflows.",
+  },
+  "public-sector-government": {
+    shortDescription: "Public sector and government organizations applying AI to services, operations, and civic infrastructure.",
+  },
 }
 
 export function getIndustryMetadata(slug: string): IndustryMetadata {

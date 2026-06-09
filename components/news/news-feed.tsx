@@ -221,6 +221,11 @@ export function NewsFeed({
     setActiveDetail(null)
   }
 
+  const applyTagFilter = (nextTag: string) => {
+    setTag(nextTag.toLowerCase())
+    setPageIndex(0)
+  }
+
   const filtered = useMemo(() => {
     const next = items
       .filter((item) => source === "all" || item.sourceName === source)
@@ -436,7 +441,13 @@ export function NewsFeed({
       ) : (
         <div className="space-y-5">
           {paginated.map((item) => (
-            <NewsListCard key={item.id} item={item} takeContext={takeContext} onUseCaseClick={openUseCaseDetail} />
+            <NewsListCard
+              key={item.id}
+              item={item}
+              takeContext={takeContext}
+              onUseCaseClick={openUseCaseDetail}
+              onTagClick={applyTagFilter}
+            />
           ))}
         </div>
       )}

@@ -332,10 +332,12 @@ export function NewsListCard({
   item,
   takeContext = EMPTY_TAKE_CONTEXT,
   onUseCaseClick,
+  onTagClick,
 }: {
   item: NewsItem
   takeContext?: NewsTakeContext
   onUseCaseClick: (id: string) => void
+  onTagClick: (tag: string) => void
 }) {
   const source = item.sourceName || hostnameFromUrl(item.url) || "Unknown source"
   const externalUrl = hostnameFromUrl(item.url) ? item.url : null
@@ -353,18 +355,23 @@ export function NewsListCard({
       </h3>
 
       <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">{sourceSummary}</p>
-
-      {item.tags.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {item.tags.map((tag) => (
-            <span key={tag} className="rounded bg-cyan-500/10 px-2 py-0.5 text-xs font-medium text-cyan-300">
-              {tag}
-            </span>
-          ))}
-        </div>
-      ) : null}
     </div>
   )
+  const tagsContent =
+    item.tags.length > 0 ? (
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {item.tags.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            onClick={() => onTagClick(tag)}
+            className="rounded bg-cyan-500/10 px-2 py-0.5 text-xs font-medium text-cyan-300 transition-colors hover:bg-cyan-500/20 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40"
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+    ) : null
   const imageContent = (
     <div className="flex min-w-0 justify-end">
       <NewsCardImage articleUrl={externalUrl} sourceName={source} />
@@ -376,13 +383,16 @@ export function NewsListCard({
       className="grid items-center gap-4 rounded-lg border border-slate-700/80 bg-[#181818] px-5 py-4 shadow-[0_0_0_1px_rgba(15,23,42,0.75),0_16px_36px_rgba(0,0,0,0.22)] transition-all hover:border-cyan-500/55 hover:shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_18px_42px_rgba(0,0,0,0.28)]"
       style={{ gridTemplateColumns: "minmax(0, 1fr) clamp(150px, 24%, 220px)" }}
     >
-      {externalUrl ? (
-        <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="group block min-w-0">
-          {textContent}
-        </a>
-      ) : (
-        textContent
-      )}
+      <div className="min-w-0">
+        {externalUrl ? (
+          <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="group block min-w-0">
+            {textContent}
+          </a>
+        ) : (
+          textContent
+        )}
+        {tagsContent}
+      </div>
 
       {externalUrl ? (
         <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="group block min-w-0">

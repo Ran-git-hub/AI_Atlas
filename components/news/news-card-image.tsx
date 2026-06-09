@@ -79,8 +79,7 @@ export function NewsCardImage({
 
   return (
     <div
-      className="relative aspect-[16/10] w-full overflow-hidden rounded-md border border-slate-800 bg-slate-900"
-      style={{ maxWidth: 220 }}
+      className="relative aspect-[16/10] w-full overflow-hidden rounded-md border border-slate-800 bg-slate-900 sm:max-w-[220px]"
     >
       {useXIcon ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black px-4 text-center">

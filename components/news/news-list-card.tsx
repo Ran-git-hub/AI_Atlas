@@ -179,18 +179,28 @@ function UseCaseTextLink({
   onUseCaseClick: (id: string) => void
   children?: ReactNode
 }) {
+  const openUseCase = () => onUseCaseClick(useCase.id)
+
   return (
-    <button
-      type="button"
+    <span
+      role="button"
+      tabIndex={0}
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        onUseCaseClick(useCase.id)
+        openUseCase()
       }}
-      className="inline font-semibold text-cyan-300 underline decoration-cyan-400/35 underline-offset-2 transition-colors hover:text-cyan-200 hover:decoration-cyan-300"
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return
+        event.preventDefault()
+        event.stopPropagation()
+        openUseCase()
+      }}
+      className="inline cursor-pointer whitespace-normal break-words text-left align-baseline font-semibold leading-[inherit] text-cyan-300 underline decoration-cyan-400/35 underline-offset-2 transition-colors hover:text-cyan-200 hover:decoration-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40"
+      style={{ overflowWrap: "anywhere" }}
     >
       {children ?? truncatePhrase(useCaseLabel(useCase), 76)}
-    </button>
+    </span>
   )
 }
 
@@ -373,15 +383,14 @@ export function NewsListCard({
       </div>
     ) : null
   const imageContent = (
-    <div className="flex min-w-0 justify-end">
+    <div className="flex min-w-0 justify-start sm:justify-end">
       <NewsCardImage articleUrl={externalUrl} sourceName={source} />
     </div>
   )
 
   return (
     <article
-      className="grid items-center gap-4 rounded-lg border border-slate-700/80 bg-[#181818] px-5 py-4 shadow-[0_0_0_1px_rgba(15,23,42,0.75),0_16px_36px_rgba(0,0,0,0.22)] transition-all hover:border-cyan-500/55 hover:shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_18px_42px_rgba(0,0,0,0.28)]"
-      style={{ gridTemplateColumns: "minmax(0, 1fr) clamp(150px, 24%, 220px)" }}
+      className="grid items-center gap-4 rounded-lg border border-slate-700/80 bg-[#181818] px-5 py-4 shadow-[0_0_0_1px_rgba(15,23,42,0.75),0_16px_36px_rgba(0,0,0,0.22)] transition-all hover:border-cyan-500/55 hover:shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_18px_42px_rgba(0,0,0,0.28)] sm:grid-cols-[minmax(0,1fr)_clamp(150px,24%,220px)]"
     >
       <div className="min-w-0">
         {externalUrl ? (

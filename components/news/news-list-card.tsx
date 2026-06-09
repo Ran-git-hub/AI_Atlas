@@ -373,7 +373,7 @@ export function NewsListCard({
 
   return (
     <article
-      className="grid items-center gap-4 rounded-lg border border-slate-800 bg-[#1a1a1a] px-5 py-4 transition-all hover:border-cyan-500/40"
+      className="grid items-center gap-4 rounded-lg border border-slate-700/80 bg-[#181818] px-5 py-4 shadow-[0_0_0_1px_rgba(15,23,42,0.75),0_16px_36px_rgba(0,0,0,0.22)] transition-all hover:border-cyan-500/55 hover:shadow-[0_0_0_1px_rgba(34,211,238,0.2),0_18px_42px_rgba(0,0,0,0.28)]"
       style={{ gridTemplateColumns: "minmax(0, 1fr) clamp(150px, 24%, 220px)" }}
     >
       {externalUrl ? (

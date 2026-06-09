@@ -434,7 +434,7 @@ export function NewsFeed({
           <p className="text-sm text-slate-400">Try another source or search term.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-5">
           {paginated.map((item) => (
             <NewsListCard key={item.id} item={item} takeContext={takeContext} onUseCaseClick={openUseCaseDetail} />
           ))}

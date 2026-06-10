@@ -90,6 +90,34 @@ const GICS_INDUSTRIES = new Set([
   "Real Estate Management & Development",
 ])
 
+const GICS_INDUSTRY_GROUPS = new Set([
+  "Energy",
+  "Materials",
+  "Capital Goods",
+  "Commercial & Professional Services",
+  "Transportation",
+  "Automobiles & Components",
+  "Consumer Durables & Apparel",
+  "Consumer Services",
+  "Consumer Discretionary Distribution & Retail",
+  "Consumer Staples Distribution & Retail",
+  "Food, Beverage & Tobacco",
+  "Household & Personal Products",
+  "Health Care Equipment & Services",
+  "Pharmaceuticals, Biotechnology & Life Sciences",
+  "Banks",
+  "Financial Services",
+  "Insurance",
+  "Software & Services",
+  "Technology Hardware & Equipment",
+  "Semiconductors & Semiconductor Equipment",
+  "Telecommunication Services",
+  "Media & Entertainment",
+  "Utilities",
+  "Equity Real Estate Investment Trusts (REITs)",
+  "Real Estate Management & Development",
+])
+
 const APPROVED_INDUSTRY_EXCEPTIONS = new Set([
   "Research Institution",
   "Public Sector / Government",
@@ -113,6 +141,7 @@ const GICS_INDUSTRY_ALIASES = new Map([
   ["Auto Parts & Equipment", "Automobile Components"],
   ["Consumer Electronics", "Household Durables"],
   ["Housewares & Specialties", "Household Durables"],
+  ["Household & Personal Care Products", "Household & Personal Products"],
   ["Tourism & Recreation", "Hotels, Restaurants & Leisure"],
   ["Education", "Diversified Consumer Services"],
   ["Internet Software & Services", "Software"],
@@ -139,6 +168,7 @@ function normalizeTaxonomyValue(value: unknown): string {
 }
 
 const GICS_INDUSTRIES_NORMALIZED = new Set([...GICS_INDUSTRIES].map(normalizeTaxonomyValue))
+const GICS_INDUSTRY_GROUPS_NORMALIZED = new Set([...GICS_INDUSTRY_GROUPS].map(normalizeTaxonomyValue))
 const APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED = new Set([...APPROVED_INDUSTRY_EXCEPTIONS].map(normalizeTaxonomyValue))
 const GICS_INDUSTRY_ALIAS_NORMALIZED = new Map(
   [...GICS_INDUSTRY_ALIASES].map(([alias, canonical]) => [
@@ -151,9 +181,13 @@ function isApprovedIndustry(value: unknown): boolean {
   const normalized = normalizeTaxonomyValue(value)
   if (!normalized) return false
   if (GICS_INDUSTRIES_NORMALIZED.has(normalized)) return true
+  if (GICS_INDUSTRY_GROUPS_NORMALIZED.has(normalized)) return true
   if (APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED.has(normalized)) return true
   const canonical = GICS_INDUSTRY_ALIAS_NORMALIZED.get(normalized)
-  return Boolean(canonical && GICS_INDUSTRIES_NORMALIZED.has(canonical))
+  return Boolean(
+    canonical &&
+    (GICS_INDUSTRIES_NORMALIZED.has(canonical) || GICS_INDUSTRY_GROUPS_NORMALIZED.has(canonical))
+  )
 }
 
 const COUNTRY_CONTINENT: Record<string, string> = {
@@ -643,7 +677,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "uc-industry-gics",
-    "Use cases: industry must be approved GICS industry or approved exception",
+    "Use cases: industry must be approved GICS industry group, industry, or approved exception",
     "Use Cases",
     "Validity",
     "warning",
@@ -654,7 +688,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-industry-gics",
-    "Companies/Organizations: industry must be approved GICS industry or approved exception",
+    "Companies/Organizations: industry must be approved GICS industry group, industry, or approved exception",
     "Companies",
     "Validity",
     "warning",

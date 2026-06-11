@@ -15,12 +15,18 @@ type NewsRow = {
   created_at: string | null
   tags: string[] | null
   ai_atlas_take?: string | null
+  status?: string | null
+  Status?: string | null
 }
 
 const NEWS_SELECT =
   "id, company_id, title, summary, url, source_name, published_at, created_at, tags" as const
 const NEWS_SELECT_WITH_TAKE =
   "id, company_id, title, summary, url, source_name, published_at, created_at, tags, ai_atlas_take" as const
+const NEWS_SELECT_WITH_TAKE_AND_STATUS =
+  "id, company_id, title, summary, url, source_name, published_at, created_at, tags, ai_atlas_take, status" as const
+const NEWS_SELECT_WITH_TAKE_AND_STATUS_TITLE =
+  'id, company_id, title, summary, url, source_name, published_at, created_at, tags, ai_atlas_take, "Status"' as const
 
 const SOURCE_TAG_KEYS = new Set(["the decoder", "venturebeat"])
 
@@ -57,15 +63,38 @@ function mapNewsRow(row: NewsRow): NewsItem {
   }
 }
 
+function isVisibleNewsRow(row: NewsRow): boolean {
+  const status = (row.status ?? row.Status ?? "").trim().toLowerCase()
+  return status !== "nosie" && status !== "noise"
+}
+
 export async function getNewsItems(limit = 60): Promise<NewsItem[]> {
   try {
     const supabase = createServiceRoleClient() ?? (await createClient())
     let result = await supabase
       .from(TABLE)
-      .select(NEWS_SELECT_WITH_TAKE)
+      .select(NEWS_SELECT_WITH_TAKE_AND_STATUS)
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false, nullsFirst: false })
       .limit(limit)
+
+    if (result.error && result.error.message.includes("status")) {
+      result = await supabase
+        .from(TABLE)
+        .select(NEWS_SELECT_WITH_TAKE_AND_STATUS_TITLE)
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false, nullsFirst: false })
+        .limit(limit)
+    }
+
+    if (result.error && result.error.message.toLowerCase().includes("status")) {
+      result = await supabase
+        .from(TABLE)
+        .select(NEWS_SELECT_WITH_TAKE)
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false, nullsFirst: false })
+        .limit(limit)
+    }
 
     if (result.error && result.error.message.includes("ai_atlas_take")) {
       result = await supabase
@@ -81,7 +110,7 @@ export async function getNewsItems(limit = 60): Promise<NewsItem[]> {
       return []
     }
 
-    return ((result.data as NewsRow[] | null) ?? []).map(mapNewsRow)
+    return ((result.data as NewsRow[] | null) ?? []).filter(isVisibleNewsRow).map(mapNewsRow)
   } catch (e) {
     console.error("[news] getNewsItems", e)
     return []

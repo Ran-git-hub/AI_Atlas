@@ -21,7 +21,7 @@ type SortMode = "newest" | "oldest" | "source"
 const PAGE_SIZE_OPTIONS = [20, 50, 100]
 
 function newsTime(item: NewsItem): number {
-  const iso = item.publishedAt ?? item.createdAt
+  const iso = item.createdAt ?? item.publishedAt
   if (!iso) return 0
   const t = Date.parse(iso)
   return Number.isNaN(t) ? 0 : t

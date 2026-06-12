@@ -74,16 +74,16 @@ export async function getNewsItems(limit = 60): Promise<NewsItem[]> {
     let result = await supabase
       .from(TABLE)
       .select(NEWS_SELECT_WITH_TAKE_AND_STATUS)
-      .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false, nullsFirst: false })
+      .order("published_at", { ascending: false, nullsFirst: false })
       .limit(limit)
 
     if (result.error && result.error.message.includes("status")) {
       result = await supabase
         .from(TABLE)
         .select(NEWS_SELECT_WITH_TAKE_AND_STATUS_TITLE)
-        .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false, nullsFirst: false })
+        .order("published_at", { ascending: false, nullsFirst: false })
         .limit(limit)
     }
 
@@ -91,8 +91,8 @@ export async function getNewsItems(limit = 60): Promise<NewsItem[]> {
       result = await supabase
         .from(TABLE)
         .select(NEWS_SELECT_WITH_TAKE)
-        .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false, nullsFirst: false })
+        .order("published_at", { ascending: false, nullsFirst: false })
         .limit(limit)
     }
 
@@ -100,8 +100,8 @@ export async function getNewsItems(limit = 60): Promise<NewsItem[]> {
       result = await supabase
         .from(TABLE)
         .select(NEWS_SELECT)
-        .order("published_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false, nullsFirst: false })
+        .order("published_at", { ascending: false, nullsFirst: false })
         .limit(limit)
     }
 

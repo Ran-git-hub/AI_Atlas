@@ -62,7 +62,7 @@ const TAKE_STOPWORDS = new Set([
 ])
 
 function formatNewsDate(item: NewsItem): string {
-  const iso = item.publishedAt ?? item.createdAt
+  const iso = item.createdAt ?? item.publishedAt
   if (!iso) return "Date unavailable"
 
   const d = new Date(iso)

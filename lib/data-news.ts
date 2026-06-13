@@ -3,6 +3,7 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { NewsItem } from "@/lib/types-news"
 
 const TABLE = "AI_Atlas_News" as const
+const DEFAULT_NEWS_LIMIT = 500
 
 type NewsRow = {
   id: string
@@ -68,7 +69,7 @@ function isVisibleNewsRow(row: NewsRow): boolean {
   return status !== "nosie" && status !== "noise"
 }
 
-export async function getNewsItems(limit = 60): Promise<NewsItem[]> {
+export async function getNewsItems(limit = DEFAULT_NEWS_LIMIT): Promise<NewsItem[]> {
   try {
     const supabase = createServiceRoleClient() ?? (await createClient())
     let result = await supabase

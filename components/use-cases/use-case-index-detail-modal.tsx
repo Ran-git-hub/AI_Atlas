@@ -96,13 +96,10 @@ export function UseCaseIndexDetailModal({
       }}
     >
       <div
+        className="h-[calc(100dvh-1rem)] max-h-[calc(100dvh-1rem)] w-[96vw] max-w-[1180px] md:h-[88dvh] md:max-h-[88dvh] lg:h-[78dvh] lg:max-h-[78dvh]"
         onClick={(e) => e.stopPropagation()}
         style={{
           position: "relative",
-          width: "94vw",
-          maxWidth: 1180,
-          height: "78dvh",
-          maxHeight: "78dvh",
           borderRadius: 16,
           border: "1px solid #2f2f2f",
           backgroundColor: "#1c1c1c",
@@ -204,27 +201,24 @@ export function UseCaseIndexDetailModal({
               type="button"
               onClick={onClose}
               aria-label="Close details"
+              className="flex h-11 w-11 items-center justify-center rounded-lg text-[#b3b3b3] transition-colors hover:bg-white/5 hover:text-white md:h-8 md:w-8 md:rounded-md"
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 32,
-                height: 32,
-                borderRadius: 6,
                 border: "none",
                 background: "transparent",
-                color: "#b3b3b3",
                 cursor: "pointer",
                 padding: 0,
               }}
             >
-              <X style={{ width: 18, height: 18 }} />
+              <X className="h-6 w-6 md:h-[18px] md:w-[18px]" />
             </button>
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="detail-panel-scroll-use-case min-h-0 overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div
+          className="detail-panel-scroll-use-case min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="min-h-0 lg:overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
             {detail.fieldEntries.map(({ key, label, value }) => {
               const trimmed = value.trim()
               const display = trimmed || "Not Available"
@@ -283,7 +277,7 @@ export function UseCaseIndexDetailModal({
             })}
           </div>
 
-          <aside className="detail-panel-scroll-use-case min-h-0 overflow-y-auto border-t border-[#2f2f2f] bg-black/15 p-4 lg:border-t-0 lg:border-l">
+          <aside className="min-h-0 border-t border-[#2f2f2f] bg-black/15 p-4 lg:overflow-y-auto lg:border-t-0 lg:border-l">
             <h4 className="text-sm font-semibold text-white">Related use cases</h4>
             <p className="mt-1 text-xs leading-relaxed text-[#8a8a8a]">
               Similar deployments from the catalog.

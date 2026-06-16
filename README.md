@@ -4,7 +4,7 @@ AI Atlas is a public web app for exploring real-world AI deployments across comp
 
 The app combines an interactive globe, a searchable use case index, industry pages, an AI news digest, a data quality dashboard, and a blog/weekly report system backed by Supabase.
 
-Live app: https://v0-ai-atlas.vercel.app
+Live app: https://ai-atlas.app
 
 ## What It Tracks
 

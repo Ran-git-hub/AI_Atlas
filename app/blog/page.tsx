@@ -7,6 +7,14 @@ import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
+// Force dynamic rendering: the page calls getBlogPosts() which uses
+// cookies() to read the Supabase session. Without this flag, Next.js
+// tries to statically prerender /blog at build time, the cookies()
+// call throws DYNAMIC_SERVER_USAGE, and Vercel's cloud packaging
+// then drops the sitemap route from out/ because it shares a chunk
+// with /blog. /blog/[slug] already has this flag.
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Blog — AI Atlas",
   description: "Reports and analysis on real-world AI deployments, updated regularly.",

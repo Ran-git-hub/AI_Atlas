@@ -118,6 +118,10 @@ function isArchivedStatus(status: unknown): boolean {
   return String(status ?? "").trim().toLowerCase() === "archived"
 }
 
+function isPublishedStatus(status: unknown): boolean {
+  return String(status ?? "").trim().toLowerCase() === "published"
+}
+
 export async function getCompanies(): Promise<Company[]> {
   const supabase = await createClient()
   
@@ -368,11 +372,15 @@ function rowToUseCaseWithCoords(
 function rowToUseCaseCatalogRow(
   row: Record<string, unknown>,
   companyNameById: Map<string, string>,
-  { includeArchived }: { includeArchived: boolean } = { includeArchived: false }
+  { includeArchived, publishedOnly }: { includeArchived: boolean; publishedOnly: boolean } = {
+    includeArchived: false,
+    publishedOnly: false,
+  }
 ): UseCaseCatalogRow | null {
   const id = row.id
   if (id === null || id === undefined || id === "") return null
   if (!includeArchived && isArchivedStatus(row.status)) return null
+  if (publishedOnly && !isPublishedStatus(row.status)) return null
 
   const str = (v: unknown) =>
     v === null || v === undefined ? null : String(v)
@@ -444,6 +452,7 @@ export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
 
 export type GetUseCasesCatalogRowsOptions = {
   includeArchived?: boolean
+  publishedOnly?: boolean
 }
 
 export async function updateUseCaseStatus(
@@ -468,7 +477,7 @@ export async function updateUseCaseStatus(
 export async function getUseCasesCatalogRows(
   opts: GetUseCasesCatalogRowsOptions = {}
 ): Promise<UseCaseCatalogRow[]> {
-  const { includeArchived = false } = opts
+  const { includeArchived = false, publishedOnly = false } = opts
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
@@ -496,7 +505,7 @@ export async function getUseCasesCatalogRows(
 
   const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
   return rows
-    .map((row) => rowToUseCaseCatalogRow(row, companyNameById, { includeArchived }))
+    .map((row) => rowToUseCaseCatalogRow(row, companyNameById, { includeArchived, publishedOnly }))
     .filter(Boolean) as UseCaseCatalogRow[]
 }
 

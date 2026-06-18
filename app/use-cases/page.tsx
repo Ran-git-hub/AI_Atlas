@@ -15,7 +15,7 @@ export default async function UseCasesPage({
   searchParams: Promise<SearchParams>
 }) {
   const [rows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
-    getUseCasesCatalogRows(),
+    getUseCasesCatalogRows({ publishedOnly: true }),
     searchParams,
     getLatestAtlasDataUpdateCetDisplay(),
   ])

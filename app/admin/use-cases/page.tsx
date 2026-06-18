@@ -9,13 +9,13 @@ function getSingleParam(searchParams: SearchParams, key: string): string {
   return value ?? ""
 }
 
-export default async function UseCasesPage({
+export default async function AdminUseCasesPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>
 }) {
   const [rows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
-    getUseCasesCatalogRows(),
+    getUseCasesCatalogRows({ includeArchived: true }),
     searchParams,
     getLatestAtlasDataUpdateCetDisplay(),
   ])
@@ -31,10 +31,15 @@ export default async function UseCasesPage({
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]">
+        <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-amber-300/80">
+          Admin · includes archived use cases
+        </p>
         <UseCasesTable
           rows={rows}
           latestDataUpdateCet={latestDataUpdateCet}
-          showPendingOnly={false}
+          showInsights={false}
+          enableStatusChange
+          showStatusColumn
           initialState={{
             q: getSingleParam(resolvedSearchParams, "q"),
             industry: getSingleParam(resolvedSearchParams, "industry"),

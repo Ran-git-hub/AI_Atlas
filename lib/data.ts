@@ -6,7 +6,9 @@ import {
   UseCaseCatalogRow,
   CompanyWithCoords,
   CITY_COORDINATES,
+  USE_CASE_STATUSES,
   type UseCaseFieldEntry,
+  type UseCaseStatus,
   UseCaseWithCoords,
 } from "./types"
 
@@ -244,12 +246,13 @@ function normalizeUseCaseFieldKey(key: string): string {
 }
 
 function buildCompanyNameById(
-  rows: { id: unknown; name: unknown; status?: unknown }[] | null
+  rows: { id: unknown; name: unknown; status?: unknown }[] | null,
+  { includeArchived }: { includeArchived: boolean } = { includeArchived: false }
 ): Map<string, string> {
   const map = new Map<string, string>()
   for (const r of rows ?? []) {
     if (r.id === null || r.id === undefined) continue
-    if (isArchivedStatus(r.status)) continue
+    if (!includeArchived && isArchivedStatus(r.status)) continue
     const id = String(r.id)
     const name =
       r.name === null || r.name === undefined ? "" : String(r.name).trim()
@@ -364,11 +367,12 @@ function rowToUseCaseWithCoords(
 
 function rowToUseCaseCatalogRow(
   row: Record<string, unknown>,
-  companyNameById: Map<string, string>
+  companyNameById: Map<string, string>,
+  { includeArchived }: { includeArchived: boolean } = { includeArchived: false }
 ): UseCaseCatalogRow | null {
   const id = row.id
   if (id === null || id === undefined || id === "") return null
-  if (isArchivedStatus(row.status)) return null
+  if (!includeArchived && isArchivedStatus(row.status)) return null
 
   const str = (v: unknown) =>
     v === null || v === undefined ? null : String(v)
@@ -438,7 +442,33 @@ export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
     .filter(Boolean) as UseCaseWithCoords[]
 }
 
-export async function getUseCasesCatalogRows(): Promise<UseCaseCatalogRow[]> {
+export type GetUseCasesCatalogRowsOptions = {
+  includeArchived?: boolean
+}
+
+export async function updateUseCaseStatus(
+  id: string,
+  status: string,
+): Promise<{ ok: boolean; status?: UseCaseStatus; error?: string }> {
+  if (!(USE_CASE_STATUSES as readonly string[]).includes(status)) {
+    return { ok: false, error: `Invalid status: ${status}` }
+  }
+  const supabase = createServiceRoleClient() ?? (await createClient())
+  const { error } = await supabase
+    .from("AI_Atlas_Use_Cases")
+    .update({ status })
+    .eq("id", id)
+  if (error) {
+    console.error("Error updating use case status:", error)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true, status: status as UseCaseStatus }
+}
+
+export async function getUseCasesCatalogRows(
+  opts: GetUseCasesCatalogRowsOptions = {}
+): Promise<UseCaseCatalogRow[]> {
+  const { includeArchived = false } = opts
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
@@ -455,7 +485,8 @@ export async function getUseCasesCatalogRows(): Promise<UseCaseCatalogRow[]> {
   }
 
   const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
+    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null,
+    { includeArchived }
   )
 
   if (useCasesResult.error) {
@@ -465,7 +496,7 @@ export async function getUseCasesCatalogRows(): Promise<UseCaseCatalogRow[]> {
 
   const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
   return rows
-    .map((row) => rowToUseCaseCatalogRow(row, companyNameById))
+    .map((row) => rowToUseCaseCatalogRow(row, companyNameById, { includeArchived }))
     .filter(Boolean) as UseCaseCatalogRow[]
 }
 

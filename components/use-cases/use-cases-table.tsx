@@ -29,7 +29,7 @@ import {
   X,
 } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, USE_CASE_STATUSES, useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -76,6 +76,10 @@ interface UseCasesTableProps {
   rows: UseCaseCatalogRow[]
   initialState: InitialState
   latestDataUpdateCet: string
+  showInsights?: boolean
+  enableStatusChange?: boolean
+  showStatusColumn?: boolean
+  showPendingOnly?: boolean
 }
 
 type TableDensity = "compact" | "comfortable"
@@ -154,6 +158,7 @@ const DEFAULT_HIDDEN_COLUMN_IDS = new Set<string>(["city", "source"])
 const ALL_COLUMN_IDS = [
   "title",
   "updated_at",
+  "status",
   "company",
   "industry",
   "country",
@@ -309,7 +314,15 @@ function relatedUseCasesFor(
     .slice(0, limit)
 }
 
-export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCasesTableProps) {
+export function UseCasesTable({
+  rows,
+  initialState,
+  latestDataUpdateCet,
+  showInsights = true,
+  enableStatusChange = false,
+  showStatusColumn = false,
+  showPendingOnly = true,
+}: UseCasesTableProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -375,8 +388,8 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     if (!id) return [{ id: "updated_at", desc: true }]
     return [{ id, desc: dir === "desc" }]
   })
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() =>
-    Object.fromEntries(
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(() => {
+    const init: VisibilityState = Object.fromEntries(
       ALL_COLUMN_IDS.map((id) => [
         id,
         initialState.cols.length
@@ -384,7 +397,11 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           : !DEFAULT_HIDDEN_COLUMN_IDS.has(id),
       ])
     )
-  )
+    if (showStatusColumn) {
+      init.status = true
+    }
+    return init
+  })
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(() => {
     const filters: ColumnFiltersState = []
     if (initialState.industry) filters.push({ id: "industry", value: initialState.industry })
@@ -435,6 +452,44 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
     setDetailHistoryLen(0)
     setActiveDetail(null)
   }, [])
+
+  const handleStatusChange = React.useCallback(
+    async (id: string, newStatus: string) => {
+      const current = activeDetailRef.current
+      const previousStatus = current?.id === id ? current.status : undefined
+      // Optimistic local update so the modal reflects the new status immediately.
+      if (current && current.id === id) {
+        setActiveDetail({ ...current, status: newStatus })
+      }
+      try {
+        const res = await fetch(`/api/use-cases/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        })
+        const data = (await res.json().catch(() => ({}))) as {
+          ok?: boolean
+          error?: string
+        }
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || `HTTP ${res.status}`)
+        }
+        toast({ title: "Status updated", description: `Set to “${newStatus}”.` })
+        router.refresh()
+      } catch (err) {
+        if (current && current.id === id && previousStatus !== undefined) {
+          setActiveDetail({ ...current, status: previousStatus })
+        }
+        toast({
+          title: "Failed to update status",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        })
+        throw err
+      }
+    },
+    [router, toast],
+  )
 
   const [viewportWidth, setViewportWidth] = React.useState(1024)
   React.useLayoutEffect(() => {
@@ -611,6 +666,24 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           </span>
         ),
       },
+      ...(showStatusColumn
+        ? [
+            {
+              id: "status",
+              accessorFn: (row: UseCaseCatalogRow) => row.status ?? "",
+              size: 150,
+              minSize: 130,
+              enableSorting: false,
+              header: () => <span className="text-[#b3b3b3]">Status</span>,
+              cell: ({ row }: { row: { original: UseCaseCatalogRow } }) => (
+                <StatusSelectCell
+                  id={row.original.id}
+                  value={row.original.status ?? ""}
+                />
+              ),
+            },
+          ]
+        : []),
       {
         id: "company",
         accessorFn: (row) => firstNonEmpty(row.company_name, row.company_id),
@@ -1139,31 +1212,33 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       </div>
 
       <div className="mt-2.5 flex flex-col gap-3">
-        <section
-          className="grid gap-2 md:grid-cols-3"
-          aria-label="Use case insights"
-        >
-          <InsightMetric
-            icon={<TrendingUp className="h-4 w-4" aria-hidden />}
-            label="Recent 30 Days"
-            value={insightStats.recent30.toLocaleString()}
-            detail="updated in the last 30 days"
-          />
-          <InsightRankList
-            icon={<Layers3 className="h-4 w-4" aria-hidden />}
-            label="Top industries"
-            items={insightStats.topIndustries}
-            emptyLabel="No industries in this view"
-            onPick={applyIndustryInsight}
-          />
-          <InsightRankList
-            icon={<Globe2 className="h-4 w-4" aria-hidden />}
-            label="Top countries/regions"
-            items={insightStats.topCountries}
-            emptyLabel="No countries/regions in this view"
-            onPick={applyCountryInsight}
-          />
-        </section>
+        {showInsights ? (
+          <section
+            className="grid gap-2 md:grid-cols-3"
+            aria-label="Use case insights"
+          >
+            <InsightMetric
+              icon={<TrendingUp className="h-4 w-4" aria-hidden />}
+              label="Recent 30 Days"
+              value={insightStats.recent30.toLocaleString()}
+              detail="updated in the last 30 days"
+            />
+            <InsightRankList
+              icon={<Layers3 className="h-4 w-4" aria-hidden />}
+              label="Top industries"
+              items={insightStats.topIndustries}
+              emptyLabel="No industries in this view"
+              onPick={applyIndustryInsight}
+            />
+            <InsightRankList
+              icon={<Globe2 className="h-4 w-4" aria-hidden />}
+              label="Top countries/regions"
+              items={insightStats.topCountries}
+              emptyLabel="No countries/regions in this view"
+              onPick={applyCountryInsight}
+            />
+          </section>
+        ) : null}
 
         {/* Toolbar */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
@@ -1583,30 +1658,32 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           role="group"
           aria-label="Validation status filter"
         >
-          <button
-            type="button"
-            aria-pressed={pendingOnly}
-            onClick={() => {
-              setPendingOnly((prev) => {
-                const next = !prev
-                notifyAction(
-                  next
-                    ? "To be validated filter applied."
-                    : "To be validated filter cleared."
-                )
-                return next
-              })
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }))
-            }}
-            className={cn(
-              "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
-              pendingOnly
-                ? "bg-sky-300/20 text-sky-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
-                : "text-[#9aa39e] hover:text-[#e8eeeb]"
-            )}
-          >
-            To be validated
-          </button>
+          {showPendingOnly ? (
+            <button
+              type="button"
+              aria-pressed={pendingOnly}
+              onClick={() => {
+                setPendingOnly((prev) => {
+                  const next = !prev
+                  notifyAction(
+                    next
+                      ? "To be validated filter applied."
+                      : "To be validated filter cleared."
+                  )
+                  return next
+                })
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              }}
+              className={cn(
+                "min-h-9 min-w-0 flex-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors sm:min-h-0 sm:flex-none md:px-3 md:text-xs",
+                pendingOnly
+                  ? "bg-sky-300/20 text-sky-100 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]"
+                  : "text-[#9aa39e] hover:text-[#e8eeeb]"
+              )}
+            >
+              To be validated
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -1793,6 +1870,7 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
           onBack={goBackInDetail}
           canGoBack={detailHistoryLen > 0}
           onClose={closeDetail}
+          onStatusChange={enableStatusChange ? handleStatusChange : undefined}
         />
       ) : null}
 
@@ -1800,6 +1878,76 @@ export function UseCasesTable({ rows, initialState, latestDataUpdateCet }: UseCa
       <Toaster />
       </div>
     </div>
+  )
+}
+
+function StatusSelectCell({ id, value }: { id: string; value: string }) {
+  const router = useRouter()
+  const [currentValue, setCurrentValue] = React.useState(value)
+  const [isSaving, setIsSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    setCurrentValue(value)
+  }, [value])
+
+  const handleChange = React.useCallback(
+    async (next: string) => {
+      if (next === currentValue) return
+      const previous = currentValue
+      setCurrentValue(next)
+      setIsSaving(true)
+      try {
+        const res = await fetch(`/api/use-cases/${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: next }),
+        })
+        const data = (await res.json().catch(() => ({}))) as {
+          ok?: boolean
+          error?: string
+        }
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || `HTTP ${res.status}`)
+        }
+        toast({
+          title: "Status updated",
+          description: `Set to “${next}”.`,
+        })
+        router.refresh()
+      } catch (err) {
+        setCurrentValue(previous)
+        toast({
+          title: "Failed to update status",
+          description: err instanceof Error ? err.message : "Unknown error",
+          variant: "destructive",
+        })
+      } finally {
+        setIsSaving(false)
+      }
+    },
+    [currentValue, id, router, toast],
+  )
+
+  return (
+    <Select value={currentValue} onValueChange={handleChange} disabled={isSaving}>
+      <SelectTrigger
+        aria-label="Change status"
+        className="h-8 w-[140px] border-white/15 bg-[#181818] text-[#f5f5f5]"
+      >
+        <SelectValue placeholder="—" />
+      </SelectTrigger>
+      <SelectContent className="border-white/15 bg-[#181818] text-[#f5f5f5]">
+        {USE_CASE_STATUSES.map((s) => (
+          <SelectItem
+            key={s}
+            value={s}
+            className="text-[#f5f5f5] capitalize focus:bg-slate-800 focus:text-white"
+          >
+            {s}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
 

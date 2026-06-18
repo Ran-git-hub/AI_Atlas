@@ -13,6 +13,9 @@ export interface Company {
   updated_at?: string | null
 }
 
+export const USE_CASE_STATUSES = ["published", "pending", "archived"] as const
+export type UseCaseStatus = (typeof USE_CASE_STATUSES)[number]
+
 // Company with coordinates for the globe
 export interface CompanyWithCoords extends Company {
   lat: number

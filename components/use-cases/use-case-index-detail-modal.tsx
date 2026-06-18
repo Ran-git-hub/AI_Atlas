@@ -2,9 +2,17 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { ArrowLeft, ExternalLink, X } from "lucide-react"
+import { ArrowLeft, ExternalLink, Loader2, X } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, USE_CASE_STATUSES, useCaseDisplayName } from "@/lib/types"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
@@ -50,6 +58,7 @@ export function UseCaseIndexDetailModal({
   onBack,
   canGoBack = false,
   onClose,
+  onStatusChange,
 }: {
   detail: UseCaseCatalogRow
   relatedUseCases?: RelatedUseCase[]
@@ -57,9 +66,16 @@ export function UseCaseIndexDetailModal({
   onBack?: () => void
   canGoBack?: boolean
   onClose: () => void
+  onStatusChange?: (id: string, newStatus: string) => Promise<void>
 }) {
   const backdropRef = React.useRef<HTMLDivElement>(null)
   const openedAt = React.useRef(Date.now())
+  const [pendingStatus, setPendingStatus] = React.useState<string>(detail.status ?? "")
+  const [isSaving, setIsSaving] = React.useState(false)
+
+  React.useEffect(() => {
+    setPendingStatus(detail.status ?? "")
+  }, [detail.id, detail.status])
 
   React.useEffect(() => {
     const prev = document.body.style.overflow
@@ -181,6 +197,76 @@ export function UseCaseIndexDetailModal({
                 </span>
               ) : null}
             </div>
+            {onStatusChange ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  gap: 8,
+                  marginTop: 10,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: "#8a8a8a",
+                  }}
+                >
+                  Status
+                </span>
+                <Select
+                  value={pendingStatus}
+                  onValueChange={setPendingStatus}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger
+                    aria-label="Change status"
+                    className="h-8 w-[150px] border-white/15 bg-[#181818] text-[#f5f5f5]"
+                  >
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent className="border-white/15 bg-[#181818] text-[#f5f5f5]">
+                    {USE_CASE_STATUSES.map((value) => (
+                      <SelectItem
+                        key={value}
+                        value={value}
+                        className="text-[#f5f5f5] capitalize focus:bg-slate-800 focus:text-white"
+                      >
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={isSaving || pendingStatus === (detail.status ?? "")}
+                  onClick={async () => {
+                    if (!onStatusChange) return
+                    setIsSaving(true)
+                    try {
+                      await onStatusChange(detail.id, pendingStatus)
+                    } finally {
+                      setIsSaving(false)
+                    }
+                  }}
+                  className="h-8"
+                >
+                  {isSaving ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      Saving…
+                    </span>
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+              </div>
+            ) : null}
             <p style={{ margin: "4px 0 0", fontSize: 14, color: "#b3b3b3" }}>
               Company/Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
             </p>
@@ -310,6 +396,7 @@ export function UseCaseIndexDetailModalPortal({
   onBack,
   canGoBack,
   onClose,
+  onStatusChange,
 }: {
   detail: UseCaseCatalogRow
   relatedUseCases?: RelatedUseCase[]
@@ -317,6 +404,7 @@ export function UseCaseIndexDetailModalPortal({
   onBack?: () => void
   canGoBack?: boolean
   onClose: () => void
+  onStatusChange?: (id: string, newStatus: string) => Promise<void>
 }) {
   if (typeof document === "undefined") return null
   return createPortal(
@@ -327,6 +415,7 @@ export function UseCaseIndexDetailModalPortal({
       onBack={onBack}
       canGoBack={canGoBack}
       onClose={onClose}
+      onStatusChange={onStatusChange}
     />,
     document.body
   )

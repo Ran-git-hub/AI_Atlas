@@ -162,7 +162,7 @@ export default async function Image() {
           />
 
           <span style={{ fontSize: "15px", color: "#6b7d8e" }}>
-            Every use case verified · Updated daily · Read in 2 min
+            Updated daily · Read in 5 mins
           </span>
 
           <div

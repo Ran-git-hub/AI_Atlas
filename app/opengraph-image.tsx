@@ -22,8 +22,8 @@ const GLOBE_DATA_URL = (() => {
 })()
 
 export default async function Image() {
-  const { totalUseCases, totalCompanies, totalCountries } =
-    await getAtlasStats()
+  const { totalUseCases } = await getAtlasStats()
+  const useCasesBucket = Math.floor(totalUseCases / 100) * 100
 
   return new ImageResponse(
     (
@@ -40,6 +40,7 @@ export default async function Image() {
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
           letterSpacing: "-0.01em",
+          overflow: "hidden",
         }}
       >
         {/* LEFT: text content */}
@@ -84,15 +85,70 @@ export default async function Image() {
           <p
             style={{
               margin: 0,
-              fontSize: "26px",
-              color: "#a0aab4",
-              maxWidth: "560px",
-              lineHeight: 1.4,
+              fontSize: "30px",
+              color: "#f5f5f5",
+              maxWidth: "580px",
+              lineHeight: 1.25,
+              fontWeight: 700,
+              marginBottom: "36px",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Real-world AI deployments worldwide
+          </p>
+
+          {/* Three bullets stacked vertically — cleaner than inline dots */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
               marginBottom: "40px",
             }}
           >
-            Real-world AI deployments worldwide, updated daily.
-          </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#43cc93",
+                  display: "flex",
+                }}
+              />
+              <span style={{ fontSize: "20px", color: "#d4dde5" }}>
+                Daily noise-free news
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#43cc93",
+                  display: "flex",
+                }}
+              />
+              <span style={{ fontSize: "20px", color: "#d4dde5" }}>
+                {fmt(useCasesBucket)}+ validated AI use cases
+              </span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#43cc93",
+                  display: "flex",
+                }}
+              />
+              <span style={{ fontSize: "20px", color: "#d4dde5" }}>
+                Regular blog &amp; article updates
+              </span>
+            </div>
+          </div>
 
           <div
             style={{
@@ -101,59 +157,13 @@ export default async function Image() {
               borderRadius: "2px",
               background:
                 "linear-gradient(90deg, #43cc93 0%, rgba(67,204,147,0.2) 100%)",
-              marginBottom: "32px",
+              marginBottom: "28px",
             }}
           />
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: "8px",
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              { value: fmt(totalUseCases), label: "use cases" },
-              { value: fmt(totalCompanies), label: "companies" },
-              { value: fmt(totalCountries), label: "countries" },
-            ].map(({ value, label }, i) => (
-              <div
-                key={label}
-                style={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  gap: "8px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "40px",
-                    fontWeight: 800,
-                    color: "#43cc93",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {value}
-                </span>
-                <span style={{ fontSize: "18px", color: "#6b7d8e" }}>
-                  {label}
-                </span>
-                {i < 2 ? (
-                  <span
-                    style={{
-                      fontSize: "24px",
-                      color: "#2a3a4a",
-                      margin: "0 6px",
-                      fontWeight: 300,
-                    }}
-                  >
-                    ·
-                  </span>
-                ) : null}
-              </div>
-            ))}
-          </div>
+          <span style={{ fontSize: "15px", color: "#6b7d8e" }}>
+            Every use case verified · Updated daily · Read in 2 min
+          </span>
 
           <div
             style={{
@@ -168,7 +178,7 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* RIGHT: globe screenshot */}
+        {/* RIGHT: globe with glow + tilt */}
         {GLOBE_DATA_URL && (
           <div
             style={{
@@ -177,16 +187,48 @@ export default async function Image() {
               justifyContent: "center",
               width: "540px",
               flexShrink: 0,
+              position: "relative",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={GLOBE_DATA_URL}
-              width={540}
-              height={540}
-              alt="AI Atlas globe"
-              style={{ objectFit: "contain" }}
+            {/* Radial glow */}
+            <div
+              style={{
+                position: "absolute",
+                width: "620px",
+                height: "620px",
+                borderRadius: "50%",
+                background:
+                  "radial-gradient(circle, rgba(67,204,147,0.30) 0%, rgba(67,204,147,0.10) 35%, transparent 70%)",
+                filter: "blur(30px)",
+                display: "flex",
+              }}
             />
+            {/* Globe with tilt + drop shadow */}
+            <div
+              style={{
+                display: "flex",
+                position: "relative",
+                width: "520px",
+                height: "520px",
+                borderRadius: "50%",
+                overflow: "hidden",
+                transform: "rotate(-12deg) rotateX(10deg)",
+                filter: "drop-shadow(0 0 50px rgba(67,204,147,0.35))",
+                background: "transparent",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={GLOBE_DATA_URL}
+                width={520}
+                height={520}
+                alt="AI Atlas globe"
+                style={{
+                  objectFit: "cover",
+                  display: "flex",
+                }}
+              />
+            </div>
           </div>
         )}
       </div>

@@ -49,8 +49,8 @@ export default async function Image() {
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "52px 40px 52px 56px",
-            width: "640px",
+            padding: "52px 24px 52px 56px",
+            width: "700px",
             flexShrink: 0,
           }}
         >
@@ -177,51 +177,38 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* RIGHT: globe with glow + tilt */}
+        {/* RIGHT: globe with tilt, no glow */}
         {GLOBE_DATA_URL && (
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "560px",
+              width: "500px",
               flexShrink: 0,
               position: "relative",
               overflow: "visible",
+              marginLeft: "-20px",
             }}
           >
-            {/* Radial glow */}
-            <div
-              style={{
-                position: "absolute",
-                width: "560px",
-                height: "560px",
-                borderRadius: "50%",
-                background:
-                  "radial-gradient(circle, rgba(67,204,147,0.30) 0%, rgba(67,204,147,0.10) 35%, transparent 70%)",
-                filter: "blur(28px)",
-                display: "flex",
-              }}
-            />
-            {/* Globe with tilt + drop shadow */}
+            {/* Globe with tilt only (no glow, no drop-shadow) */}
             <div
               style={{
                 display: "flex",
                 position: "relative",
-                width: "500px",
-                height: "500px",
+                width: "460px",
+                height: "460px",
                 borderRadius: "50%",
                 overflow: "hidden",
                 transform: "rotate(-12deg) rotateX(10deg)",
-                filter: "drop-shadow(0 0 45px rgba(67,204,147,0.35))",
                 background: "transparent",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={GLOBE_DATA_URL}
-                width={500}
-                height={500}
+                width={460}
+                height={460}
                 alt="AI Atlas globe"
                 style={{
                   objectFit: "cover",

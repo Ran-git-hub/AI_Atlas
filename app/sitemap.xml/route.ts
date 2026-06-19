@@ -1,9 +1,15 @@
-import { getLatestAtlasDataUpdateCetDisplay, getUseCasesCatalogRows } from "@/lib/data"
+import { getUseCasesCatalogRows } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { getIndustrySummaries } from "@/lib/data-industries"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import type { BlogPostListItem } from "@/lib/types-blog"
 import type { IndustrySummary } from "@/lib/data-industries"
+
+// Bump this to force Vercel to invalidate the stale build cache for
+// this route. The previous deploy was restoring a cached .vercel/output
+// that didn't include sitemap.xml. If you change the route logic, also
+// bump this. Last bumped: 2026-06-19 v3 (force fresh build).
+const SITEMAP_BUILD_TAG = "v3"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -68,6 +74,11 @@ export async function GET(): Promise<Response> {
     getIndustrySummaries(),
     getBlogPosts(),
   ])
+
+  // Use the build tag in a no-op to ensure the file's mtime changes
+  // (helps invalidate stale caches on Vercel when the file is unchanged
+  // in content but rebuilt due to other changes).
+  void SITEMAP_BUILD_TAG
 
   const entries: Array<{ loc: string; modified?: Date; priority: number; changefreq: string }> = [
     { loc: url("/"), priority: 1, changefreq: "daily" },

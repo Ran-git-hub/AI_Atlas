@@ -122,6 +122,50 @@ function isPublishedStatus(status: unknown): boolean {
   return String(status ?? "").trim().toLowerCase() === "published"
 }
 
+export async function getAtlasStats(): Promise<{
+  totalUseCases: number
+  totalCompanies: number
+  totalCountries: number
+}> {
+  const supabase =
+    createServiceRoleClient() ?? (await createClient())
+
+  const [
+    { count: useCaseCount, error: ucErr },
+    { count: companyCount, error: coErr },
+    { data: companyRows, error: countryErr },
+  ] = await Promise.all([
+    supabase
+      .from("AI_Atlas_Use_Cases")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "published"),
+    supabase
+      .from("AI_Atlas_Companies")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "published"),
+    supabase
+      .from("AI_Atlas_Companies")
+      .select("headquarters_country")
+      .eq("status", "published"),
+  ])
+
+  if (ucErr) console.error("Error counting use cases for OG image:", ucErr)
+  if (coErr) console.error("Error counting companies for OG image:", coErr)
+  if (countryErr) console.error("Error fetching countries for OG image:", countryErr)
+
+  const countries = new Set<string>()
+  for (const c of (companyRows ?? []) as { headquarters_country?: string | null }[]) {
+    const country = c.headquarters_country?.trim()
+    if (country) countries.add(country)
+  }
+
+  return {
+    totalUseCases: useCaseCount ?? 0,
+    totalCompanies: companyCount ?? 0,
+    totalCountries: countries.size,
+  }
+}
+
 export async function getCompanies(): Promise<Company[]> {
   const supabase = await createClient()
   

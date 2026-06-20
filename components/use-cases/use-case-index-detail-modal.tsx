@@ -2,10 +2,9 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { ArrowLeft, ExternalLink, Loader2, X } from "lucide-react"
+import { ArrowLeft, ExternalLink, X } from "lucide-react"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, USE_CASE_STATUSES, useCaseDisplayName } from "@/lib/types"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -70,12 +69,6 @@ export function UseCaseIndexDetailModal({
 }) {
   const backdropRef = React.useRef<HTMLDivElement>(null)
   const openedAt = React.useRef(Date.now())
-  const [pendingStatus, setPendingStatus] = React.useState<string>(detail.status ?? "")
-  const [isSaving, setIsSaving] = React.useState(false)
-
-  React.useEffect(() => {
-    setPendingStatus(detail.status ?? "")
-  }, [detail.id, detail.status])
 
   React.useEffect(() => {
     const prev = document.body.style.overflow
@@ -219,9 +212,11 @@ export function UseCaseIndexDetailModal({
                   Status
                 </span>
                 <Select
-                  value={pendingStatus}
-                  onValueChange={setPendingStatus}
-                  disabled={isSaving}
+                  value={detail.status ?? ""}
+                  onValueChange={(next) => {
+                    if (next === (detail.status ?? "")) return
+                    onStatusChange(detail.id, next)
+                  }}
                 >
                   <SelectTrigger
                     aria-label="Change status"
@@ -241,30 +236,6 @@ export function UseCaseIndexDetailModal({
                     ))}
                   </SelectContent>
                 </Select>
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={isSaving || pendingStatus === (detail.status ?? "")}
-                  onClick={async () => {
-                    if (!onStatusChange) return
-                    setIsSaving(true)
-                    try {
-                      await onStatusChange(detail.id, pendingStatus)
-                    } finally {
-                      setIsSaving(false)
-                    }
-                  }}
-                  className="h-8"
-                >
-                  {isSaving ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                      Saving…
-                    </span>
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
               </div>
             ) : null}
             <p style={{ margin: "4px 0 0", fontSize: 14, color: "#b3b3b3" }}>

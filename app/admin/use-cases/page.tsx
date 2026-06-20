@@ -14,11 +14,18 @@ export default async function AdminUseCasesPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const [rows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
+  const [rawRows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
     getUseCasesCatalogRows({ includeArchived: true }),
     searchParams,
     getLatestAtlasDataUpdateCetDisplay(),
   ])
+
+  // Sort pending rows to the top for SSR rendering.
+  const rows = [...rawRows].sort((a, b) => {
+    const aPending = a.status === "pending" ? 0 : 1
+    const bPending = b.status === "pending" ? 0 : 1
+    return aPending - bPending
+  })
 
   const cols = getSingleParam(resolvedSearchParams, "cols")
     .split(",")

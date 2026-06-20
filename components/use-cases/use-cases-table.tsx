@@ -850,17 +850,7 @@ export function UseCasesTable({
     if (statusFilter.length > 0) {
       result = result.filter((row) => statusFilter.includes(row.status ?? ""))
     }
-    // Sort pending rows to the top, then preserve existing order
-    const pending: typeof result = []
-    const rest: typeof result = []
-    for (const row of result) {
-      if (row.status === "pending") {
-        pending.push(row)
-      } else {
-        rest.push(row)
-      }
-    }
-    return [...pending, ...rest]
+    return result
   }, [pendingOnly, statusFilter, rows])
 
   const table = useReactTable({
@@ -932,6 +922,22 @@ export function UseCasesTable({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   })
+
+  const filteredRowsRaw = table.getRowModel().rows
+
+  // Always sort pending rows to the top, regardless of active sort column.
+  const displayRows = React.useMemo(() => {
+    const pending: typeof filteredRowsRaw = []
+    const rest: typeof filteredRowsRaw = []
+    for (const row of filteredRowsRaw) {
+      if (row.original.status === "pending") {
+        pending.push(row)
+      } else {
+        rest.push(row)
+      }
+    }
+    return [...pending, ...rest]
+  }, [filteredRowsRaw])
 
   const filteredRows = table.getFilteredRowModel().rows
   const filteredRowCount = filteredRows.length
@@ -1813,8 +1819,8 @@ export function UseCasesTable({
             ))}
           </TableHeader>
           <TableBody className="[&_tr]:border-[#2f2f2f]">
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
+            {displayRows.length ? (
+              displayRows.map((row) => (
                 <TableRow
                   key={row.id}
                   className={cn(
@@ -1876,7 +1882,7 @@ export function UseCasesTable({
       {/* Pagination */}
       <div className="flex flex-col gap-3 text-sm md:flex-row md:items-center md:justify-between">
         <p className="text-[#b3b3b3]">
-          Showing {table.getRowModel().rows.length} / {table.getFilteredRowModel().rows.length} filtered rows
+          Showing {displayRows.length} / {table.getFilteredRowModel().rows.length} filtered rows
         </p>
         <div className="flex items-center gap-2">
           <Select

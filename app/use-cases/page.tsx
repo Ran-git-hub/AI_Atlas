@@ -40,6 +40,7 @@ export default async function UseCasesPage({
             industry: getSingleParam(resolvedSearchParams, "industry"),
             country: getSingleParam(resolvedSearchParams, "country"),
             validation: getSingleParam(resolvedSearchParams, "validation"),
+            status: getSingleParam(resolvedSearchParams, "status"),
             sort: getSingleParam(resolvedSearchParams, "sort"),
             page: Number.isFinite(page) && page > 0 ? page : 1,
             pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20,

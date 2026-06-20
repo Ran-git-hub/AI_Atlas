@@ -66,6 +66,7 @@ type InitialState = {
   industry: string
   country: string
   validation: string
+  status: string
   sort: string
   page: number
   pageSize: number
@@ -80,6 +81,7 @@ interface UseCasesTableProps {
   enableStatusChange?: boolean
   showStatusColumn?: boolean
   showPendingOnly?: boolean
+  showStatusFilter?: boolean
 }
 
 type TableDensity = "compact" | "comfortable"
@@ -322,6 +324,7 @@ export function UseCasesTable({
   enableStatusChange = false,
   showStatusColumn = false,
   showPendingOnly = true,
+  showStatusFilter = false,
 }: UseCasesTableProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -349,6 +352,11 @@ export function UseCasesTable({
   const [countryFilter, setCountryFilter] = React.useState<string[]>(
     initialState.country
       ? initialState.country.split(",").map((v) => v.trim()).filter(Boolean)
+      : []
+  )
+  const [statusFilter, setStatusFilter] = React.useState<string[]>(
+    initialState.status
+      ? initialState.status.split(",").map((v) => v.trim()).filter(Boolean)
       : []
   )
   const [cityFilter, setCityFilter] = React.useState("")
@@ -836,10 +844,14 @@ export function UseCasesTable({
     [openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
   )
 
-  const statusFilteredRows = React.useMemo(
-    () => (pendingOnly ? rows.filter(isUseCasePendingValidation) : rows),
-    [pendingOnly, rows]
-  )
+  const statusFilteredRows = React.useMemo(() => {
+    let result = rows
+    if (pendingOnly) result = result.filter(isUseCasePendingValidation)
+    if (statusFilter.length > 0) {
+      result = result.filter((row) => statusFilter.includes(row.status ?? ""))
+    }
+    return result
+  }, [pendingOnly, statusFilter, rows])
 
   const table = useReactTable({
     data: statusFilteredRows,
@@ -1085,6 +1097,7 @@ export function UseCasesTable({
     (pendingOnly ? 1 : 0) +
     industryFilter.length +
     countryFilter.length +
+    statusFilter.length +
     (cityFilter ? 1 : 0) +
     (orgFilter ? 1 : 0) +
     (dateAfter ? 1 : 0) +
@@ -1154,6 +1167,7 @@ export function UseCasesTable({
     setDateAfter("")
     setDateBefore("")
     setPendingOnly(false)
+    setStatusFilter([])
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
     notifyAction("All filters cleared.")
   }
@@ -1176,6 +1190,7 @@ export function UseCasesTable({
     if (industryFilter.length > 0) params.set("industry", industryFilter.join(","))
     if (countryFilter.length > 0) params.set("country", countryFilter.join(","))
     if (pendingOnly) params.set("validation", "pending")
+    if (statusFilter.length > 0) params.set("status", statusFilter.join(","))
     if (sorting[0]?.id) {
       params.set("sort", `${sorting[0].id}:${sorting[0].desc ? "desc" : "asc"}`)
     }
@@ -1194,6 +1209,7 @@ export function UseCasesTable({
     industryFilter,
     countryFilter,
     pendingOnly,
+    statusFilter,
     columnVisibility,
     sorting,
     pagination.pageIndex,
@@ -1386,6 +1402,61 @@ export function UseCasesTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {showStatusFilter ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[160px]"
+                >
+                  <span className="flex w-full min-w-0 items-center justify-center gap-2">
+                    <Filter className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 truncate">
+                      {statusFilter.length > 0
+                        ? `${statusFilter.length} Status`
+                        : "Filter by Status"}
+                    </span>
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
+                <DropdownMenuCheckboxItem
+                  className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white"
+                  checked={statusFilter.length === 0}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={() => {
+                    setStatusFilter([])
+                    setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                    notifyAction("Status filter cleared.")
+                  }}
+                >
+                  All statuses
+                </DropdownMenuCheckboxItem>
+                {USE_CASE_STATUSES.map((status) => (
+                  <DropdownMenuCheckboxItem
+                    key={status}
+                    className="w-full text-[#f5f5f5] capitalize focus:bg-slate-800 focus:text-white"
+                    checked={statusFilter.includes(status)}
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={(checked) => {
+                      setStatusFilter((prev) =>
+                        checked ? [...prev, status] : prev.filter((v) => v !== status)
+                      )
+                      setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+                      notifyAction(
+                        checked
+                          ? `Status filter applied: ${status}.`
+                          : `Status filter removed: ${status}.`
+                      )
+                    }}
+                  >
+                    {status}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+
           <Button
             variant="outline"
             className={`relative h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 px-3 py-0 text-sm leading-none text-white hover:border-cyan-500/60 hover:bg-slate-700/60 md:h-9 md:w-[150px] ${
@@ -1566,6 +1637,16 @@ export function UseCasesTable({
               }}
             />
           ) : null}
+          {statusFilter.map((status) => (
+            <FilterChip
+              key={`status-${status}`}
+              label={`Status: ${status}`}
+              onRemove={() => {
+                setStatusFilter((prev) => prev.filter((v) => v !== status))
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+              }}
+            />
+          ))}
           {cityFilter ? (
             <FilterChip
               label={`City: ${cityFilter}`}

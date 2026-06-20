@@ -162,7 +162,7 @@ export default async function Image() {
           />
 
           <span style={{ fontSize: "15px", color: "#6b7d8e" }}>
-            Updated daily · Read in 5 mins
+            Daily updates, read in 5 mins.
           </span>
 
           <div
@@ -200,7 +200,7 @@ export default async function Image() {
                 height: "460px",
                 borderRadius: "50%",
                 overflow: "hidden",
-                transform: "rotate(-12deg) rotateX(10deg)",
+                transform: "rotate(-15deg)",
                 background: "transparent",
               }}
             >

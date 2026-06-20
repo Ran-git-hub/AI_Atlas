@@ -1,63 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { verifyAdminToken } from "@/lib/admin-auth"
 
-const REALM = "AI Atlas Admin"
+// Routes that are publicly accessible without a session.
+const PUBLIC_PREFIXES = ["/admin/login", "/api/admin/login"]
 
-function isAuthorized(request: NextRequest): boolean {
-  const expectedUser = process.env.ADMIN_USERNAME
-  const expectedPass = process.env.ADMIN_PASSWORD
-  // Fail closed if the env vars are not configured.
-  if (!expectedUser || !expectedPass) return false
-
-  const header = request.headers.get("authorization") ?? ""
-  if (!header.startsWith("Basic ")) return false
-
-  let decoded: string
-  try {
-    decoded = atob(header.slice(6))
-  } catch {
-    return false
-  }
-
-  const idx = decoded.indexOf(":")
-  if (idx < 0) return false
-  const user = decoded.slice(0, idx)
-  const pass = decoded.slice(idx + 1)
-
-  return (
-    constantTimeEqual(user, expectedUser) &&
-    constantTimeEqual(pass, expectedPass)
-  )
-}
-
-function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
-  let diff = 0
-  for (let i = 0; i < a.length; i++) {
-    diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
-  }
-  return diff === 0
-}
-
-function unauthorized(): NextResponse {
-  return new NextResponse("Authentication required.", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": `Basic realm="${REALM}", charset="UTF-8"`,
-    },
-  })
-}
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Gate /admin/* (any method).
-  if (pathname.startsWith("/admin")) {
-    return isAuthorized(request) ? NextResponse.next() : unauthorized()
+  // Allow login-related routes through without auth.
+  if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    return NextResponse.next()
   }
 
-  // Gate only mutating calls on /api/use-cases/* — GET stays public.
+  // All other /admin/* routes require a valid session cookie.
+  if (pathname.startsWith("/admin")) {
+    const token = request.cookies.get("admin_session")?.value
+    const username = token ? await verifyAdminToken(token) : null
+    if (username) return NextResponse.next()
+    return NextResponse.redirect(new URL("/admin/login", request.url))
+  }
+
+  // PATCH /api/use-cases/* requires a valid session cookie.
   if (pathname.startsWith("/api/use-cases") && request.method === "PATCH") {
-    return isAuthorized(request) ? NextResponse.next() : unauthorized()
+    const token = request.cookies.get("admin_session")?.value
+    const username = token ? await verifyAdminToken(token) : null
+    if (username) return NextResponse.next()
+    return NextResponse.json(
+      { ok: false, error: "unauthorized" },
+      { status: 401 },
+    )
   }
 
   return NextResponse.next()

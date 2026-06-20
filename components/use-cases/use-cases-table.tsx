@@ -1807,7 +1807,10 @@ export function UseCasesTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="cursor-pointer active:bg-white/8"
+                  className={cn(
+                    "cursor-pointer active:bg-white/8",
+                    row.original.status === "archived" && "bg-amber-950/20",
+                  )}
                   onClick={() => openDetail(row.original)}
                 >
                   {row.getVisibleCells().map((cell, index) => (

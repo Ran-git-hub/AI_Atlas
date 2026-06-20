@@ -224,7 +224,10 @@ export function UseCaseIndexDetailModal({
                   >
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
-                  <SelectContent className="border-white/15 bg-[#181818] text-[#f5f5f5]">
+                  <SelectContent
+                    className="border-white/15 bg-[#181818] text-[#f5f5f5]"
+                    style={{ zIndex: 100000 }}
+                  >
                     {USE_CASE_STATUSES.map((value) => (
                       <SelectItem
                         key={value}

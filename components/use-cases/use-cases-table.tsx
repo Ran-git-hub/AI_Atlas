@@ -850,7 +850,17 @@ export function UseCasesTable({
     if (statusFilter.length > 0) {
       result = result.filter((row) => statusFilter.includes(row.status ?? ""))
     }
-    return result
+    // Sort pending rows to the top, then preserve existing order
+    const pending: typeof result = []
+    const rest: typeof result = []
+    for (const row of result) {
+      if (row.status === "pending") {
+        pending.push(row)
+      } else {
+        rest.push(row)
+      }
+    }
+    return [...pending, ...rest]
   }, [pendingOnly, statusFilter, rows])
 
   const table = useReactTable({

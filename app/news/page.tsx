@@ -5,6 +5,8 @@ import type { NewsItem, NewsTakeContext } from "@/lib/types-news"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { NewsFeed } from "@/components/news/news-feed"
+import { NewsSourcesButton } from "@/components/news/news-sources-dialog"
+import { BuildersButton } from "@/components/news/builders-dialog"
 
 const newsShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
@@ -62,7 +64,11 @@ export default async function NewsPage() {
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
             <h1 className="mb-1 text-2xl font-bold text-[#f5f5f5]">AI News</h1>
             <p className="text-pretty text-sm text-slate-400">
-              AI Atlas curates AI industry updates from leading media and builder channels, then connects them with
+              AI Atlas curates AI industry updates from{" "}
+              <NewsSourcesButton />{" "}
+              and{" "}
+              <BuildersButton />{" "}
+              , then connects them with
               published use cases for editorial context. Summaries are AI-assisted digests. Read the original source for
               full context.
             </p>

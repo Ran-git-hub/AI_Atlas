@@ -10,16 +10,16 @@ import {
 } from "@/components/ui/dialog"
 
 const SOURCES = [
-  { name: "The Batch (DeepLearning.AI)", desc: "Weekly AI newsletter curated by Andrew Ng's team, covering the latest papers and industry trends.", url: "https://www.deeplearning.ai/the-batch" },
-  { name: "The Decoder", desc: "German-based outlet reporting on AI policy, open-source models, and EU tech regulation.", url: "https://the-decoder.com/" },
-  { name: "VentureBeat AI", desc: "Daily AI industry coverage with a focus on enterprise adoption and startup funding.", url: "https://venturebeat.com/category/ai/" },
-  { name: "AI News", desc: "Aggregator of breaking AI stories from mainstream tech media and research blogs.", url: "https://ainews.com/" },
-  { name: "MIT Technology Review AI", desc: "In-depth long-form journalism on AI's societal impact, ethics, and research breakthroughs.", url: "https://www.technologyreview.com/topic/artificial-intelligence/" },
-  { name: "Simon Willison", desc: "Independent developer and open-source advocate, known for deep dives on LLM tooling and prompt engineering.", url: "https://simonwillison.net/" },
-  { name: "Hacker News (AI)", desc: "Community-curated AI links from Y Combinator's Hacker News, filtered by relevance.", url: "https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT+OR+Claude+OR+Gemini" },
-  { name: "Ars Technica AI", desc: "Technical deep-dives on AI hardware, software, and research from one of the oldest tech publications.", url: "https://arstechnica.com/ai/" },
-  { name: "One Useful Thing (Ethan Mollick)", desc: "Wharton professor sharing practical insights on using AI for work, creativity, and education.", url: "https://www.oneusefulthing.org/?sort=new" },
-  { name: "TLDR Tech", desc: "Daily tech newsletter summarizing the most important stories in AI, crypto, and software engineering.", url: "https://tldr.tech/" },
+  { name: "The Batch (DeepLearning.AI)", desc: "Andrew Ng's free weekly AI newsletter — curated research summaries, industry news, and a personal letter from Andrew. Edited by a former WSJ editor.", url: "https://www.deeplearning.ai/the-batch" },
+  { name: "The Decoder", desc: "Independent German-based AI publication, part of heise medien. Hype-free factual reporting with a European perspective on global AI. Published 1,700+ articles in 2025.", url: "https://the-decoder.com/" },
+  { name: "VentureBeat AI", desc: "Daily AI industry coverage with a focus on enterprise adoption, startup funding, and transformative technology.", url: "https://venturebeat.com/category/ai/" },
+  { name: "AI News", desc: "Dedicated AI news platform publishing original reporting, expert interviews, and a podcast. Based in San Diego.", url: "https://ainews.com/" },
+  { name: "MIT Technology Review AI", desc: "MIT's in-depth long-form journalism on AI's societal impact, research breakthroughs, and ethics. One of the oldest and most respected tech publications.", url: "https://www.technologyreview.com/topic/artificial-intelligence/" },
+  { name: "Simon Willison", desc: "Co-creator of Django, creator of Datasette and LLM tools. Widely respected for his honest, hands-on public exploration of LLMs, AI-assisted programming, and coined the term 'prompt injection'.", url: "https://simonwillison.net/" },
+  { name: "Hacker News (AI)", desc: "Community-curated AI links from Y Combinator's Hacker News, filtered by AI/LLM relevance.", url: "https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT+OR+Claude+OR+Gemini" },
+  { name: "Ars Technica AI", desc: "Technical deep-dives on AI hardware, software, and research from Condé Nast's veteran tech publication.", url: "https://arstechnica.com/ai/" },
+  { name: "One Useful Thing (Ethan Mollick)", desc: "Wharton professor and TIME 100 AI honoree. Research-based analysis on AI's impact on work, education, and entrepreneurship. Author of NYT bestseller Co-Intelligence.", url: "https://www.oneusefulthing.org/?sort=new" },
+  { name: "TLDR Tech", desc: "A curated daily email read by 7M+ subscribers. Concise 5-minute brief of the most important tech stories. Written by practitioners, not journalists.", url: "https://tldr.tech/" },
 ]
 
 export function NewsSourcesButton() {

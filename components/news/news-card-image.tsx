@@ -21,6 +21,12 @@ function brandTone(sourceName: string): string {
   return "from-slate-950 via-slate-900 to-cyan-950"
 }
 
+const HACKER_NEWS_FALLBACK = "/hacker-news-fallback.jpg"
+
+function isHackerNewsSource(sourceName: string): boolean {
+  return /\bhacker news\b/i.test(sourceName.trim())
+}
+
 function isXSource(articleUrl: string | null, sourceName: string): boolean {
   if (/\bon x$/i.test(sourceName.trim())) return true
 
@@ -98,16 +104,25 @@ export function NewsCardImage({
         />
       ) : null}
       {!useXIcon && (!imageUrl || !loaded) ? (
-        <div
-          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${brandTone(sourceName)} px-4 text-center text-slate-500`}
-        >
-          <div className="flex h-11 w-11 items-center justify-center rounded-md border border-cyan-300/25 bg-slate-950/45 text-base font-semibold text-cyan-200 shadow-[0_0_0_1px_rgba(103,232,249,0.08)]">
-            {sourceInitial(brandLabel(sourceName))}
+        isHackerNewsSource(sourceName) ? (
+          <img
+            src={HACKER_NEWS_FALLBACK}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div
+            className={`absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${brandTone(sourceName)} px-4 text-center text-slate-500`}
+          >
+            <div className="flex h-11 w-11 items-center justify-center rounded-md border border-cyan-300/25 bg-slate-950/45 text-base font-semibold text-cyan-200 shadow-[0_0_0_1px_rgba(103,232,249,0.08)]">
+              {sourceInitial(brandLabel(sourceName))}
+            </div>
+            <div className="max-w-full truncate text-xs font-semibold text-slate-300">
+              {brandLabel(sourceName)}
+            </div>
           </div>
-          <div className="max-w-full truncate text-xs font-semibold text-slate-300">
-            {brandLabel(sourceName)}
-          </div>
-        </div>
+        )
       ) : null}
     </div>
   )

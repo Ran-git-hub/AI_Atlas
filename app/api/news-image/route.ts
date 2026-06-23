@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 export const dynamic = "force-dynamic"
 
 const IMAGE_META_RE =
-  /<meta\s+(?:property|name)=["'](?:og:image|twitter:image|twitter:image:src)["']\s+content=["']([^"']+)["'][^>]*>|<meta\s+content=["']([^"']+)["']\s+(?:property|name)=["'](?:og:image|twitter:image|twitter:image:src)["'][^>]*>/i
+  /<meta[^>]*\bproperty=["'](?:og:image|twitter:image)["'][^>]*\bcontent=["']([^"']+)["'][^>]*>|<meta[^>]*\bname=["'](?:og:image|twitter:image|twitter:image:src)["'][^>]*\bcontent=["']([^"']+)["'][^>]*>|<meta[^>]*\bcontent=["']([^"']+)["'][^>]*\b(?:property|name)=["'](?:og:image|twitter:image|twitter:image:src)["'][^>]*>/i
 
 function youtubeThumbnailUrl(pageUrl: URL): string | null {
   const hostname = pageUrl.hostname.replace(/^www\./, "").replace(/^m\./, "")
@@ -55,11 +55,13 @@ async function discoverImageUrl(pageUrl: URL, signal: AbortSignal): Promise<stri
     next: { revalidate: 60 * 60 * 12 },
   })
 
-  if (!response.ok) return null
+  // Allow non-200 responses — some sites (Substack) return 404/403
+  // but still serve the full page with og:image meta tags.
+  if (response.status < 200) return null
 
   const html = await response.text()
   const match = IMAGE_META_RE.exec(html)
-  const rawImage = match?.[1] ?? match?.[2] ?? ""
+  const rawImage = match?.[1] ?? match?.[2] ?? match?.[3] ?? ""
   return normalizeImageUrl(rawImage, pageUrl.toString())
 }
 

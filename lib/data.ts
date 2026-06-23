@@ -171,11 +171,9 @@ export async function getCompanies(): Promise<Company[]> {
 
   const [companiesResult, useCasesResult] = await Promise.all([
     supabase.from("AI_Atlas_Companies").select(
-      "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,updated_at,lat,lng,latitude,longitude"
+      "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,latitude,longitude"
     ).order("name"),
-    supabase.from("AI_Atlas_Use_Cases").select(
-      "company_id,website_url,website,url,reference_url,reference,source_url,link"
-    )
+    supabase.from("AI_Atlas_Use_Cases").select("*")
   ])
   const { data, error } = companiesResult
   

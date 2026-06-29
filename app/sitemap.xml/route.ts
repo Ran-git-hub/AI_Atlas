@@ -70,8 +70,8 @@ ${body}
 
 export async function GET(): Promise<Response> {
   const [useCases, industries, blogPosts] = await Promise.all([
-    getUseCasesCatalogRows(),
-    getIndustrySummaries(),
+    getUseCasesCatalogRows({ publishedOnly: true }),
+    getIndustrySummaries({ publishedOnly: true }),
     getBlogPosts(),
   ])
 

@@ -20,7 +20,7 @@ export default async function Home({
 }) {
   const [companies, useCases, latestDataUpdateCet, sp] = await Promise.all([
     getCompaniesWithCoords(),
-    getUseCasesWithCoords(),
+    getUseCasesWithCoords({ publishedOnly: true }),
     getLatestAtlasDataUpdateCetDisplay(),
     searchParams,
   ])

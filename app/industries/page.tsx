@@ -14,7 +14,7 @@ export const metadata = {
 
 export default async function IndustriesPage() {
   const [industries, latestDataUpdateCet] = await Promise.all([
-    getIndustrySummaries(),
+    getIndustrySummaries({ publishedOnly: true }),
     getLatestAtlasDataUpdateCetDisplay(),
   ])
 

@@ -212,8 +212,10 @@ function findRelatedReports({
     .slice(0, 3)
 }
 
-export async function getIndustrySummaries(): Promise<IndustrySummary[]> {
-  const rows = await getUseCasesCatalogRows()
+export async function getIndustrySummaries(
+  opts: { publishedOnly?: boolean } = {}
+): Promise<IndustrySummary[]> {
+  const rows = await getUseCasesCatalogRows(opts)
 
   return buildIndustryBuckets(rows)
     .map(bucketToSummary)
@@ -222,7 +224,7 @@ export async function getIndustrySummaries(): Promise<IndustrySummary[]> {
 
 export async function getIndustryDetail(slug: string): Promise<IndustryDetail | null> {
   const [rows, reports] = await Promise.all([
-    getUseCasesCatalogRows(),
+    getUseCasesCatalogRows({ publishedOnly: true }),
     getBlogPostsWithRelatedCaseIds(),
   ])
   const bucket = buildIndustryBuckets(rows).find((item) => item.slug === slug)

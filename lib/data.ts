@@ -463,18 +463,27 @@ function rowToUseCaseCatalogRow(
   }
 }
 
-export async function getUseCasesWithCoords(): Promise<UseCaseWithCoords[]> {
+export async function getUseCasesWithCoords(
+  opts: { publishedOnly?: boolean } = {}
+): Promise<UseCaseWithCoords[]> {
+  const { publishedOnly = false } = opts
   // Prefer service role on the server so reads work even when RLS has no policy yet.
   // For production, prefer fixing RLS (see supabase/migrations) and you may omit the service key.
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
+  let useCasesQuery = supabase
+    .from("AI_Atlas_Use_Cases")
+    .select("*")
+    .order("id", { ascending: true })
+
+  if (publishedOnly) {
+    useCasesQuery = useCasesQuery.eq("status", "published")
+  }
+
   const [companiesResult, useCasesResult] = await Promise.all([
     supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
-    supabase
-      .from("AI_Atlas_Use_Cases")
-      .select("*")
-      .order("id", { ascending: true }),
+    useCasesQuery,
   ])
 
   if (companiesResult.error) {
@@ -527,12 +536,19 @@ export async function getUseCasesCatalogRows(
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
+  // Push status filter to Supabase so queries stay under the 1000-row API limit.
+  let useCasesQuery = supabase
+    .from("AI_Atlas_Use_Cases")
+    .select("*")
+    .order("id", { ascending: true })
+
+  if (publishedOnly) {
+    useCasesQuery = useCasesQuery.eq("status", "published")
+  }
+
   const [companiesResult, useCasesResult] = await Promise.all([
     supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
-    supabase
-      .from("AI_Atlas_Use_Cases")
-      .select("*")
-      .order("id", { ascending: true }),
+    useCasesQuery,
   ])
 
   if (companiesResult.error) {

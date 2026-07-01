@@ -546,9 +546,20 @@ export async function getUseCasesCatalogRows(
     useCasesQuery = useCasesQuery.eq("status", "published")
   }
 
-  const [companiesResult, useCasesResult] = await Promise.all([
+  // When not filtering to published, fetch a second range to cover rows
+  // beyond Supabase's 1000-row API limit (currently ~1072 total use cases).
+  const useCasesPage1 = publishedOnly
+    ? null
+    : supabase
+        .from("AI_Atlas_Use_Cases")
+        .select("*")
+        .order("id", { ascending: true })
+        .range(1000, 1999)
+
+  const [companiesResult, useCasesResult, useCasesOverflow] = await Promise.all([
     supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
     useCasesQuery,
+    useCasesPage1,
   ])
 
   if (companiesResult.error) {
@@ -565,7 +576,10 @@ export async function getUseCasesCatalogRows(
     return []
   }
 
-  const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
+  const rows = [
+    ...(useCasesResult.data ?? []),
+    ...(useCasesOverflow?.data ?? []),
+  ] as Record<string, unknown>[]
   return rows
     .map((row) => rowToUseCaseCatalogRow(row, companyNameById, { includeArchived, publishedOnly }))
     .filter(Boolean) as UseCaseCatalogRow[]

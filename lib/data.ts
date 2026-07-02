@@ -655,8 +655,7 @@ async function fetchTimestampRows(
   supabase: SupabaseClient,
   table: string
 ): Promise<Record<string, unknown>[]> {
-  const full = await supabase.from(table).select("updated_at, created_at")
-  if (!full.error) return (full.data ?? []) as Record<string, unknown>[]
+  // Try created_at only first — several tables lack updated_at
   const createdOnly = await supabase.from(table).select("created_at")
   if (createdOnly.error) {
     console.error(

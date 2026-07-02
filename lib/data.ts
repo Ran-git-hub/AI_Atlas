@@ -68,6 +68,7 @@ function buildOfficialWebsiteByCompanyId(
       row.website_url,
       row.website,
       row.url,
+      row.URL,         // actual DB column is uppercase
       row.reference_url,
       row.reference,
       row.source_url,
@@ -173,7 +174,7 @@ export async function getCompanies(): Promise<Company[]> {
     supabase.from("AI_Atlas_Companies").select(
       "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,latitude,longitude"
     ).order("name"),
-    supabase.from("AI_Atlas_Use_Cases").select("*")
+    supabase.from("AI_Atlas_Use_Cases").select("id, company_id, \"URL\"")
   ])
   const { data, error } = companiesResult
   
@@ -233,7 +234,7 @@ export async function getCompanyById(id: string): Promise<Company | null> {
       .single(),
     supabase
       .from("AI_Atlas_Use_Cases")
-      .select("*")
+      .select("id, company_id, \"URL\"")
       .eq("company_id", id),
   ])
   const { data, error } = companyResult

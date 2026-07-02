@@ -475,7 +475,7 @@ export async function getUseCasesWithCoords(
 
   let useCasesQuery = supabase
     .from("AI_Atlas_Use_Cases")
-    .select("*")
+    .select("id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,published_at,status,is_trending,source_name,confidence_score,created_at,\"URL\"")
     .order("id", { ascending: true })
 
   if (publishedOnly) {
@@ -491,14 +491,14 @@ export async function getUseCasesWithCoords(
     console.error("Error fetching companies for use case labels:", companiesResult.error)
   }
 
-  const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
-  )
-
   if (useCasesResult.error) {
     console.error("Error fetching use cases:", useCasesResult.error)
     return []
   }
+
+  const companyNameById = buildCompanyNameById(
+    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
+  )
 
   const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
   return rows
@@ -537,10 +537,11 @@ export async function getUseCasesCatalogRows(
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
-  // Push status filter to Supabase so queries stay under the 1000-row API limit.
+  // Exclude content — the heaviest column (~1MB for 639 rows). The detail
+  // modal lazy-loads it per-row via getUseCaseContent(id).
   let useCasesQuery = supabase
     .from("AI_Atlas_Use_Cases")
-    .select("*")
+    .select("id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,published_at,status,is_trending,source_name,confidence_score,created_at,\"URL\"")
     .order("id", { ascending: true })
 
   if (publishedOnly) {
@@ -620,6 +621,25 @@ export async function getUseCaseCatalogRowById(
     useCaseResult.data as Record<string, unknown>,
     companyNameById
   )
+}
+
+/** Lazy-load only the content column for a single use case — used by the
+  * detail modal to avoid shipping ~1MB of content in the list query. */
+export async function getUseCaseContent(
+  id: string,
+): Promise<string | null> {
+  const supabase =
+    createServiceRoleClient() ?? (await createClient())
+
+  const { data, error } = await supabase
+    .from("AI_Atlas_Use_Cases")
+    .select("content")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (error || !data) return null
+  const row = data as Record<string, unknown>
+  return typeof row.content === "string" ? row.content : null
 }
 
 /** Central Europe (legally CET in winter, CEST in summer). */

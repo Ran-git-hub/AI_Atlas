@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { X, ExternalLink, Sparkles, ChevronLeft } from "lucide-react"
 import {
   isUseCasePendingValidation,
@@ -40,6 +40,47 @@ export function UseCaseDetailPanel({
   onReturnToCompany,
 }: UseCaseDetailPanelProps) {
   const [imageError, setImageError] = useState(false)
+  const [lazyContent, setLazyContent] = useState<string | null>(null)
+  const [contentLoading, setContentLoading] = useState(false)
+
+  const hasContentField = useCase.fieldEntries.some(
+    (e) => e.key.toLowerCase() === "content",
+  )
+
+  useEffect(() => {
+    if (hasContentField) return
+    setLazyContent(null)
+    setContentLoading(true)
+    let cancelled = false
+    setContentLoading(true)
+    fetch(`/api/use-cases/${encodeURIComponent(useCase.id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Record<string, unknown> | null) => {
+        if (cancelled || !data) return
+        const entries = (data as { fieldEntries?: Array<{ key: string; value: string }> }).fieldEntries
+        const contentEntry = entries?.find((e) => e.key.toLowerCase() === "content")
+        if (contentEntry?.value) setLazyContent(contentEntry.value)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setContentLoading(false) })
+    return () => { cancelled = true }
+  }, [useCase.id, hasContentField])
+
+  const displayEntries = useMemo(() => {
+    if (!lazyContent || hasContentField) return useCase.fieldEntries
+    const entries = [...useCase.fieldEntries]
+    const idx = entries.findIndex((e) => {
+      const k = e.key.toLowerCase()
+      return k === "title" || k === "description" || k === "summary"
+    })
+    entries.splice(
+      idx >= 0 ? idx + 1 : entries.length,
+      0,
+      { key: "content", label: "Content", value: lazyContent },
+    )
+    return entries
+  }, [useCase.fieldEntries, lazyContent, hasContentField])
+
   const title = useCaseDisplayName(useCase)
   const showHeaderImage = Boolean(useCase.image_url?.trim()) && !imageError
   const isRecent = isUseCaseRecent24h(useCase)
@@ -130,7 +171,7 @@ export function UseCaseDetailPanel({
               Record fields
             </h4>
             <div className="rounded-xl border border-slate-700/60 bg-slate-950/40 divide-y divide-slate-800/80 overflow-hidden">
-              {useCase.fieldEntries.map(({ key, label, value }) => {
+              {displayEntries.map(({ key, label, value }) => {
                 const trimmed = value.trim()
                 const display = trimmed ? trimmed : NA
                 const url = isProbablyUrl(key, trimmed)

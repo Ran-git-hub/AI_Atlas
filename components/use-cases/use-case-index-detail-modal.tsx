@@ -69,6 +69,49 @@ export function UseCaseIndexDetailModal({
 }) {
   const backdropRef = React.useRef<HTMLDivElement>(null)
   const openedAt = React.useRef(Date.now())
+  const [lazyContent, setLazyContent] = React.useState<string | null>(null)
+  const [contentLoading, setContentLoading] = React.useState(false)
+
+  const hasContentField = detail.fieldEntries.some(
+    (e) => e.key.toLowerCase() === "content",
+  )
+
+  // Insert lazy-loaded content into fieldEntries at its correct position
+  // (content has preferred order 20, between title=10 and url=30).
+  const displayEntries = React.useMemo(() => {
+    if (!lazyContent || hasContentField) return detail.fieldEntries
+    const entries = [...detail.fieldEntries]
+    const idx = entries.findIndex((e) => {
+      // Insert after the last field with preferred order < 20
+      const key = e.key.toLowerCase()
+      return key === "title" || key === "description" || key === "summary"
+    })
+    entries.splice(
+      idx >= 0 ? idx + 1 : entries.length,
+      0,
+      { key: "content", label: "Content", value: lazyContent },
+    )
+    return entries
+  }, [detail.fieldEntries, lazyContent, hasContentField])
+
+  React.useEffect(() => {
+    if (hasContentField) return
+    setLazyContent(null)
+    setContentLoading(true)
+    let cancelled = false
+    setContentLoading(true)
+    fetch(`/api/use-cases/${encodeURIComponent(detail.id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Record<string, unknown> | null) => {
+        if (cancelled || !data) return
+        const entries = (data as { fieldEntries?: Array<{ key: string; value: string }> }).fieldEntries
+        const contentEntry = entries?.find((e) => e.key.toLowerCase() === "content")
+        if (contentEntry?.value) setLazyContent(contentEntry.value)
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setContentLoading(false) })
+    return () => { cancelled = true }
+  }, [detail.id, hasContentField])
 
   React.useEffect(() => {
     const prev = document.body.style.overflow
@@ -279,7 +322,7 @@ export function UseCaseIndexDetailModal({
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           <div className="min-h-0 lg:overflow-y-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-            {detail.fieldEntries.map(({ key, label, value }) => {
+            {displayEntries.map(({ key, label, value }) => {
               const trimmed = value.trim()
               const display = trimmed || "Not Available"
               const url = trimmed && isProbablyUrl(key, trimmed)
@@ -335,6 +378,14 @@ export function UseCaseIndexDetailModal({
                 </div>
               )
             })}
+
+            {/* Lazy content loading indicator — shown while fetch is in flight */}
+            {!hasContentField && contentLoading ? (
+              <div style={{ padding: "12px 20px", borderBottom: "1px solid #2f2f2f" }}>
+                <p style={{ margin: 0, fontSize: 12, fontWeight: 500, letterSpacing: "0.03em", color: "#8a8a8a" }}>Content</p>
+                <p style={{ margin: "8px 0 0", fontSize: 14, color: "#555" }}>Loading…</p>
+              </div>
+            ) : null}
           </div>
 
           <aside className="min-h-0 border-t border-[#2f2f2f] bg-black/15 p-4 lg:overflow-y-auto lg:border-t-0 lg:border-l">

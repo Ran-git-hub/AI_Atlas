@@ -8,8 +8,8 @@ import type { IndustrySummary } from "@/lib/data-industries"
 // Bump this to force Vercel to invalidate the stale build cache for
 // this route. The previous deploy was restoring a cached .vercel/output
 // that didn't include sitemap.xml. If you change the route logic, also
-// bump this. Last bumped: 2026-06-19 v3 (force fresh build).
-const SITEMAP_BUILD_TAG = "v3"
+// bump this. Last bumped: 2026-07-02 v4 (force fresh build).
+const SITEMAP_BUILD_TAG = "v4"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600

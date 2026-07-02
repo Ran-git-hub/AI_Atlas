@@ -2,11 +2,32 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { unstable_cache } from "next/cache"
 import { ArrowLeft, ChevronRight, ExternalLink } from "lucide-react"
 import { getUseCaseCatalogRowById, getUseCasesCatalogRows } from "@/lib/data"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { cn } from "@/lib/utils"
+
+// Cache the published use-cases catalog query for 10 minutes so the
+// related-use-cases computation doesn't hit Supabase on every request.
+//
+// Why this exists: /use-cases/[id] pages previously called
+// getUseCasesCatalogRows() with no args on every render (~1.7 MB per call).
+// With 608 published use cases and Googlebot crawling every URL, that
+// produced ~1 GB/day of Supabase egress. After this cache:
+//   - First request after deploy/revalidate → 1 DB hit
+//   - Subsequent requests within 10 min → 0 DB hits (cache)
+//   - Revalidate window: 600s (10 min) — acceptable for "related" list
+//
+// Scope: only published use cases (matches what the public page should
+// show — fixes a side bug where pending/archived rows were leaking into
+// the related list).
+const getCachedPublishedUseCases = unstable_cache(
+  () => getUseCasesCatalogRows({ publishedOnly: true }),
+  ["related-use-cases-v1"],
+  { revalidate: 600 },
+)
 
 /** Apple-style tokens from design-md/apple/DESIGN.md */
 const APPLE = {
@@ -237,7 +258,7 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   const { id } = await params
   const [row, allRows] = await Promise.all([
     getUseCaseCatalogRowById(id),
-    getUseCasesCatalogRows(),
+    getCachedPublishedUseCases(),
   ])
   if (!row) notFound()
 

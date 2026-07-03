@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -168,7 +169,8 @@ export async function getAtlasStats(): Promise<{
 }
 
 export async function getCompanies(): Promise<Company[]> {
-  const supabase = await createClient()
+  const supabase =
+    createServiceRoleClient() ?? (await createClient())
 
   const [companiesResult, useCasesResult] = await Promise.all([
     supabase.from("AI_Atlas_Companies").select(
@@ -222,6 +224,12 @@ export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
     }
   })
 }
+
+export const getCachedCompaniesWithCoords = unstable_cache(
+  async () => getCompaniesWithCoords(),
+  ["companies-with-coords-v1"],
+  { revalidate: 300 },
+)
 
 export async function getCompanyById(id: string): Promise<Company | null> {
   const supabase = await createClient()

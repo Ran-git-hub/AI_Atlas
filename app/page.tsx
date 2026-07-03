@@ -1,5 +1,5 @@
 import {
-  getCompaniesWithCoords,
+  getCachedCompaniesWithCoords,
   getLatestAtlasDataUpdateCetDisplay,
   getUseCasesWithCoords,
 } from "@/lib/data"
@@ -19,7 +19,7 @@ export default async function Home({
   searchParams: Promise<SearchParams>
 }) {
   const [companies, useCases, latestDataUpdateCet, sp] = await Promise.all([
-    getCompaniesWithCoords(),
+    getCachedCompaniesWithCoords(),
     getUseCasesWithCoords({ publishedOnly: true }),
     getLatestAtlasDataUpdateCetDisplay(),
     searchParams,

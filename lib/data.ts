@@ -730,3 +730,9 @@ export async function getLatestAtlasDataUpdateCetDisplay(): Promise<string> {
   const ms = Math.max(...candidates)
   return formatUtcMsAsCentralEurope(ms)
 }
+
+export const getCachedLatestAtlasDataUpdateCetDisplay = unstable_cache(
+  async () => getLatestAtlasDataUpdateCetDisplay(),
+  ["latest-data-update-cet-v1"],
+  { revalidate: 600 },
+)

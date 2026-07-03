@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getAdjacentBlogPosts, getBlogPostBySlug } from "@/lib/data-blog"
 import { isWeeklyBlogPost } from "@/lib/types-blog"
 import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-report-content"
@@ -48,7 +48,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
   const [{ prev, next }, latestDataUpdateCet] = await Promise.all([
     getAdjacentBlogPosts(post),
-    getLatestAtlasDataUpdateCetDisplay(),
+    getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
   const isWeekly = isWeeklyBlogPost(post)
 

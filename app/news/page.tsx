@@ -1,4 +1,4 @@
-import { getCachedUseCasesCatalogRows, getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedUseCasesCatalogRows, getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getCachedNewsItems } from "@/lib/data-news"
 import { useCaseDisplayName } from "@/lib/types"
 import type { NewsItem, NewsTakeContext } from "@/lib/types-news"
@@ -48,7 +48,7 @@ export default async function NewsPage() {
   const [items, useCases, latestDataUpdateCet] = await Promise.all([
     getCachedNewsItems(),
     getCachedUseCasesCatalogRows(),
-    getLatestAtlasDataUpdateCetDisplay(),
+    getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
   const publishedUseCases = useCases.filter((row) => isPublishedStatus(row.status))
   const takeContext = buildTakeContext(items, useCases)

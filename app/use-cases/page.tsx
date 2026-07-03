@@ -1,4 +1,4 @@
-import { getCachedUseCasesCatalogRows, getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedUseCasesCatalogRows, getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { UseCasesTable } from "@/components/use-cases/use-cases-table"
 
 type SearchParams = Record<string, string | string[] | undefined>
@@ -17,7 +17,7 @@ export default async function UseCasesPage({
   const [rows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
     getCachedUseCasesCatalogRows(),
     searchParams,
-    getLatestAtlasDataUpdateCetDisplay(),
+    getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
 
   const cols = getSingleParam(resolvedSearchParams, "cols")

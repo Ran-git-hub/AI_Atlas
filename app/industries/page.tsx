@@ -1,4 +1,4 @@
-import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getIndustrySummaries } from "@/lib/data-industries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
@@ -15,7 +15,7 @@ export const metadata = {
 export default async function IndustriesPage() {
   const [industries, latestDataUpdateCet] = await Promise.all([
     getIndustrySummaries({ publishedOnly: true }),
-    getLatestAtlasDataUpdateCetDisplay(),
+    getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
 
   const totalUseCases = industries.reduce((sum, industry) => sum + industry.useCaseCount, 0)

@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getIndustryDetail } from "@/lib/data-industries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
@@ -46,7 +46,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
   const { industry } = await params
   const [detail, latestDataUpdateCet] = await Promise.all([
     getIndustryDetail(industry),
-    getLatestAtlasDataUpdateCetDisplay(),
+    getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
 
   if (!detail) {

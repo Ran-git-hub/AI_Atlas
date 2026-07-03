@@ -1,4 +1,4 @@
-import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { BlogPostListCard } from "@/components/blog/blog-post-list-card"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
@@ -23,7 +23,7 @@ export const metadata = {
 export default async function BlogPage() {
   const [posts, latestDataUpdateCet] = await Promise.all([
     getBlogPosts(),
-    getLatestAtlasDataUpdateCetDisplay(),
+    getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
 
   return (

@@ -1,4 +1,4 @@
-import { getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { QualityDashboard } from "./quality-dashboard"
 
 export const dynamic = "force-dynamic"
@@ -9,7 +9,7 @@ export const metadata = {
 }
 
 export default async function QualityPage() {
-  const latestDataUpdateCet = await getLatestAtlasDataUpdateCetDisplay()
+  const latestDataUpdateCet = await getCachedLatestAtlasDataUpdateCetDisplay()
 
   return <QualityDashboard latestDataUpdateCet={latestDataUpdateCet} />
 }

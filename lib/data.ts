@@ -514,6 +514,12 @@ export async function getUseCasesWithCoords(
     .filter(Boolean) as UseCaseWithCoords[]
 }
 
+export const getCachedUseCasesWithCoords = unstable_cache(
+  async () => getUseCasesWithCoords({ publishedOnly: true }),
+  ["use-cases-with-coords-v1"],
+  { revalidate: 300 },
+)
+
 export type GetUseCasesCatalogRowsOptions = {
   includeArchived?: boolean
   publishedOnly?: boolean

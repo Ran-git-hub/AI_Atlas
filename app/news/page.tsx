@@ -1,5 +1,5 @@
-import { getLatestAtlasDataUpdateCetDisplay, getUseCasesCatalogRows } from "@/lib/data"
-import { getNewsItems } from "@/lib/data-news"
+import { getCachedUseCasesCatalogRows, getLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
+import { getCachedNewsItems } from "@/lib/data-news"
 import { useCaseDisplayName } from "@/lib/types"
 import type { NewsItem, NewsTakeContext } from "@/lib/types-news"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
@@ -46,8 +46,8 @@ function buildTakeContext(items: NewsItem[], useCases: Awaited<ReturnType<typeof
 
 export default async function NewsPage() {
   const [items, useCases, latestDataUpdateCet] = await Promise.all([
-    getNewsItems(),
-    getUseCasesCatalogRows(),
+    getCachedNewsItems(),
+    getCachedUseCasesCatalogRows(),
     getLatestAtlasDataUpdateCetDisplay(),
   ])
   const publishedUseCases = useCases.filter((row) => isPublishedStatus(row.status))

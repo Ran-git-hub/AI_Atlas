@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { NewsItem } from "@/lib/types-news"
@@ -117,3 +118,9 @@ export async function getNewsItems(limit = DEFAULT_NEWS_LIMIT): Promise<NewsItem
     return []
   }
 }
+
+export const getCachedNewsItems = unstable_cache(
+  async () => getNewsItems(),
+  ["news-items-v1"],
+  { revalidate: 300 },
+)

@@ -520,6 +520,12 @@ export const getCachedUseCasesWithCoords = unstable_cache(
   { revalidate: 300 },
 )
 
+export const getCachedUseCasesCatalogRows = unstable_cache(
+  async () => getUseCasesCatalogRows({ publishedOnly: true }),
+  ["use-cases-catalog-rows-v1"],
+  { revalidate: 300 },
+)
+
 export type GetUseCasesCatalogRowsOptions = {
   includeArchived?: boolean
   publishedOnly?: boolean

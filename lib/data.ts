@@ -173,7 +173,7 @@ export async function getCompanies(): Promise<Company[]> {
   const [companiesResult, useCasesResult] = await Promise.all([
     supabase.from("AI_Atlas_Companies").select(
       "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,latitude,longitude"
-    ).order("name"),
+    ).eq("status", "published").order("name"),
     supabase.from("AI_Atlas_Use_Cases").select("id, company_id, \"URL\"")
   ])
   const { data, error } = companiesResult
@@ -190,8 +190,8 @@ export async function getCompanies(): Promise<Company[]> {
   const officialWebsiteById = buildOfficialWebsiteByCompanyId(
     (useCasesResult.data ?? []) as Record<string, unknown>[]
   )
+  // Published filter is now at the DB query level (.eq("status","published")).
   return (data || [])
-    .filter((company) => !isArchivedStatus((company as Company).status))
     .map((company) => withWebsiteFallback(company as Company, officialWebsiteById))
 }
 

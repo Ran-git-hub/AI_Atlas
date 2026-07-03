@@ -8,7 +8,7 @@ import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 600
 
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"

@@ -17,7 +17,7 @@ export const metadata = {
     "AI Atlas curates AI industry updates from leading media and builder channels, then connects them with published use cases for editorial context.",
 }
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300
 
 function isPublishedStatus(status: string | null | undefined): boolean {
   return status?.trim().toLowerCase() === "published"

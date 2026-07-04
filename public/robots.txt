@@ -15,3 +15,8 @@ Crawl-delay: 10
 Disallow: /admin/
 Disallow: /api/
 Disallow: /quality
+
+# Block Next.js static assets (JS, CSS, fonts) — Google should never
+# crawl these. Without this rule, Googlebot may encounter redirect
+# variants (HTTP→HTTPS, trailing slash) and flag "Page with redirect".
+Disallow: /_next/static/

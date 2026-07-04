@@ -397,7 +397,7 @@ export function HomeClient({
   const footerLastUpdated = "2026-03-23"
 
   return (
-    <main className="relative w-full h-screen bg-[#020a18]">
+    <main className="relative w-full min-h-screen bg-[#020a18]">
       {/* Stars background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {STAR_POSITIONS.map((star, i) => (

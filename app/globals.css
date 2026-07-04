@@ -262,12 +262,18 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* Globe marker pulse animation */
 @keyframes pulse {
-  0%, 100% { 
-    transform: scale(1); 
-    opacity: 0.9; 
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
   }
-  50% { 
-    transform: scale(1.2); 
-    opacity: 1; 
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
   }
+}
+
+/* Announcement bar horizontal scroll */
+@keyframes marquee {
+  0%   { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
 }

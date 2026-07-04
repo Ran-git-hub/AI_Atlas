@@ -20,8 +20,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/login", request.url))
   }
 
-  // PATCH /api/use-cases/* requires a valid session cookie.
-  if (pathname.startsWith("/api/use-cases") && request.method === "PATCH") {
+  // PATCH /api/use-cases/* and /api/admin/* require a valid session cookie.
+  if (
+    (pathname.startsWith("/api/use-cases") || pathname.startsWith("/api/admin")) &&
+    request.method === "PATCH"
+  ) {
     const token = request.cookies.get("admin_session")?.value
     const username = token ? await verifyAdminToken(token) : null
     if (username) return NextResponse.next()
@@ -35,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/use-cases/:path*"],
+  matcher: ["/admin/:path*", "/api/use-cases/:path*", "/api/admin/:path*"],
 }

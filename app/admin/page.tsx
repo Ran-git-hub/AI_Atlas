@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Layers3, LogOut, Newspaper } from "lucide-react"
+import { Layers3, LogOut, Megaphone, Newspaper } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -19,6 +19,13 @@ const tiles = [
     icon: Newspaper,
     color: "#60a5fa",
     href: null,
+  },
+  {
+    label: "Announcement",
+    description: "Set a site-wide scrolling announcement banner",
+    icon: Megaphone,
+    color: "#f59e0b",
+    href: "/admin/announcement",
   },
 ] as const
 

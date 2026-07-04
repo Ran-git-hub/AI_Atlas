@@ -200,7 +200,10 @@ export function SearchBar({
   const showReset = selectedIndustries.length > 0
 
   return (
-    <header className="pointer-events-none fixed top-0 right-0 left-0 z-50 p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))]">
+    <header
+      className="pointer-events-none fixed right-0 left-0 z-50 p-4 pt-[max(1rem,env(safe-area-inset-top,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))]"
+      style={{ top: "var(--announcement-height, 0px)" }}
+    >
       <div className="mx-auto w-full min-w-0 max-w-7xl pointer-events-auto" ref={rootRef}>
         <AtlasAppTopRow activeView="globe" />
 

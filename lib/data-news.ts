@@ -62,12 +62,13 @@ function mapNewsRow(row: NewsRow): NewsItem {
     createdAt: row.created_at,
     tags: normalizeTags(row.tags),
     aiAtlasTake: row.ai_atlas_take?.trim() ?? "",
+    status: (row.status ?? "").trim().toLowerCase() || null,
   }
 }
 
 function isVisibleNewsRow(row: NewsRow): boolean {
   const status = (row.status ?? row.Status ?? "").trim().toLowerCase()
-  return status !== "nosie" && status !== "noise"
+  return status === "published"
 }
 
 export async function getNewsItems(limit = DEFAULT_NEWS_LIMIT): Promise<NewsItem[]> {
@@ -124,3 +125,41 @@ export const getCachedNewsItems = unstable_cache(
   ["news-items-v1"],
   { revalidate: 300 },
 )
+
+const NEWS_ADMIN_STATUSES = ["published", "pending", "noise"] as const
+
+/** Fetch all news items for admin management — includes status, no noise filter. */
+export async function getAdminNewsItems(): Promise<NewsItem[]> {
+  const supabase = createServiceRoleClient() ?? (await createClient())
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select(NEWS_SELECT_WITH_TAKE_AND_STATUS)
+    .order("created_at", { ascending: false, nullsFirst: false })
+
+  if (error) {
+    console.error("[news] getAdminNewsItems", error.message)
+    return []
+  }
+  return (data as NewsRow[] | null)?.map(mapNewsRow) ?? []
+}
+
+/** Update the status of a single news item (admin only). */
+export async function updateNewsStatus(
+  id: string,
+  status: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!(NEWS_ADMIN_STATUSES as readonly string[]).includes(status)) {
+    return { ok: false, error: `Invalid status: ${status}` }
+  }
+  const supabase = createServiceRoleClient()
+  if (!supabase) return { ok: false, error: "Service role not available" }
+  const { error } = await supabase
+    .from(TABLE)
+    .update({ status })
+    .eq("id", id)
+  if (error) {
+    console.error("[news] updateNewsStatus", error.message)
+    return { ok: false, error: error.message }
+  }
+  return { ok: true }
+}

@@ -9,6 +9,7 @@ export interface NewsItem {
   createdAt: string | null
   tags: string[]
   aiAtlasTake: string
+  status?: string | null
 }
 
 export interface NewsTakeUseCase {

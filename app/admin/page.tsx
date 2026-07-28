@@ -15,10 +15,10 @@ const tiles = [
   },
   {
     label: "News",
-    description: "Coming soon — manage news articles and curation",
+    description: "Review and update news item status — publish, mark as noise, or keep pending",
     icon: Newspaper,
     color: "#60a5fa",
-    href: null,
+    href: "/admin/news",
   },
   {
     label: "Announcement",

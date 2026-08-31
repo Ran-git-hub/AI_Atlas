@@ -1,6 +1,6 @@
-import { getUseCasesCatalogRows } from "@/lib/data"
+import { getCachedUseCasesCatalogRows } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
-import { getIndustrySummaries } from "@/lib/data-industries"
+import { getCachedIndustrySummaries } from "@/lib/data-industries"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import type { BlogPostListItem } from "@/lib/types-blog"
 import type { IndustrySummary } from "@/lib/data-industries"
@@ -70,8 +70,8 @@ ${body}
 
 export async function GET(): Promise<Response> {
   const [useCases, industries, blogPosts] = await Promise.all([
-    getUseCasesCatalogRows({ publishedOnly: true }),
-    getIndustrySummaries({ publishedOnly: true }),
+    getCachedUseCasesCatalogRows(),
+    getCachedIndustrySummaries(),
     getBlogPosts(),
   ])
 

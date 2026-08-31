@@ -1,6 +1,7 @@
+import { unstable_cache } from "next/cache"
 import { getBlogPostsWithRelatedCaseIds } from "@/lib/data-blog"
 import { getIndustryMetadata, type IndustryMetadata } from "@/lib/industry-metadata"
-import { getUseCasesCatalogRows } from "@/lib/data"
+import { getCachedUseCasesCatalogRows } from "@/lib/data"
 import type { BlogPostRelatedItem } from "@/lib/types-blog"
 import type { UseCaseCatalogRow } from "@/lib/types"
 
@@ -212,19 +213,23 @@ function findRelatedReports({
     .slice(0, 3)
 }
 
-export async function getIndustrySummaries(
-  opts: { publishedOnly?: boolean } = {}
-): Promise<IndustrySummary[]> {
-  const rows = await getUseCasesCatalogRows(opts)
+export async function getIndustrySummaries(): Promise<IndustrySummary[]> {
+  const rows = await getCachedUseCasesCatalogRows()
 
   return buildIndustryBuckets(rows)
     .map(bucketToSummary)
     .sort((a, b) => b.useCaseCount - a.useCaseCount || a.name.localeCompare(b.name))
 }
 
+export const getCachedIndustrySummaries = unstable_cache(
+  async () => getIndustrySummaries(),
+  ["industries-summaries-v1"],
+  { revalidate: 300 },
+)
+
 export async function getIndustryDetail(slug: string): Promise<IndustryDetail | null> {
   const [rows, reports] = await Promise.all([
-    getUseCasesCatalogRows({ publishedOnly: true }),
+    getCachedUseCasesCatalogRows(),
     getBlogPostsWithRelatedCaseIds(),
   ])
   const bucket = buildIndustryBuckets(rows).find((item) => item.slug === slug)

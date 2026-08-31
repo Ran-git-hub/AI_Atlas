@@ -1,5 +1,5 @@
 import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
-import { getIndustrySummaries } from "@/lib/data-industries"
+import { getCachedIndustrySummaries } from "@/lib/data-industries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustrySummaryCard } from "@/components/industries/industry-summary-card"
@@ -14,7 +14,7 @@ export const metadata = {
 
 export default async function IndustriesPage() {
   const [industries, latestDataUpdateCet] = await Promise.all([
-    getIndustrySummaries({ publishedOnly: true }),
+    getCachedIndustrySummaries(),
     getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
 

@@ -172,29 +172,24 @@ export async function getCompanies(): Promise<Company[]> {
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
-  const [companiesResult, useCasesResult] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select(
-      "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,latitude,longitude"
-    ).eq("status", "published").order("name"),
+  const [companiesData, useCasesResult] = await Promise.all([
+    fetchAllCompanies<Company>(supabase, {
+      select:
+        "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,latitude,longitude",
+      publishedOnly: true,
+    }),
     supabase.from("AI_Atlas_Use_Cases").select("id, company_id, \"URL\"")
   ])
-  const { data, error } = companiesResult
-  
-  if (error) {
-    console.error("Error fetching companies:", error)
-    return []
-  }
 
   if (useCasesResult.error) {
     console.error("Error fetching use case URLs for company websites:", useCasesResult.error)
   }
-  
+
   const officialWebsiteById = buildOfficialWebsiteByCompanyId(
     (useCasesResult.data ?? []) as Record<string, unknown>[]
   )
-  // Published filter is now at the DB query level (.eq("status","published")).
-  return (data || [])
-    .map((company) => withWebsiteFallback(company as Company, officialWebsiteById))
+  // Published filter is now at the DB query level (publishedOnly in fetchAllCompanies).
+  return companiesData.map((company) => withWebsiteFallback(company, officialWebsiteById))
 }
 
 export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
@@ -472,6 +467,35 @@ function rowToUseCaseCatalogRow(
   }
 }
 
+const COMPANY_PAGE_SIZE = 1000
+
+/** Fetch every row of AI_Atlas_Companies, paging past Supabase's 1000-row REST
+  * limit. Ordering by name then id keeps pages deterministic (id breaks ties on
+  * duplicate names), so no row is skipped or duplicated across pages. */
+async function fetchAllCompanies<T = { id: unknown; name: unknown; status?: unknown }>(
+  supabase: SupabaseClient,
+  opts: { select: string; publishedOnly?: boolean } = { select: "id, name, status" }
+): Promise<T[]> {
+  const rows: T[] = []
+  for (let from = 0; from < 20000; from += COMPANY_PAGE_SIZE) {
+    let query = supabase
+      .from("AI_Atlas_Companies")
+      .select(opts.select)
+      .order("name")
+      .order("id")
+      .range(from, from + COMPANY_PAGE_SIZE - 1)
+    if (opts.publishedOnly) query = query.eq("status", "published")
+    const { data, error } = await query
+    if (error) {
+      console.error("Error fetching companies:", error)
+      break
+    }
+    rows.push(...((data ?? []) as T[]))
+    if ((data?.length ?? 0) < COMPANY_PAGE_SIZE) break
+  }
+  return rows
+}
+
 export async function getUseCasesWithCoords(
   opts: { publishedOnly?: boolean } = {}
 ): Promise<UseCaseWithCoords[]> {
@@ -490,23 +514,17 @@ export async function getUseCasesWithCoords(
     useCasesQuery = useCasesQuery.eq("status", "published")
   }
 
-  const [companiesResult, useCasesResult] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
+  const [companiesData, useCasesResult] = await Promise.all([
+    fetchAllCompanies(supabase),
     useCasesQuery,
   ])
-
-  if (companiesResult.error) {
-    console.error("Error fetching companies for use case labels:", companiesResult.error)
-  }
 
   if (useCasesResult.error) {
     console.error("Error fetching use cases:", useCasesResult.error)
     return []
   }
 
-  const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
-  )
+  const companyNameById = buildCompanyNameById(companiesData)
 
   const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
   return rows
@@ -578,20 +596,13 @@ export async function getUseCasesCatalogRows(
         .order("id", { ascending: true })
         .range(1000, 1999)
 
-  const [companiesResult, useCasesResult, useCasesOverflow] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
+  const [companiesData, useCasesResult, useCasesOverflow] = await Promise.all([
+    fetchAllCompanies(supabase),
     useCasesQuery,
     useCasesPage1,
   ])
 
-  if (companiesResult.error) {
-    console.error("Error fetching companies for use case labels:", companiesResult.error)
-  }
-
-  const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null,
-    { includeArchived }
-  )
+  const companyNameById = buildCompanyNameById(companiesData, { includeArchived })
 
   if (useCasesResult.error) {
     console.error("Error fetching use cases for catalog table:", useCasesResult.error)
@@ -613,18 +624,14 @@ export async function getUseCaseCatalogRowById(
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
-  const [companiesResult, useCaseResult] = await Promise.all([
-    supabase.from("AI_Atlas_Companies").select("id, name, status").order("name"),
+  const [companiesData, useCaseResult] = await Promise.all([
+    fetchAllCompanies(supabase),
     supabase
       .from("AI_Atlas_Use_Cases")
       .select("*")
       .eq("id", id)
       .maybeSingle(),
   ])
-
-  if (companiesResult.error) {
-    console.error("Error fetching companies for use case labels:", companiesResult.error)
-  }
 
   if (useCaseResult.error) {
     console.error("Error fetching use case by id for catalog detail:", useCaseResult.error)
@@ -633,9 +640,7 @@ export async function getUseCaseCatalogRowById(
 
   if (!useCaseResult.data) return null
 
-  const companyNameById = buildCompanyNameById(
-    companiesResult.data as { id: unknown; name: unknown; status?: unknown }[] | null
-  )
+  const companyNameById = buildCompanyNameById(companiesData)
 
   return rowToUseCaseCatalogRow(
     useCaseResult.data as Record<string, unknown>,

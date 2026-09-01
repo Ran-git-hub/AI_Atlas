@@ -16,3 +16,6 @@ node_modules/
 .DS_Store
 .vercel
 tsconfig.tsbuildinfo
+
+# Local announcement cache (superseded by Supabase AI_Atlas_Announcements)
+data/

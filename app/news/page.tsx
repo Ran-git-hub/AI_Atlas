@@ -23,7 +23,7 @@ function isPublishedStatus(status: string | null | undefined): boolean {
   return status?.trim().toLowerCase() === "published"
 }
 
-function buildTakeContext(items: NewsItem[], useCases: Awaited<ReturnType<typeof getUseCasesCatalogRows>>): NewsTakeContext {
+function buildTakeContext(items: NewsItem[], useCases: Awaited<ReturnType<typeof getCachedUseCasesCatalogRows>>): NewsTakeContext {
   return {
     useCases: useCases
       .filter((row) => isPublishedStatus(row.status))

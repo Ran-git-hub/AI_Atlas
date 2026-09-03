@@ -119,7 +119,7 @@ Server-side reads prefer `SUPABASE_SERVICE_ROLE_KEY` when available so the app c
 ## Prerequisites
 
 - Node.js 18.17 or newer
-- pnpm
+- npm
 - A Supabase project
 
 ## Local Setup
@@ -127,7 +127,7 @@ Server-side reads prefer `SUPABASE_SERVICE_ROLE_KEY` when available so the app c
 Install dependencies:
 
 ```bash
-pnpm install
+npm install
 ```
 
 Create `.env.local` in the repository root:
@@ -143,7 +143,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 Run the development server:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 Open:
@@ -165,10 +165,10 @@ http://localhost:3000
 ## Available Scripts
 
 ```bash
-pnpm dev      # Start the Next.js dev server
-pnpm build    # Build the production app
-pnpm start    # Start the production server
-pnpm lint     # Run ESLint
+npm run dev      # Start the Next.js dev server
+npm run build    # Build the production app
+npm run start    # Start the production server
+npm run lint     # Run ESLint
 ```
 
 ## Weekly Report Generation

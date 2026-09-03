@@ -126,6 +126,22 @@ export const getCachedNewsItems = unstable_cache(
   { revalidate: 300 },
 )
 
+/** Hostnames of published news article URLs — used to allowlist the
+  * /api/news-image proxy so it can't be used to fetch arbitrary URLs. */
+export async function getNewsSourceHostnames(): Promise<string[]> {
+  const items = await getCachedNewsItems()
+  const hostnames = new Set<string>()
+  for (const item of items) {
+    if (!item.url) continue
+    try {
+      hostnames.add(new URL(item.url).hostname.toLowerCase().replace(/^www\./, ""))
+    } catch {
+      // skip malformed URLs
+    }
+  }
+  return Array.from(hostnames)
+}
+
 const NEWS_ADMIN_STATUSES = ["published", "pending", "noise"] as const
 
 /** Fetch all news items for admin management — includes status, no noise filter. */

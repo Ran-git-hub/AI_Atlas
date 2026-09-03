@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
+import { getNewsSourceHostnames } from "@/lib/data-news"
 
 export const dynamic = "force-dynamic"
+
+function normalizeHostname(hostname: string): string {
+  return hostname.toLowerCase().replace(/^www\./, "")
+}
 
 const IMAGE_META_RE =
   /<meta[^>]*\bproperty=["'](?:og:image|twitter:image)["'][^>]*\bcontent=["']([^"']+)["'][^>]*>|<meta[^>]*\bname=["'](?:og:image|twitter:image|twitter:image:src)["'][^>]*\bcontent=["']([^"']+)["'][^>]*>|<meta[^>]*\bcontent=["']([^"']+)["'][^>]*\b(?:property|name)=["'](?:og:image|twitter:image|twitter:image:src)["'][^>]*>/i
@@ -80,6 +85,14 @@ export async function GET(request: NextRequest) {
 
   if (pageUrl.protocol !== "http:" && pageUrl.protocol !== "https:") {
     return NextResponse.json({ imageUrl: null }, { status: 400 })
+  }
+
+  // Only fetch pages whose hostname belongs to a published AI Atlas News
+  // article — this endpoint is public, so without an allowlist it would let
+  // anyone use the server to fetch and relay arbitrary URLs.
+  const allowedHostnames = await getNewsSourceHostnames()
+  if (!allowedHostnames.includes(normalizeHostname(pageUrl.hostname))) {
+    return NextResponse.json({ imageUrl: null }, { status: 403 })
   }
 
   const controller = new AbortController()

@@ -172,22 +172,16 @@ export async function getCompanies(): Promise<Company[]> {
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
-  const [companiesData, useCasesResult] = await Promise.all([
+  const [companiesData, useCaseUrlRows] = await Promise.all([
     fetchAllCompanies<Company>(supabase, {
       select:
         "id,name,status,description,industry,website_url,logo_url,headquarters_country,city,created_at,latitude,longitude",
       publishedOnly: true,
     }),
-    supabase.from("AI_Atlas_Use_Cases").select("id, company_id, \"URL\"")
+    fetchAllUseCases(supabase, { select: "id, company_id, \"URL\"" }),
   ])
 
-  if (useCasesResult.error) {
-    console.error("Error fetching use case URLs for company websites:", useCasesResult.error)
-  }
-
-  const officialWebsiteById = buildOfficialWebsiteByCompanyId(
-    (useCasesResult.data ?? []) as Record<string, unknown>[]
-  )
+  const officialWebsiteById = buildOfficialWebsiteByCompanyId(useCaseUrlRows)
   // Published filter is now at the DB query level (publishedOnly in fetchAllCompanies).
   return companiesData.map((company) => withWebsiteFallback(company, officialWebsiteById))
 }
@@ -467,7 +461,32 @@ function rowToUseCaseCatalogRow(
   }
 }
 
-const COMPANY_PAGE_SIZE = 1000
+const SUPABASE_PAGE_SIZE = 1000
+
+/** Fetch every row of `table`, paging past Supabase's 1000-row REST limit
+  * with `.range()`. `orderBy` columns must produce a deterministic row order
+  * (add a tie-breaker like `id`) so no row is skipped or duplicated across
+  * pages. */
+async function fetchAllRows<T>(
+  supabase: SupabaseClient,
+  table: string,
+  opts: { select: string; orderBy: string[]; eq?: [string, string] }
+): Promise<T[]> {
+  const rows: T[] = []
+  for (let from = 0; from < 100000; from += SUPABASE_PAGE_SIZE) {
+    let query = supabase.from(table).select(opts.select)
+    for (const column of opts.orderBy) query = query.order(column)
+    if (opts.eq) query = query.eq(opts.eq[0], opts.eq[1])
+    const { data, error } = await query.range(from, from + SUPABASE_PAGE_SIZE - 1)
+    if (error) {
+      console.error(`Error fetching ${table}:`, error)
+      break
+    }
+    rows.push(...((data ?? []) as T[]))
+    if ((data?.length ?? 0) < SUPABASE_PAGE_SIZE) break
+  }
+  return rows
+}
 
 /** Fetch every row of AI_Atlas_Companies, paging past Supabase's 1000-row REST
   * limit. Ordering by name then id keeps pages deterministic (id breaks ties on
@@ -476,24 +495,27 @@ async function fetchAllCompanies<T = { id: unknown; name: unknown; status?: unkn
   supabase: SupabaseClient,
   opts: { select: string; publishedOnly?: boolean } = { select: "id, name, status" }
 ): Promise<T[]> {
-  const rows: T[] = []
-  for (let from = 0; from < 20000; from += COMPANY_PAGE_SIZE) {
-    let query = supabase
-      .from("AI_Atlas_Companies")
-      .select(opts.select)
-      .order("name")
-      .order("id")
-      .range(from, from + COMPANY_PAGE_SIZE - 1)
-    if (opts.publishedOnly) query = query.eq("status", "published")
-    const { data, error } = await query
-    if (error) {
-      console.error("Error fetching companies:", error)
-      break
-    }
-    rows.push(...((data ?? []) as T[]))
-    if ((data?.length ?? 0) < COMPANY_PAGE_SIZE) break
-  }
-  return rows
+  return fetchAllRows<T>(supabase, "AI_Atlas_Companies", {
+    select: opts.select,
+    orderBy: ["name", "id"],
+    eq: opts.publishedOnly ? ["status", "published"] : undefined,
+  })
+}
+
+const USE_CASES_ROW_SELECT =
+  "id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,published_at,status,is_trending,source_name,confidence_score,created_at,\"URL\""
+
+/** Fetch every row of AI_Atlas_Use_Cases, paging past Supabase's 1000-row
+  * REST limit (the table currently has 1500+ rows). */
+async function fetchAllUseCases(
+  supabase: SupabaseClient,
+  opts: { select?: string; publishedOnly?: boolean } = {}
+): Promise<Record<string, unknown>[]> {
+  return fetchAllRows<Record<string, unknown>>(supabase, "AI_Atlas_Use_Cases", {
+    select: opts.select ?? USE_CASES_ROW_SELECT,
+    orderBy: ["id"],
+    eq: opts.publishedOnly ? ["status", "published"] : undefined,
+  })
 }
 
 export async function getUseCasesWithCoords(
@@ -505,28 +527,13 @@ export async function getUseCasesWithCoords(
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
-  let useCasesQuery = supabase
-    .from("AI_Atlas_Use_Cases")
-    .select("id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,published_at,status,is_trending,source_name,confidence_score,created_at,\"URL\"")
-    .order("id", { ascending: true })
-
-  if (publishedOnly) {
-    useCasesQuery = useCasesQuery.eq("status", "published")
-  }
-
-  const [companiesData, useCasesResult] = await Promise.all([
+  const [companiesData, rows] = await Promise.all([
     fetchAllCompanies(supabase),
-    useCasesQuery,
+    fetchAllUseCases(supabase, { publishedOnly }),
   ])
-
-  if (useCasesResult.error) {
-    console.error("Error fetching use cases:", useCasesResult.error)
-    return []
-  }
 
   const companyNameById = buildCompanyNameById(companiesData)
 
-  const rows = (useCasesResult.data ?? []) as Record<string, unknown>[]
   return rows
     .map((row) => rowToUseCaseWithCoords(row, companyNameById))
     .filter(Boolean) as UseCaseWithCoords[]
@@ -577,42 +584,13 @@ export async function getUseCasesCatalogRows(
 
   // Exclude content — the heaviest column (~1MB for 639 rows). The detail
   // modal lazy-loads it per-row via getUseCaseContent(id).
-  let useCasesQuery = supabase
-    .from("AI_Atlas_Use_Cases")
-    .select("id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,published_at,status,is_trending,source_name,confidence_score,created_at,\"URL\"")
-    .order("id", { ascending: true })
-
-  if (publishedOnly) {
-    useCasesQuery = useCasesQuery.eq("status", "published")
-  }
-
-  // When not filtering to published, fetch a second range to cover rows
-  // beyond Supabase's 1000-row API limit (currently ~1072 total use cases).
-  const useCasesPage1 = publishedOnly
-    ? null
-    : supabase
-        .from("AI_Atlas_Use_Cases")
-        .select("*")
-        .order("id", { ascending: true })
-        .range(1000, 1999)
-
-  const [companiesData, useCasesResult, useCasesOverflow] = await Promise.all([
+  const [companiesData, rows] = await Promise.all([
     fetchAllCompanies(supabase),
-    useCasesQuery,
-    useCasesPage1,
+    fetchAllUseCases(supabase, { publishedOnly }),
   ])
 
   const companyNameById = buildCompanyNameById(companiesData, { includeArchived })
 
-  if (useCasesResult.error) {
-    console.error("Error fetching use cases for catalog table:", useCasesResult.error)
-    return []
-  }
-
-  const rows = [
-    ...(useCasesResult.data ?? []),
-    ...(useCasesOverflow?.data ?? []),
-  ] as Record<string, unknown>[]
   return rows
     .map((row) => rowToUseCaseCatalogRow(row, companyNameById, { includeArchived, publishedOnly }))
     .filter(Boolean) as UseCaseCatalogRow[]
@@ -683,51 +661,43 @@ function formatUtcMsAsCentralEurope(ms: number): string {
   }).format(new Date(ms))
 }
 
-function latestMsFromRows(rows: Record<string, unknown>[]): number | null {
-  let max = -Infinity
-  for (const row of rows) {
-    for (const key of ["updated_at", "created_at"] as const) {
-      const v = row[key]
-      if (v == null || v === "") continue
-      const t = Date.parse(String(v))
-      if (Number.isFinite(t) && t > max) max = t
-    }
-  }
-  return max === -Infinity ? null : max
-}
-
-async function fetchTimestampRows(
+async function fetchLatestCreatedAtMs(
   supabase: SupabaseClient,
   table: string
-): Promise<Record<string, unknown>[]> {
-  // Try created_at only first — several tables lack updated_at
-  const createdOnly = await supabase.from(table).select("created_at")
-  if (createdOnly.error) {
-    console.error(
-      `[getLatestAtlasDataUpdateCetDisplay] ${table}:`,
-      createdOnly.error.message
-    )
-    return []
+): Promise<number | null> {
+  // Ask the DB for just the single newest row (it does the sorting), instead
+  // of fetching all rows and computing max in JS — that previously hit
+  // Supabase's 1000-row REST cap and silently ignored the rest.
+  const { data, error } = await supabase
+    .from(table)
+    .select("created_at")
+    .order("created_at", { ascending: false })
+    .limit(1)
+
+  if (error) {
+    console.error(`[getLatestAtlasDataUpdateCetDisplay] ${table}:`, error.message)
+    return null
   }
-  return (createdOnly.data ?? []) as Record<string, unknown>[]
+
+  const raw = (data as { created_at: string | null }[] | null)?.[0]?.created_at
+  if (raw == null) return null
+  const t = Date.parse(raw)
+  return Number.isFinite(t) ? t : null
 }
 
 /**
- * Latest timestamp among all `updated_at` and `created_at` values in
- * `AI_Atlas_Companies` and `AI_Atlas_Use_Cases`, shown in Central European local time
- * (Europe/Berlin).
+ * Latest `created_at` value across `AI_Atlas_Companies` and
+ * `AI_Atlas_Use_Cases`, shown in Central European local time (Europe/Berlin).
  */
 export async function getLatestAtlasDataUpdateCetDisplay(): Promise<string> {
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
-  const [companyRows, useCaseRows] = await Promise.all([
-    fetchTimestampRows(supabase, "AI_Atlas_Companies"),
-    fetchTimestampRows(supabase, "AI_Atlas_Use_Cases"),
+  const [mCompanies, mUseCases] = await Promise.all([
+    fetchLatestCreatedAtMs(supabase, "AI_Atlas_Companies"),
+    fetchLatestCreatedAtMs(supabase, "AI_Atlas_Use_Cases"),
   ])
 
-  const mCompanies = latestMsFromRows(companyRows)
-  const mUseCases = latestMsFromRows(useCaseRows)
   const candidates = [mCompanies, mUseCases].filter(
     (n): n is number => n != null
   )

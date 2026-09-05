@@ -3,6 +3,12 @@
 import { Mail } from "lucide-react"
 import { LinkedInLogo, XLogo } from "@/components/brand-icons"
 import { CopyLinkButton } from "@/components/copy-link-button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
 const shareButtonClass =
@@ -26,9 +32,16 @@ export function ShareRow({
 }) {
   const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
   const xUrl = `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`
-  const emailUrl = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(
+  // A bare mailto: silently does nothing when no mail handler is registered,
+  // which is the norm for people living in Gmail/Outlook on the web — hence the
+  // webmail compose links alongside it.
+  const subject = encodeURIComponent(title)
+  const body = encodeURIComponent(
     `${title}\n\n${url}\n\nvia AI Atlas — real-world AI deployments`,
-  )}`
+  )
+  const emailUrl = `mailto:?subject=${subject}&body=${body}`
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`
+  const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?subject=${subject}&body=${body}`
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
@@ -57,14 +70,36 @@ export function ShareRow({
       >
         <XLogo />
       </a>
-      <a
-        href={emailUrl}
-        className={shareButtonClass}
-        aria-label="Share by email"
-        title="Share by email"
-      >
-        <Mail className="h-4 w-4 shrink-0" aria-hidden />
-      </a>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={shareButtonClass}
+            aria-label="Share by email"
+            title="Share by email"
+          >
+            <Mail className="h-4 w-4 shrink-0" aria-hidden />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="center"
+          className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md"
+        >
+          <DropdownMenuItem asChild className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white">
+            <a href={emailUrl}>Default mail app</a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white">
+            <a href={gmailUrl} target="_blank" rel="noreferrer">
+              Gmail
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white">
+            <a href={outlookUrl} target="_blank" rel="noreferrer">
+              Outlook
+            </a>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <CopyLinkButton url={url} iconOnly className={shareButtonClass} />
     </div>
   )

@@ -49,6 +49,21 @@ const ACCENT = USE_CASE_PANEL_ACCENT
 const detailShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
+/** content is the page body; URL is the View source button. */
+const DETAIL_OMITTED_KEYS = new Set(["content", "url", "title"])
+
+function formatDetailDate(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  const date = new Date(trimmed)
+  if (Number.isNaN(date.getTime())) return trimmed
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
 function isRecentUseCase(row: UseCaseCatalogRow): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
   return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
@@ -295,6 +310,18 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
       .find((entry) => entry.key.toLowerCase() === "content")
       ?.value.trim() || null
 
+  // Everything else worth showing. content is the body above and URL is the
+  // View source button, so both would only repeat themselves here.
+  const detailEntries = row.fieldEntries
+    .filter((entry) => !DETAIL_OMITTED_KEYS.has(entry.key.toLowerCase()))
+    .map((entry) => ({
+      ...entry,
+      value: entry.key.toLowerCase() === "created_at"
+        ? formatDetailDate(entry.value)
+        : entry.value.trim(),
+    }))
+    .filter((entry) => entry.value)
+
   const structuredData = [
     useCaseArticleSchema({
       id: row.id,
@@ -416,6 +443,26 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
             {articleBody ? (
               <div className="whitespace-pre-wrap break-words text-[15px] leading-[1.8] text-slate-200">
                 {articleBody}
+              </div>
+            ) : null}
+
+            {detailEntries.length > 0 ? (
+              <div className="mt-10 border-t border-slate-800 pt-6">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+                  Details
+                </h2>
+                <dl className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                  {detailEntries.map(({ key, label, value }) => (
+                    <div key={key}>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                        {label}
+                      </dt>
+                      <dd className="mt-1 break-words text-sm leading-relaxed text-slate-200">
+                        {value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               </div>
             ) : null}
           </div>

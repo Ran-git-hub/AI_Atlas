@@ -63,7 +63,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
           letterSpacing: "-0.01em",
-          padding: "64px 72px",
+          padding: "42px 58px",
           position: "relative",
           overflow: "hidden",
         }}
@@ -93,12 +93,12 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={LOGO_URL}
-            width={48}
-            height={48}
+            width={44}
+            height={44}
             alt="AI Atlas"
             style={{ borderRadius: "10px" }}
           />
-          <span style={{ fontSize: "27px", fontWeight: 700, letterSpacing: "-0.02em" }}>
+          <span style={{ fontSize: "25px", fontWeight: 700, letterSpacing: "-0.02em" }}>
             AI Atlas
           </span>
           <span
@@ -144,7 +144,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               borderRadius: "2px",
               background:
                 "linear-gradient(90deg, #43cc93 0%, rgba(67,204,147,0.15) 100%)",
-              marginTop: "34px",
+              marginTop: "22px",
             }}
           />
 
@@ -152,7 +152,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             <p
               style={{
                 margin: 0,
-                marginTop: "26px",
+                marginTop: "22px",
                 fontSize: "25px",
                 lineHeight: 1.3,
                 color: "#d4dde5",

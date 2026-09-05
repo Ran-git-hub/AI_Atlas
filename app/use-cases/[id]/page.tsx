@@ -14,6 +14,7 @@ import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { ShareRow } from "@/components/share-row"
+import { pageMetadata } from "@/lib/page-metadata"
 import { absoluteUrl } from "@/lib/site-url"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
@@ -258,26 +259,15 @@ export async function generateMetadata({
     desc || `${title} — explore this AI use case in the AI Atlas catalog.`
   // Without these the root layout's homepage canonical/openGraph are inherited,
   // so every use case page reports itself as a duplicate of the homepage and
-  // shares as a generic "AI Atlas" card.
-  const canonical = absoluteUrl(`/use-cases/${encodeURIComponent(row.id)}`)
-  const image = row.image_url?.trim()
-  return {
+  // shares as a generic "AI Atlas" card. The image comes from this route's
+  // opengraph-image.tsx unless the record carries its own.
+  return pageMetadata({
     title: `${title} · AI Atlas`,
     description,
-    alternates: { canonical },
-    openGraph: {
-      type: "article",
-      url: canonical,
-      title,
-      description,
-      images: image ? [image] : undefined,
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-    },
-  }
+    path: `/use-cases/${encodeURIComponent(row.id)}`,
+    image: row.image_url,
+    type: "article",
+  })
 }
 
 export default async function UseCaseDetailPage({ params }: UseCaseDetailPageProps) {

@@ -30,7 +30,10 @@ export function pageMetadata({
       url: canonical,
       title,
       description,
-      images: trimmedImage ? [trimmedImage] : undefined,
+      // Omit `images` entirely when there's no explicit one: setting it to
+      // undefined reads as "this page has no image" and suppresses the
+      // opengraph-image.tsx file convention, leaving shared links imageless.
+      ...(trimmedImage ? { images: [trimmedImage] } : {}),
     },
     twitter: {
       card: "summary_large_image",

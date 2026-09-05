@@ -645,6 +645,47 @@ export async function getUseCaseContent(
   return typeof row.content === "string" ? row.content : null
 }
 
+/** Minimal fields for the per-use-case OG image. Deliberately not
+  * getUseCaseCatalogRowById: that pages the whole companies table, which is far
+  * too much work for a route social crawlers hit once per shared URL. */
+export async function getUseCaseOgSummary(id: string): Promise<{
+  title: string
+  companyName: string | null
+  industry: string | null
+  location: string | null
+} | null> {
+  const supabase = createServiceRoleClient() ?? (await createClient())
+
+  const { data, error } = await supabase
+    .from("AI_Atlas_Use_Cases")
+    .select("title,company_id,industry,city,country")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (error || !data) return null
+  const row = data as Record<string, unknown>
+
+  const str = (v: unknown) => (v == null ? "" : String(v).trim())
+  let companyName: string | null = null
+  const companyId = str(row.company_id)
+  if (companyId) {
+    const { data: company } = await supabase
+      .from("AI_Atlas_Companies")
+      .select("name")
+      .eq("id", companyId)
+      .maybeSingle()
+    companyName = str((company as { name?: unknown } | null)?.name) || null
+  }
+
+  const location = [str(row.city), str(row.country)].filter(Boolean).join(", ")
+  return {
+    title: str(row.title),
+    companyName,
+    industry: str(row.industry) || null,
+    location: location || null,
+  }
+}
+
 /** Central Europe (legally CET in winter, CEST in summer). */
 const CENTRAL_EUROPE_TZ = "Europe/Berlin"
 

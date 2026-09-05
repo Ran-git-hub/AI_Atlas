@@ -297,6 +297,16 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   const isRecent = isRecentUseCase(row)
   const heroImage = row.image_url?.trim()
   const canonicalPath = absoluteUrl(`/use-cases/${encodeURIComponent(row.id)}`)
+  // subtitleForHero truncates for the hero; an email should carry the whole
+  // sentence rather than a trailing ellipsis.
+  const shareDescription = row.description?.trim().split(/\n+/)[0]?.trim() || null
+  const shareMeta = [
+    row.company_name?.trim(),
+    row.industry?.trim(),
+    [row.city?.trim(), row.country?.trim()].filter(Boolean).join(", "),
+  ]
+    .filter(Boolean)
+    .join(" · ")
   const recordEntries = row.fieldEntries.filter(
     (entry) => entry.key.toLowerCase() !== "title",
   )
@@ -362,7 +372,13 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
               </Link>
             </div>
             <div className="mt-5 border-t border-slate-800/80 pt-4">
-              <ShareRow url={canonicalPath} title={title} />
+              <ShareRow
+                url={canonicalPath}
+                title={title}
+                description={shareDescription}
+                meta={shareMeta}
+                emailSubject={`AI Atlas: ${title}`}
+              />
             </div>
           </div>
         </div>

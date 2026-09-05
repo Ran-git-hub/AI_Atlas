@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
+const SITE_HOME = "https://ai-atlas.app"
+
 const shareButtonClass =
   "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-white/15 bg-white/5 text-[#d4d4d4] transition-colors hover:border-white/25 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
 
@@ -22,11 +24,20 @@ const shareButtonClass =
 export function ShareRow({
   url,
   title,
+  description,
+  meta,
+  emailSubject,
   label = "Share",
   className,
 }: {
   url: string
   title: string
+  /** One-line summary, included in the email body when present. */
+  description?: string | null
+  /** Context line, e.g. "Ford Motor Company · Automobile Manufacturers · Dearborn". */
+  meta?: string | null
+  /** Defaults to `title`; pass a source-prefixed variant for inbox context. */
+  emailSubject?: string
   label?: string | null
   className?: string
 }) {
@@ -35,9 +46,26 @@ export function ShareRow({
   // A bare mailto: silently does nothing when no mail handler is registered,
   // which is the norm for people living in Gmail/Outlook on the web — hence the
   // webmail compose links alongside it.
-  const subject = encodeURIComponent(title)
+  const subject = encodeURIComponent(emailSubject ?? title)
   const body = encodeURIComponent(
-    `${title}\n\n${url}\n\nvia AI Atlas — real-world AI deployments`,
+    [
+      "Hi,",
+      "",
+      "Thought this might be of interest:",
+      "",
+      title,
+      meta?.trim() || null,
+      description?.trim() ? "" : null,
+      description?.trim() || null,
+      "",
+      url,
+      "",
+      "—",
+      "Shared from AI Atlas — real-world AI deployments worldwide",
+      SITE_HOME,
+    ]
+      .filter((line) => line !== null)
+      .join("\n"),
   )
   const emailUrl = `mailto:?subject=${subject}&body=${body}`
   const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`
@@ -70,7 +98,10 @@ export function ShareRow({
       >
         <XLogo />
       </a>
-      <DropdownMenu>
+      {/* modal={false}: the modal scroll-lock adds a scrollbar-width margin to
+          body, which double-counts against globals.css's `scrollbar-gutter:
+          stable` and visibly shifts the page when the menu opens. */}
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <button
             type="button"

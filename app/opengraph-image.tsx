@@ -28,36 +28,32 @@ const GLOBE_DATA_URL = (() => {
   }
 })()
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Pillar({ text }: { text: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      <span
+    <div style={{ display: "flex", alignItems: "center", gap: "14px", width: "440px" }}>
+      <div
         style={{
-          fontSize: "52px",
-          fontWeight: 700,
-          letterSpacing: "-0.03em",
-          color: "#f5f5f5",
-          lineHeight: 1,
+          display: "flex",
+          width: "9px",
+          height: "9px",
+          borderRadius: "50%",
+          background: "#43cc93",
+          flexShrink: 0,
         }}
-      >
-        {value}
-      </span>
-      <span
-        style={{
-          marginTop: "10px",
-          fontSize: "19px",
-          letterSpacing: "0.02em",
-          color: "#8fa3b5",
-        }}
-      >
-        {label}
+      />
+      <span style={{ fontSize: "25px", color: "#d4dde5", letterSpacing: "-0.01em" }}>
+        {text}
       </span>
     </div>
   )
 }
 
 export default async function Image() {
-  const { totalUseCases, totalCompanies, totalCountries } = await getAtlasStats()
+  const { totalUseCases } = await getAtlasStats()
+  // Rounded down, never exact: this card is regenerated at most hourly and then
+  // cached by each social network for days, so a precise count would be wrong
+  // far more often than it's right.
+  const useCasesBucket = Math.floor(totalUseCases / 50) * 50
 
   return new ImageResponse(
     (
@@ -147,10 +143,20 @@ export default async function Image() {
             }}
           />
 
-          <div style={{ display: "flex", gap: "84px", marginTop: "38px" }}>
-            <Stat value={fmt(totalUseCases)} label="Use cases" />
-            <Stat value={fmt(totalCompanies)} label="Companies" />
-            <Stat value={fmt(totalCountries)} label="Countries" />
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              rowGap: "20px",
+              columnGap: "24px",
+              marginTop: "36px",
+              maxWidth: "920px",
+            }}
+          >
+            <Pillar text={`${fmt(useCasesBucket)}+ validated AI use cases`} />
+            <Pillar text="Daily AI news, de-noised" />
+            <Pillar text="Industry explorer & reports" />
+            <Pillar text="Weekly insights from the catalog" />
           </div>
         </div>
 

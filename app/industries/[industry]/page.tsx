@@ -8,6 +8,7 @@ import { IndustryBreakdownList } from "@/components/industries/industry-breakdow
 import { IndustryRelatedReports } from "@/components/industries/industry-related-reports"
 import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
+import { pageMetadata } from "@/lib/page-metadata"
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
@@ -36,10 +37,11 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
     }
   }
 
-  return {
+  return pageMetadata({
     title: `AI Use Cases in ${detail.name} — AI Atlas`,
     description: `Explore real-world ${detail.name} AI deployments across companies/organizations and countries/regions.`,
-  }
+    path: `/industries/${encodeURIComponent(detail.slug)}`,
+  })
 }
 
 export default async function IndustryDetailPage({ params }: { params: Promise<Params> }) {

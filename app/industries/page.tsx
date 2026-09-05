@@ -4,13 +4,15 @@ import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustrySummaryCard } from "@/components/industries/industry-summary-card"
 import { IndustryUseCaseOverview } from "@/components/industries/industry-use-case-overview"
+import { pageMetadata } from "@/lib/page-metadata"
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "AI Use Cases By Industry — AI Atlas",
   description: "Explore real-world AI deployments by industry across companies/organizations and countries/regions.",
-}
+  path: "/industries",
+})
 
 export default async function IndustriesPage() {
   const [industries, latestDataUpdateCet] = await Promise.all([

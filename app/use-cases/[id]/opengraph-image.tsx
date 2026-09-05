@@ -1,24 +1,22 @@
 import { ImageResponse } from "next/og"
-import { getAtlasStats } from "@/lib/data"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
+import { getUseCaseOgSummary } from "@/lib/data"
 
 // Supabase reads go through fetch, which Next's Data Cache persists across
-// builds — without this the card keeps rendering counts from whenever it was
-// first prerendered.
+// builds — without this the card keeps showing the title and company from
+// whenever it was first rendered, even after the record is edited.
 export const revalidate = 3600
 
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
-export const alt = "AI Atlas — Real-world AI deployments worldwide"
-
-function fmt(n: number): string {
-  return n.toLocaleString("en-US")
-}
+export const alt = "AI use case on AI Atlas"
 
 const LOGO_URL = "https://ai-atlas.app/ai-atlas-logo.png"
-// Transparent sphere: the original og-globe.png bakes the site background into
-// its corners, which shows as a rectangle once it overlaps the card gradient.
+// og-globe-alpha.png is the sphere with a real transparent surround. The
+// original og-globe.png is fully opaque with its corners baked to the site
+// background, and Satori doesn't reliably clip it to a circle — the square
+// showed through as a lighter rectangle over the card gradient.
 const GLOBE_DATA_URL = (() => {
   try {
     const buf = readFileSync(join(process.cwd(), "public", "og-globe-alpha.png"))
@@ -28,32 +26,28 @@ const GLOBE_DATA_URL = (() => {
   }
 })()
 
-function Pillar({ text }: { text: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "13px", width: "455px" }}>
-      <div
-        style={{
-          display: "flex",
-          width: "9px",
-          height: "9px",
-          borderRadius: "50%",
-          background: "#43cc93",
-          flexShrink: 0,
-        }}
-      />
-      <span style={{ fontSize: "25px", color: "#d4dde5", letterSpacing: "-0.01em" }}>
-        {text}
-      </span>
-    </div>
-  )
+/** Satori has no line-clamp, so long titles are trimmed on a word boundary. */
+function clampTitle(value: string, max: number): string {
+  if (value.length <= max) return value
+  const cut = value.slice(0, max)
+  const lastSpace = cut.lastIndexOf(" ")
+  return `${(lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`
 }
 
-export default async function Image() {
-  const { totalUseCases } = await getAtlasStats()
-  // Rounded down, never exact: this card is regenerated at most hourly and then
-  // cached by each social network for days, so a precise count would be wrong
-  // far more often than it's right.
-  const useCasesBucket = Math.floor(totalUseCases / 50) * 50
+function titleFontSize(length: number): number {
+  if (length <= 55) return 62
+  if (length <= 90) return 52
+  return 44
+}
+
+export default async function Image({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const summary = await getUseCaseOgSummary(id)
+
+  const title = clampTitle(summary?.title || "AI use case", 130)
+  const meta = [summary?.companyName, summary?.industry, summary?.location]
+    .filter(Boolean)
+    .join("  ·  ")
 
   return new ImageResponse(
     (
@@ -79,16 +73,16 @@ export default async function Image() {
             style={{
               display: "flex",
               position: "absolute",
-              right: "-170px",
-              bottom: "-190px",
-              opacity: 0.3,
+              right: "-150px",
+              bottom: "-170px",
+              opacity: 0.28,
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={GLOBE_DATA_URL}
-              width={580}
-              height={580}
+              width={520}
+              height={520}
               alt=""
               style={{ display: "flex" }}
             />
@@ -107,6 +101,17 @@ export default async function Image() {
           <span style={{ fontSize: "25px", fontWeight: 700, letterSpacing: "-0.02em" }}>
             AI Atlas
           </span>
+          <span
+            style={{
+              marginLeft: "10px",
+              fontSize: "16px",
+              fontWeight: 600,
+              letterSpacing: "0.14em",
+              color: "#43cc93",
+            }}
+          >
+            AI USE CASE
+          </span>
         </div>
 
         <div
@@ -121,14 +126,14 @@ export default async function Image() {
           <p
             style={{
               margin: 0,
-              fontSize: "60px",
+              fontSize: `${titleFontSize(title.length)}px`,
               fontWeight: 700,
-              lineHeight: 1.1,
-              letterSpacing: "-0.03em",
-              maxWidth: "880px",
+              lineHeight: 1.16,
+              letterSpacing: "-0.025em",
+              color: "#f5f5f5",
             }}
           >
-            Real-world AI deployments worldwide
+            {title}
           </p>
 
           <div
@@ -143,29 +148,25 @@ export default async function Image() {
             }}
           />
 
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              rowGap: "16px",
-              columnGap: "24px",
-              marginTop: "24px",
-              maxWidth: "960px",
-            }}
-          >
-            <Pillar text={`${fmt(useCasesBucket)}+ validated AI use cases`} />
-            <Pillar text="Daily AI news, de-noised" />
-            <Pillar text="Industry explorer & reports" />
-            <Pillar text="Weekly insights from the catalog" />
-          </div>
+          {meta ? (
+            <p
+              style={{
+                margin: 0,
+                marginTop: "22px",
+                fontSize: "25px",
+                lineHeight: 1.3,
+                color: "#d4dde5",
+              }}
+            >
+              {meta}
+            </p>
+          ) : null}
         </div>
 
-        <div
-          style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-        >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: "18px", color: "#6b7d8e" }}>ai-atlas.app</span>
           <span style={{ fontSize: "18px", color: "#4a5b6a" }}>
-            Curated daily · read in 5 minutes
+            Real-world AI deployments worldwide
           </span>
         </div>
       </div>

@@ -372,6 +372,22 @@ function pickCoord(
   return null
 }
 
+/**
+ * Every column AI_Atlas_Use_Cases actually has:
+ *
+ *   id, company_id, type, title, summary, content, industry, continent,
+ *   country, city, latitude, longitude, published_at, status, is_trending,
+ *   source_name, confidence_score, created_at, URL
+ *
+ * Note `URL` is uppercase, and that there is no image_url, updated_at, sector,
+ * location, name, description, website_url or reference_url. The mappers below
+ * used to read those names and silently produce null for all of them — which
+ * is why "View source" never rendered on any detail page (it looked for
+ * reference_url/url/website_url and never found the real `URL`). Fields the
+ * table doesn't have are now written as an explicit null so the gap is visible
+ * rather than looking like a working lookup.
+ */
+
 /** Normalize a Supabase row from AI_Atlas_Use_Cases into a typed point for the globe. */
 function rowToUseCaseWithCoords(
   row: Record<string, unknown>,
@@ -392,21 +408,21 @@ function rowToUseCaseWithCoords(
     id: String(id),
     company_id: str(row.company_id),
     status: str(row.status),
-    title: str(row.title ?? row.use_case_title ?? row.case_title),
-    name: str(row.name ?? row.use_case_name),
-    description: str(row.description ?? row.summary ?? row.details),
-    sector: str(row.sector),
+    title: str(row.title),
+    name: null,
+    description: str(row.summary),
+    sector: null,
     industry: str(row.industry),
     city: str(row.city),
-    country: str(row.country ?? row.headquarters_country),
-    location: str(row.location),
+    country: str(row.country),
+    location: null,
     company_name: str(row.company_name),
-    website_url: str(row.website_url),
-    reference_url: str(row.reference_url),
-    url: str(row.url),
-    image_url: str(row.image_url),
+    website_url: null,
+    reference_url: null,
+    url: str(row.URL),
+    image_url: null,
     created_at: str(row.created_at),
-    updated_at: str(row.updated_at),
+    updated_at: null,
     lat,
     lng,
     fieldEntries: buildUseCaseFieldEntries(row, companyNameById),
@@ -440,21 +456,21 @@ function rowToUseCaseCatalogRow(
     id: String(id),
     company_id: companyId,
     status: str(row.status),
-    title: str(row.title ?? row.use_case_title ?? row.case_title),
-    name: str(row.name ?? row.use_case_name),
-    description: str(row.description ?? row.summary ?? row.details),
-    sector: str(row.sector),
+    title: str(row.title),
+    name: null,
+    description: str(row.summary),
+    sector: null,
     industry: str(row.industry),
     city: str(row.city),
-    country: str(row.country ?? row.headquarters_country),
-    location: str(row.location),
+    country: str(row.country),
+    location: null,
     company_name: normalizedCompanyName,
-    website_url: str(row.website_url),
-    reference_url: str(row.reference_url),
-    url: str(row.url),
-    image_url: str(row.image_url),
+    website_url: null,
+    reference_url: null,
+    url: str(row.URL),
+    image_url: null,
     created_at: str(row.created_at),
-    updated_at: str(row.updated_at),
+    updated_at: null,
     lat,
     lng,
     fieldEntries: buildUseCaseFieldEntries(row, companyNameById),
@@ -643,6 +659,47 @@ export async function getUseCaseContent(
   if (error || !data) return null
   const row = data as Record<string, unknown>
   return typeof row.content === "string" ? row.content : null
+}
+
+/** Minimal fields for the per-use-case OG image. Deliberately not
+  * getUseCaseCatalogRowById: that pages the whole companies table, which is far
+  * too much work for a route social crawlers hit once per shared URL. */
+export async function getUseCaseOgSummary(id: string): Promise<{
+  title: string
+  companyName: string | null
+  industry: string | null
+  location: string | null
+} | null> {
+  const supabase = createServiceRoleClient() ?? (await createClient())
+
+  const { data, error } = await supabase
+    .from("AI_Atlas_Use_Cases")
+    .select("title,company_id,industry,city,country")
+    .eq("id", id)
+    .maybeSingle()
+
+  if (error || !data) return null
+  const row = data as Record<string, unknown>
+
+  const str = (v: unknown) => (v == null ? "" : String(v).trim())
+  let companyName: string | null = null
+  const companyId = str(row.company_id)
+  if (companyId) {
+    const { data: company } = await supabase
+      .from("AI_Atlas_Companies")
+      .select("name")
+      .eq("id", companyId)
+      .maybeSingle()
+    companyName = str((company as { name?: unknown } | null)?.name) || null
+  }
+
+  const location = [str(row.city), str(row.country)].filter(Boolean).join(", ")
+  return {
+    title: str(row.title),
+    companyName,
+    industry: str(row.industry) || null,
+    location: location || null,
+  }
 }
 
 /** Central Europe (legally CET in winter, CEST in summer). */

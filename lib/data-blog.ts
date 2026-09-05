@@ -297,3 +297,42 @@ export async function getAdjacentBlogPosts(post: BlogPost): Promise<{
     next: nextArticle ? mapListRow(nextArticle as BlogRow) : null,
   }
 }
+
+/** Minimal fields for the per-post OG image. Deliberately not
+  * getBlogPostBySlug: that selects "*", pulling the whole content column for a
+  * card that only needs a title and a date. */
+export async function getBlogPostOgSummary(slug: string): Promise<{
+  title: string
+  postKind: BlogPostKind
+  weekStart: string | null
+  weekEnd: string | null
+  publishedAt: string | null
+} | null> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select("post_kind, title, week_start, week_end, published_at")
+      .eq("slug", normalizeBlogSlugParam(slug))
+      .maybeSingle()
+
+    if (error || !data) return null
+    const row = data as {
+      post_kind: string
+      title: string | null
+      week_start: string | null
+      week_end: string | null
+      published_at: string | null
+    }
+    return {
+      title: (row.title ?? "").trim(),
+      postKind: asKind(row.post_kind),
+      weekStart: row.week_start,
+      weekEnd: row.week_end,
+      publishedAt: row.published_at,
+    }
+  } catch (e) {
+    console.error("[blog] getBlogPostOgSummary", e)
+    return null
+  }
+}

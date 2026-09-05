@@ -77,6 +77,7 @@ interface UseCasesTableProps {
   rows: UseCaseCatalogRow[]
   initialState: InitialState
   latestDataUpdateCet: string
+  initialCaseId?: string
   showInsights?: boolean
   enableStatusChange?: boolean
   showStatusColumn?: boolean
@@ -320,6 +321,7 @@ export function UseCasesTable({
   rows,
   initialState,
   latestDataUpdateCet,
+  initialCaseId,
   showInsights = true,
   enableStatusChange = false,
   showStatusColumn = false,
@@ -459,6 +461,18 @@ export function UseCasesTable({
     detailHistoryRef.current = []
     setDetailHistoryLen(0)
     setActiveDetail(null)
+  }, [])
+
+  const activeDetailId = activeDetail?.id ?? null
+
+  // Deep link: ?case=<id> opens the modal on load. rows already holds the full
+  // catalog client-side, so this needs no fetch.
+  React.useEffect(() => {
+    if (!initialCaseId) return
+    const row = rows.find((candidate) => String(candidate.id) === initialCaseId)
+    if (row) openDetail(row)
+    // Runs once for the id the page was loaded with; later opens come from clicks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleStatusChange = React.useCallback(
@@ -1202,6 +1216,9 @@ export function UseCasesTable({
 
   React.useEffect(() => {
     const params = new URLSearchParams()
+    // Rebuilt from scratch on every change, so `case` has to be written here or
+    // the next filter/pagination edit would strip it.
+    if (activeDetailId) params.set("case", activeDetailId)
     if (globalFilter.trim()) params.set("q", globalFilter.trim())
     if (industryFilter.length > 0) params.set("industry", industryFilter.join(","))
     if (countryFilter.length > 0) params.set("country", countryFilter.join(","))
@@ -1221,6 +1238,7 @@ export function UseCasesTable({
       router.replace(nextUrl, { scroll: false })
     }
   }, [
+    activeDetailId,
     globalFilter,
     industryFilter,
     countryFilter,

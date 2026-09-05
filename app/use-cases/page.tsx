@@ -1,5 +1,15 @@
 import { getCachedUseCasesCatalogRows, getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { UseCasesTable } from "@/components/use-cases/use-cases-table"
+import { pageMetadata } from "@/lib/page-metadata"
+
+// Canonical is the bare path: filter/pagination params would otherwise spawn
+// endless duplicate URLs for crawlers.
+export const metadata = pageMetadata({
+  title: "AI Use Cases — AI Atlas",
+  description:
+    "Search and filter real-world AI deployments by company/organization, industry, and country/region.",
+  path: "/use-cases",
+})
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -34,6 +44,7 @@ export default async function UseCasesPage({
         <UseCasesTable
           rows={rows}
           latestDataUpdateCet={latestDataUpdateCet}
+          initialCaseId={getSingleParam(resolvedSearchParams, "case") || undefined}
           showPendingOnly={false}
           initialState={{
             q: getSingleParam(resolvedSearchParams, "q"),

@@ -1,6 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { ShareRow } from "@/components/share-row"
+import { publicAbsoluteUrl } from "@/lib/site-url"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -11,16 +14,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
+const DEFAULT_SHARE_TITLE = "AI Atlas — real-world AI deployments worldwide"
+
 export interface AtlasSiteFooterProps {
   latestDataUpdateCet: string
   /** Globe: fixed bottom bar; index: flows below main content */
   layout?: "fixed" | "inline"
+  /** Used for the X/email share text; LinkedIn reads the page's OG tags instead. */
+  shareTitle?: string
 }
 
 export function AtlasSiteFooter({
   latestDataUpdateCet,
   layout = "fixed",
+  shareTitle,
 }: AtlasSiteFooterProps) {
+  const pathname = usePathname()
+  const shareUrl = publicAbsoluteUrl(pathname || "/")
+
   const inner = (
     <div
       className={cn(
@@ -111,6 +122,12 @@ export function AtlasSiteFooter({
           </DialogContent>
         </Dialog>
       </div>
+      <ShareRow
+        url={shareUrl}
+        title={shareTitle ?? DEFAULT_SHARE_TITLE}
+        label={null}
+        className="justify-center gap-1.5"
+      />
     </div>
   )
 

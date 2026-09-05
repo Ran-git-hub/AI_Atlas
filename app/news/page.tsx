@@ -7,15 +7,17 @@ import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { NewsFeed } from "@/components/news/news-feed"
 import { NewsSourcesButton } from "@/components/news/news-sources-dialog"
 import { BuildersButton } from "@/components/news/builders-dialog"
+import { pageMetadata } from "@/lib/page-metadata"
 
 const newsShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "AI News — AI Atlas",
   description:
     "AI Atlas curates AI industry updates from leading media and builder channels, then connects them with published use cases for editorial context.",
-}
+  path: "/news",
+})
 
 export const revalidate = 300
 

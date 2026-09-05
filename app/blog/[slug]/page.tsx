@@ -7,6 +7,9 @@ import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-r
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
+import { ShareRow } from "@/components/share-row"
+import { pageMetadata } from "@/lib/page-metadata"
+import { absoluteUrl } from "@/lib/site-url"
 
 export const revalidate = 600
 
@@ -32,10 +35,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const post = await getBlogPostBySlug(slug)
   if (!post) return { title: "Post Not Found — AI Atlas" }
-  return {
+  return pageMetadata({
     title: `${post.title} — AI Atlas Blog`,
     description: post.summary || post.title,
-  }
+    path: `/blog/${encodeURIComponent(slug)}`,
+    type: "article",
+  })
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -51,6 +56,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
   const isWeekly = isWeeklyBlogPost(post)
+  const postUrl = absoluteUrl(`/blog/${encodeURIComponent(post.slug)}`)
+  const shareMeta = [
+    isWeekly ? "Weekly report" : "Article",
+    isWeekly && post.weekStart && post.weekEnd
+      ? formatWeekRange(post.weekStart, post.weekEnd)
+      : formatArticleMeta(post.publishedAt),
+  ]
+    .filter(Boolean)
+    .join(" · ")
 
   return (
     <main
@@ -94,6 +108,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   {tag}
                 </span>
               ))}
+            </div>
+
+            <div className="mt-5 border-t border-slate-800/80 pt-4">
+              <ShareRow
+                url={postUrl}
+                title={post.title}
+                description={post.summary}
+                meta={shareMeta}
+                emailSubject={`AI Atlas: ${post.title}`}
+              />
             </div>
           </div>
         </div>

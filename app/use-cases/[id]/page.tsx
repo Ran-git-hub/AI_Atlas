@@ -24,6 +24,7 @@ import {
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
 
+import { formatAtlasDate } from "@/lib/format-date"
 // Cache the published use-cases catalog query for 10 minutes so the
 // related-use-cases computation doesn't hit Supabase on every request.
 //
@@ -57,11 +58,7 @@ function formatDetailDate(value: string): string {
   if (!trimmed) return ""
   const date = new Date(trimmed)
   if (Number.isNaN(date.getTime())) return trimmed
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(date)
 }
 
 function isRecentUseCase(row: UseCaseCatalogRow): boolean {

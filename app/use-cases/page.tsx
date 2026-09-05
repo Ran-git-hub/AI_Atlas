@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/page-metadata"
 export const metadata = pageMetadata({
   title: "AI Use Cases — AI Atlas",
   description:
-    "Search and filter real-world AI deployments by company/organization, industry, and country/region.",
+    "Search and filter real-world AI deployments by organization, industry, and country/region.",
   path: "/use-cases",
 })
 

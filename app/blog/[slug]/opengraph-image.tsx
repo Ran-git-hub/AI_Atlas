@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { getBlogPostOgSummary } from "@/lib/data-blog"
 
+import { formatAtlasDate, formatAtlasDateRange } from "@/lib/format-date"
 // Supabase reads go through fetch, which Next's Data Cache persists across
 // builds — without this the card keeps showing the title from whenever it was
 // first rendered, even after the post is edited.
@@ -40,11 +41,7 @@ function formatDay(iso: string | null): string {
   if (!iso) return ""
   const date = new Date(iso.length <= 10 ? `${iso}T00:00:00` : iso)
   if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(date)
 }
 
 function formatWeek(start: string | null, end: string | null): string {
@@ -52,11 +49,7 @@ function formatWeek(start: string | null, end: string | null): string {
   const from = new Date(`${start}T00:00:00`)
   const to = new Date(`${end}T00:00:00`)
   if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return ""
-  const opts: Intl.DateTimeFormatOptions = { month: "long", day: "numeric" }
-  return `${from.toLocaleDateString("en-US", opts)} – ${to.toLocaleDateString("en-US", {
-    ...opts,
-    year: "numeric",
-  })}`
+  return formatAtlasDateRange(from, to)
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {

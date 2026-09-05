@@ -162,7 +162,7 @@ function buildIndustrySummaryText({
 }): string {
   const leadingCountries = joinNames(relatedCountries, 2)
   const leadingCompanies = joinNames(topCompanies, 2)
-  const base = `${name} has ${useCaseCount.toLocaleString()} tracked AI use cases across ${countryCount.toLocaleString()} countries/regions and ${companyCount.toLocaleString()} companies/organizations.`
+  const base = `${name} has ${useCaseCount.toLocaleString()} tracked AI use cases across ${countryCount.toLocaleString()} countries/regions and ${companyCount.toLocaleString()} organizations.`
 
   if (leadingCountries && leadingCompanies) {
     return `${base} Activity is led by ${leadingCountries}, with frequent examples from ${leadingCompanies}.`

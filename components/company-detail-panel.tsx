@@ -8,6 +8,7 @@ import { getGoogleFaviconUrl } from "@/lib/company-logo"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
 
+import { formatAtlasDate } from "@/lib/format-date"
 function normalizeOrgName(v: string | null | undefined): string {
   return (v ?? "").trim().toLowerCase().replace(/\s+/g, " ")
 }
@@ -40,11 +41,7 @@ function useCaseSummaryText(u: UseCaseWithCoords): string {
 function formatCompanyDateEn(iso: string): string {
   const t = Date.parse(iso)
   if (!Number.isFinite(t)) return iso
-  return new Date(t).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(t)
 }
 
 /** Related use case card: show footer only when `updated_at` exists (same rule as company row). */
@@ -94,7 +91,7 @@ export function CompanyDetailPanel({
         {/* Header */}
         <div className="sticky top-0 z-10 bg-slate-900/90 backdrop-blur-md border-b border-cyan-500/10">
           <div className="flex items-center justify-between p-4">
-            <h2 className="text-lg font-semibold text-white">Company/Organization Details</h2>
+            <h2 className="text-lg font-semibold text-white">Organization Details</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-slate-800/80 transition-colors text-slate-400 hover:text-white"

@@ -12,6 +12,7 @@ import {
   type UseCaseStatus,
   UseCaseWithCoords,
 } from "./types"
+import { formatAtlasDate, formatAtlasDateTime } from "./format-date"
 
 const NON_OFFICIAL_HOST_KEYWORDS = [
   "linkedin.com",
@@ -275,6 +276,16 @@ function formatUseCaseCell(v: unknown): string {
   return String(v).trim()
 }
 
+/** Detail panel: DB timestamps arrive as ISO strings; show a plain date. Fixed
+  * locale + UTC so the server-rendered string matches on every client. */
+function formatUseCaseDate(v: unknown): string {
+  const raw = formatUseCaseCell(v)
+  if (!raw) return ""
+  const ts = Date.parse(raw)
+  if (!Number.isFinite(ts)) return raw
+  return formatAtlasDate(ts)
+}
+
 /** Detail panel: omit these columns (DB names, case-insensitive). */
 const HIDDEN_USE_CASE_DETAIL_KEYS = new Set([
   "is_trending",
@@ -340,7 +351,7 @@ function buildUseCaseFieldEntries(
             : ""
         return {
           key,
-          label: "Company/Organization",
+          label: "Organization",
           value: resolved,
         }
       }
@@ -349,6 +360,20 @@ function buildUseCaseFieldEntries(
           key,
           label: "Category",
           value: formatUseCaseCell(row[key]),
+        }
+      }
+      if (normalizeUseCaseFieldKey(key) === "url") {
+        return {
+          key,
+          label: "Source",
+          value: formatUseCaseCell(row[key]),
+        }
+      }
+      if (normalizeUseCaseFieldKey(key) === "created_at") {
+        return {
+          key,
+          label: snakeCaseToFieldLabel(key),
+          value: formatUseCaseDate(row[key]),
         }
       }
       return {
@@ -557,7 +582,7 @@ export async function getUseCasesWithCoords(
 
 export const getCachedUseCasesWithCoords = unstable_cache(
   async () => getUseCasesWithCoords({ publishedOnly: true }),
-  ["use-cases-with-coords-v1"],
+  ["use-cases-with-coords-v2"],
   { revalidate: 300 },
 )
 
@@ -706,16 +731,7 @@ export async function getUseCaseOgSummary(id: string): Promise<{
 const CENTRAL_EUROPE_TZ = "Europe/Berlin"
 
 function formatUtcMsAsCentralEurope(ms: number): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: CENTRAL_EUROPE_TZ,
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZoneName: "shortGeneric",
-  }).format(new Date(ms))
+  return formatAtlasDateTime(ms)
 }
 
 async function fetchLatestCreatedAtMs(

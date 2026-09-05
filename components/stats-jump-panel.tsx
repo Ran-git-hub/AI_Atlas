@@ -57,7 +57,7 @@ export function StatsJumpPanel({
 
   const title =
     kind === "companies"
-      ? "Companies/Organizations"
+      ? "Organizations"
       : kind === "countries"
         ? "Countries/Regions"
         : kind === "industries"
@@ -159,7 +159,7 @@ export function StatsJumpPanel({
                   }`}
                 >
                   <span>{entry.country}</span>
-                  <span className="text-xs text-slate-400">{entry.count} companies/organizations</span>
+                  <span className="text-xs text-slate-400">{entry.count} organizations</span>
                 </button>
               ))}
             </div>
@@ -199,7 +199,7 @@ export function StatsJumpPanel({
                   }`}
                 >
                   <span>{entry.industry}</span>
-                  <span className="text-xs text-slate-400">{entry.count} companies/organizations</span>
+                  <span className="text-xs text-slate-400">{entry.count} organizations</span>
                 </button>
               ))}
             </div>

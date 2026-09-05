@@ -5,7 +5,6 @@ import {
   Hand,
   ZoomIn,
   MousePointer2,
-  Loader2,
   ChevronLeft,
   Lightbulb,
 } from "lucide-react"
@@ -136,16 +135,16 @@ export function InteractionTips() {
             <div className="flex flex-col gap-2">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-400" />
-                <span className="min-w-0 break-words">Company/Organization</span>
+                <span className="min-w-0 break-words">Organizations</span>
               </div>
               <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2">
                 <div className="flex min-w-0 items-center gap-2">
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3cb371]" />
-                  <span>Use case</span>
+                  <span>Use cases</span>
                 </div>
                 <div className="flex min-w-0 items-center gap-2">
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full border border-yellow-300/70" />
-                  <span>New</span>
+                  <span>Updated in last 24h</span>
                 </div>
               </div>
             </div>
@@ -164,19 +163,13 @@ export function InteractionTips() {
             <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
               <ZoomIn className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
               <span className="min-w-0 flex-1 break-words leading-snug">
-                Scroll to zoom
+                {isTouchLike ? "Pinch to zoom" : "Scroll to zoom"}
               </span>
             </div>
             <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
               <MousePointer2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
               <span className="min-w-0 flex-1 break-words leading-snug">
-                Click marker for details
-              </span>
-            </div>
-            <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
-              <Loader2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300 sm:mt-0" />
-              <span className="min-w-0 flex-1 break-words leading-snug">
-                Wait while details load
+                {isTouchLike ? "Tap marker for details" : "Click marker for details"}
               </span>
             </div>
           </section>

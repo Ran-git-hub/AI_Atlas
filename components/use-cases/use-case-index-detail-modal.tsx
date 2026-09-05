@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { formatAtlasDate } from "@/lib/format-date"
 
 function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
@@ -46,11 +47,7 @@ function formatDate(value: string | null | undefined): string {
   if (!value) return "Unknown date"
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return "Unknown date"
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(date)
 }
 
 export function UseCaseIndexDetailModal({
@@ -288,7 +285,7 @@ export function UseCaseIndexDetailModal({
               </div>
             ) : null}
             <p style={{ margin: "4px 0 0", fontSize: 14, color: "#b3b3b3" }}>
-              Company/Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
+              Organization: {firstNonEmpty(detail.company_name, detail.company_id)}
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>

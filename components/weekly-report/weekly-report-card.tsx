@@ -3,11 +3,9 @@
 import Link from "next/link"
 import type { WeeklyReportListItem } from "@/lib/types-weekly-report"
 
+import { formatAtlasDateRange } from "@/lib/format-date"
 function formatWeekRange(weekStart: string, weekEnd: string): string {
-  const start = new Date(weekStart + "T00:00:00")
-  const end = new Date(weekEnd + "T00:00:00")
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }
-  return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", { ...opts, year: "numeric" })}`
+  return formatAtlasDateRange(`${weekStart}T00:00:00`, `${weekEnd}T00:00:00`)
 }
 
 export function WeeklyReportCard({ report }: { report: WeeklyReportListItem }) {

@@ -7,7 +7,9 @@ import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-r
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
+import { ShareRow } from "@/components/share-row"
 import { pageMetadata } from "@/lib/page-metadata"
+import { absoluteUrl } from "@/lib/site-url"
 
 export const revalidate = 600
 
@@ -54,6 +56,15 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
   const isWeekly = isWeeklyBlogPost(post)
+  const postUrl = absoluteUrl(`/blog/${encodeURIComponent(post.slug)}`)
+  const shareMeta = [
+    isWeekly ? "Weekly report" : "Article",
+    isWeekly && post.weekStart && post.weekEnd
+      ? formatWeekRange(post.weekStart, post.weekEnd)
+      : formatArticleMeta(post.publishedAt),
+  ]
+    .filter(Boolean)
+    .join(" · ")
 
   return (
     <main
@@ -97,6 +108,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   {tag}
                 </span>
               ))}
+            </div>
+
+            <div className="mt-5 border-t border-slate-800/80 pt-4">
+              <ShareRow
+                url={postUrl}
+                title={post.title}
+                description={post.summary}
+                meta={shareMeta}
+                emailSubject={`AI Atlas: ${post.title}`}
+              />
             </div>
           </div>
         </div>

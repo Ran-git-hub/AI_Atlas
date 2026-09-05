@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
+import { usePathname, useRouter } from "next/navigation"
 import { SearchBar, type UnifiedSearchHit } from "@/components/search-bar"
 import { CompanyDetailPanel } from "@/components/company-detail-panel"
 import { UseCaseDetailPanel } from "@/components/use-case-detail-panel"
@@ -101,6 +102,8 @@ export function HomeClient({
   latestDataUpdateCet,
   deepLinkUseCaseId,
 }: HomeClientProps) {
+  const router = useRouter()
+  const pathname = usePathname()
   const [selectedCompany, setSelectedCompany] = useState<CompanyWithCoords | null>(null)
   const [selectedUseCase, setSelectedUseCase] = useState<UseCaseWithCoords | null>(null)
   /** Company to restore when user backs out of use-case panel (only set from company → related use case). */
@@ -251,7 +254,11 @@ export function HomeClient({
     setSelectedCompany(null)
     setSelectedUseCase(null)
     setUseCaseReturnCompany(null)
-  }, [])
+    // Drop ?useCaseId= so a refresh after closing doesn't reopen the panel.
+    if (window.location.search.includes("useCaseId=")) {
+      router.replace(pathname, { scroll: false })
+    }
+  }, [pathname, router])
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery("")

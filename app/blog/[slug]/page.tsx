@@ -7,6 +7,7 @@ import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-r
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
+import { pageMetadata } from "@/lib/page-metadata"
 
 export const revalidate = 600
 
@@ -32,10 +33,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const post = await getBlogPostBySlug(slug)
   if (!post) return { title: "Post Not Found — AI Atlas" }
-  return {
+  return pageMetadata({
     title: `${post.title} — AI Atlas Blog`,
     description: post.summary || post.title,
-  }
+    path: `/blog/${encodeURIComponent(slug)}`,
+    type: "article",
+  })
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {

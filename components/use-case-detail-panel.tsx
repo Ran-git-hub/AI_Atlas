@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { X, ExternalLink, Sparkles, ChevronLeft } from "lucide-react"
+import Link from "next/link"
+import { X, ExternalLink, Sparkles, ChevronLeft, SquareArrowOutUpRight } from "lucide-react"
+import { CopyLinkButton } from "@/components/copy-link-button"
+import { absoluteUrl } from "@/lib/site-url"
 import {
   isUseCasePendingValidation,
   useCaseDisplayName,
@@ -134,6 +137,21 @@ export function UseCaseDetailPanel({
             >
               <X className="h-5 w-5" />
             </button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
+            <Link
+              href={`/use-cases/${encodeURIComponent(useCase.id)}`}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
+              style={{
+                borderColor: `${ACCENT}59`,
+                backgroundColor: `${ACCENT}1a`,
+                color: "#7ee0b2",
+              }}
+            >
+              <SquareArrowOutUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              Open full page
+            </Link>
+            <CopyLinkButton url={absoluteUrl(`/use-cases/${encodeURIComponent(useCase.id)}`)} />
           </div>
         </div>
 

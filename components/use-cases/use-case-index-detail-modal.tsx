@@ -1,8 +1,11 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { createPortal } from "react-dom"
-import { ArrowLeft, ExternalLink, X } from "lucide-react"
+import { ArrowLeft, ExternalLink, SquareArrowOutUpRight, X } from "lucide-react"
+import { CopyLinkButton } from "@/components/copy-link-button"
+import { absoluteUrl } from "@/lib/site-url"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, USE_CASE_STATUSES, useCaseDisplayName } from "@/lib/types"
 import {
@@ -300,6 +303,18 @@ export function UseCaseIndexDetailModal({
                 Back
               </button>
             ) : null}
+            <CopyLinkButton
+              url={absoluteUrl(`/use-cases/${encodeURIComponent(detail.id)}`)}
+              className="hidden sm:inline-flex"
+            />
+            <Link
+              href={`/use-cases/${encodeURIComponent(detail.id)}`}
+              aria-label="Open full page"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[#43cc93]/35 bg-[#43cc93]/10 px-3 py-2 text-sm font-medium text-[#7ee0b2] transition-colors hover:border-[#43cc93]/60 hover:bg-[#43cc93]/15 hover:text-[#a8f0cc]"
+            >
+              <SquareArrowOutUpRight style={{ width: 14, height: 14, flexShrink: 0 }} />
+              <span className="hidden sm:inline">Open full page</span>
+            </Link>
             <button
               type="button"
               onClick={onClose}

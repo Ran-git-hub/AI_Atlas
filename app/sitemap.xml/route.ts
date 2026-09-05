@@ -1,6 +1,7 @@
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { getCachedIndustrySummaries } from "@/lib/data-industries"
+import { absoluteUrl } from "@/lib/site-url"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import type { BlogPostListItem } from "@/lib/types-blog"
 import type { IndustrySummary } from "@/lib/data-industries"
@@ -14,20 +15,8 @@ const SITEMAP_BUILD_TAG = "v4"
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
 
-const FALLBACK_SITE_URL = "https://ai-atlas.app"
-
-function siteUrl(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-    process.env.VERCEL_URL ||
-    FALLBACK_SITE_URL
-  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
-  return withProtocol.replace(/\/+$/, "")
-}
-
 function url(path: string): string {
-  return `${siteUrl()}${path}`
+  return absoluteUrl(path)
 }
 
 function lastModified(value: string | null | undefined): Date | undefined {

@@ -3,6 +3,7 @@ import { getBlogPosts } from "@/lib/data-blog"
 import { BlogPostListCard } from "@/components/blog/blog-post-list-card"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
+import { pageMetadata } from "@/lib/page-metadata"
 
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
@@ -15,10 +16,11 @@ const blogShellPad =
 // with /blog. /blog/[slug] already has this flag.
 export const revalidate = 600
 
-export const metadata = {
+export const metadata = pageMetadata({
   title: "Blog — AI Atlas",
   description: "Reports and analysis on real-world AI deployments, updated regularly.",
-}
+  path: "/blog",
+})
 
 export default async function BlogPage() {
   const [posts, latestDataUpdateCet] = await Promise.all([

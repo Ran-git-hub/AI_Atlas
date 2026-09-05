@@ -3,14 +3,23 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { getUseCaseOgSummary } from "@/lib/data"
 
+// Supabase reads go through fetch, which Next's Data Cache persists across
+// builds — without this the card keeps showing the title and company from
+// whenever it was first rendered, even after the record is edited.
+export const revalidate = 3600
+
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt = "AI use case on AI Atlas"
 
 const LOGO_URL = "https://ai-atlas.app/ai-atlas-logo.png"
+// og-globe-alpha.png is the sphere with a real transparent surround. The
+// original og-globe.png is fully opaque with its corners baked to the site
+// background, and Satori doesn't reliably clip it to a circle — the square
+// showed through as a lighter rectangle over the card gradient.
 const GLOBE_DATA_URL = (() => {
   try {
-    const buf = readFileSync(join(process.cwd(), "public", "og-globe.png"))
+    const buf = readFileSync(join(process.cwd(), "public", "og-globe-alpha.png"))
     return `data:image/png;base64,${buf.toString("base64")}`
   } catch {
     return null
@@ -66,11 +75,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               position: "absolute",
               right: "-150px",
               bottom: "-170px",
-              width: "520px",
-              height: "520px",
-              borderRadius: "50%",
-              overflow: "hidden",
-              opacity: 0.22,
+              opacity: 0.28,
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -79,7 +84,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               width={520}
               height={520}
               alt=""
-              style={{ objectFit: "cover", display: "flex" }}
+              style={{ display: "flex" }}
             />
           </div>
         )}

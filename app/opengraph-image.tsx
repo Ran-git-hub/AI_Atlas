@@ -3,6 +3,11 @@ import { getAtlasStats } from "@/lib/data"
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
+// Supabase reads go through fetch, which Next's Data Cache persists across
+// builds — without this the card keeps rendering counts from whenever it was
+// first prerendered.
+export const revalidate = 3600
+
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt = "AI Atlas — Real-world AI deployments worldwide"
@@ -12,26 +17,54 @@ function fmt(n: number): string {
 }
 
 const LOGO_URL = "https://ai-atlas.app/ai-atlas-logo.png"
+// Transparent sphere: the original og-globe.png bakes the site background into
+// its corners, which shows as a rectangle once it overlaps the card gradient.
 const GLOBE_DATA_URL = (() => {
   try {
-    const buf = readFileSync(join(process.cwd(), "public", "og-globe.png"))
+    const buf = readFileSync(join(process.cwd(), "public", "og-globe-alpha.png"))
     return `data:image/png;base64,${buf.toString("base64")}`
   } catch {
     return null
   }
 })()
 
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <span
+        style={{
+          fontSize: "52px",
+          fontWeight: 700,
+          letterSpacing: "-0.03em",
+          color: "#f5f5f5",
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </span>
+      <span
+        style={{
+          marginTop: "10px",
+          fontSize: "19px",
+          letterSpacing: "0.02em",
+          color: "#8fa3b5",
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}
+
 export default async function Image() {
-  const { totalUseCases } = await getAtlasStats()
-  const useCasesBucket = Math.floor(totalUseCases / 100) * 100
+  const { totalUseCases, totalCompanies, totalCountries } = await getAtlasStats()
 
   return new ImageResponse(
     (
       <div
         style={{
           display: "flex",
-          flexDirection: "row",
-          alignItems: "stretch",
+          flexDirection: "column",
           width: "100%",
           height: "100%",
           background:
@@ -40,186 +73,97 @@ export default async function Image() {
           fontFamily:
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
           letterSpacing: "-0.01em",
+          padding: "64px 72px",
+          position: "relative",
           overflow: "hidden",
         }}
       >
-        {/* LEFT: text content */}
+        {GLOBE_DATA_URL && (
+          <div
+            style={{
+              display: "flex",
+              position: "absolute",
+              right: "-170px",
+              bottom: "-190px",
+              opacity: 0.3,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={GLOBE_DATA_URL}
+              width={580}
+              height={580}
+              alt=""
+              style={{ display: "flex" }}
+            />
+          </div>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={LOGO_URL}
+            width={48}
+            height={48}
+            alt="AI Atlas"
+            style={{ borderRadius: "10px" }}
+          />
+          <span style={{ fontSize: "27px", fontWeight: 700, letterSpacing: "-0.02em" }}>
+            AI Atlas
+          </span>
+        </div>
+
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
-            padding: "64px 32px 64px 72px",
-            width: "720px",
-            flexShrink: 0,
+            flex: 1,
+            paddingRight: "40px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              marginBottom: "32px",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={LOGO_URL}
-              width={56}
-              height={56}
-              alt="AI Atlas"
-              style={{ borderRadius: "12px" }}
-            />
-            <span
-              style={{
-                fontSize: "32px",
-                fontWeight: 700,
-                color: "#f5f5f5",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              AI Atlas
-            </span>
-          </div>
-
           <p
             style={{
               margin: 0,
-              fontSize: "30px",
-              color: "#f5f5f5",
-              maxWidth: "580px",
-              lineHeight: 1.25,
+              fontSize: "64px",
               fontWeight: 700,
-              marginBottom: "36px",
-              letterSpacing: "-0.02em",
+              lineHeight: 1.1,
+              letterSpacing: "-0.03em",
+              maxWidth: "760px",
             }}
           >
             Real-world AI deployments worldwide
           </p>
 
-          {/* Three bullets stacked vertically — cleaner than inline dots */}
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              gap: "14px",
-              marginBottom: "40px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#43cc93",
-                  display: "flex",
-                }}
-              />
-              <span style={{ fontSize: "20px", color: "#d4dde5" }}>
-                Daily noise-free news
-              </span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#43cc93",
-                  display: "flex",
-                }}
-              />
-              <span style={{ fontSize: "20px", color: "#d4dde5" }}>
-                {fmt(useCasesBucket)}+ validated AI use cases
-              </span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#43cc93",
-                  display: "flex",
-                }}
-              />
-              <span style={{ fontSize: "20px", color: "#d4dde5" }}>
-                Regular blog &amp; article updates
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              width: "140px",
-              height: "3px",
+              width: "150px",
+              height: "4px",
               borderRadius: "2px",
               background:
-                "linear-gradient(90deg, #43cc93 0%, rgba(67,204,147,0.2) 100%)",
-              marginBottom: "28px",
+                "linear-gradient(90deg, #43cc93 0%, rgba(67,204,147,0.15) 100%)",
+              marginTop: "34px",
             }}
           />
 
-          <span style={{ fontSize: "15px", color: "#6b7d8e" }}>
-            Daily updates, read in 5 mins.
-          </span>
-
-          <div
-            style={{
-              display: "flex",
-              marginTop: "auto",
-              paddingTop: "40px",
-            }}
-          >
-            <span style={{ fontSize: "15px", color: "#4a5b6a" }}>
-              ai-atlas.app
-            </span>
+          <div style={{ display: "flex", gap: "84px", marginTop: "38px" }}>
+            <Stat value={fmt(totalUseCases)} label="Use cases" />
+            <Stat value={fmt(totalCompanies)} label="Companies" />
+            <Stat value={fmt(totalCountries)} label="Countries" />
           </div>
         </div>
 
-        {/* RIGHT: globe with tilt, no glow */}
-        {GLOBE_DATA_URL && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "480px",
-              flexShrink: 0,
-              position: "relative",
-              marginLeft: "-20px",
-            }}
-          >
-            {/* Globe with tilt only (no glow, no drop-shadow) */}
-            <div
-              style={{
-                display: "flex",
-                position: "relative",
-                width: "460px",
-                height: "460px",
-                borderRadius: "50%",
-                overflow: "hidden",
-                transform: "rotate(-15deg)",
-                background: "transparent",
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={GLOBE_DATA_URL}
-                width={460}
-                height={460}
-                alt="AI Atlas globe"
-                style={{
-                  objectFit: "cover",
-                  display: "flex",
-                }}
-              />
-            </div>
-          </div>
-        )}
+        <div
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
+        >
+          <span style={{ fontSize: "18px", color: "#6b7d8e" }}>ai-atlas.app</span>
+          <span style={{ fontSize: "18px", color: "#4a5b6a" }}>
+            Curated daily · read in 5 minutes
+          </span>
+        </div>
       </div>
     ),
-    { ...size }
+    { ...size },
   )
 }

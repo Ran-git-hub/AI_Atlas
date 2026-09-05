@@ -588,7 +588,7 @@ export const getCachedUseCasesWithCoords = unstable_cache(
 
 export const getCachedUseCasesCatalogRows = unstable_cache(
   async () => getUseCasesCatalogRows({ publishedOnly: true }),
-  ["use-cases-catalog-rows-v1"],
+  ["use-cases-catalog-rows-v2"],
   { revalidate: 300 },
 )
 
@@ -781,6 +781,6 @@ export async function getLatestAtlasDataUpdateCetDisplay(): Promise<string> {
 
 export const getCachedLatestAtlasDataUpdateCetDisplay = unstable_cache(
   async () => getLatestAtlasDataUpdateCetDisplay(),
-  ["latest-data-update-cet-v1"],
+  ["latest-data-update-cet-v2"],
   { revalidate: 600 },
 )

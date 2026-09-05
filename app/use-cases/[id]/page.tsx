@@ -3,7 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { unstable_cache } from "next/cache"
-import { ArrowLeft, ChevronRight, ExternalLink } from "lucide-react"
+import { ArrowLeft, ExternalLink } from "lucide-react"
 import {
   getCachedLatestAtlasDataUpdateCetDisplay,
   getUseCaseCatalogRowById,
@@ -52,20 +52,6 @@ const detailShellPad =
 function isRecentUseCase(row: UseCaseCatalogRow): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
   return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
-}
-
-function isProbablyUrl(key: string, value: string): boolean {
-  if (!/^https?:\/\//i.test(value.trim())) return false
-  if (value.includes("\n")) return false
-  return /url|link|href|website|source|reference/i.test(key)
-}
-
-function firstNonEmpty(...values: Array<string | null | undefined>): string {
-  for (const value of values) {
-    const v = value?.trim()
-    if (v) return v
-  }
-  return "—"
 }
 
 function primaryExternalUrl(row: UseCaseCatalogRow): string | null {
@@ -302,9 +288,12 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   ]
     .filter(Boolean)
     .join(" · ")
-  const recordEntries = row.fieldEntries.filter(
-    (entry) => entry.key.toLowerCase() !== "title",
-  )
+  // The write-up itself, lifted out of fieldEntries so it reads as the page
+  // body rather than a row in a database dump.
+  const articleBody =
+    row.fieldEntries
+      .find((entry) => entry.key.toLowerCase() === "content")
+      ?.value.trim() || null
 
   const structuredData = [
     useCaseArticleSchema({
@@ -417,94 +406,18 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
           </div>
         ) : null}
 
-        <section className={heroImage ? "mt-8" : undefined}>
-          <h2 className="text-xl font-semibold text-[#f5f5f5]">At a glance</h2>
-          <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-400">
-            Core facts from this catalog record. Every raw field follows below.
-          </p>
-          <dl className="mt-4 grid gap-3 sm:grid-cols-3">
-            {[
-              {
-                k: "Company/Organization",
-                v: firstNonEmpty(row.company_name, row.company_id),
-              },
-              { k: "Industry", v: firstNonEmpty(row.industry) },
-              {
-                k: "Location",
-                v: firstNonEmpty(row.city, row.country, row.location),
-              },
-            ].map(({ k, v }) => (
-              <div
-                key={k}
-                className="rounded-xl border border-slate-800 bg-[#1a1a1a] px-4 py-3.5"
-              >
-                <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {k}
-                </dt>
-                <dd className="mt-1.5 text-lg font-semibold leading-snug text-[#f5f5f5]">
-                  {v}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          {ctaUrl ? (
-            <a
-              href={ctaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center gap-1 rounded-sm text-sm font-medium transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
-              style={{ color: ACCENT }}
-            >
-              Open primary reference
-              <ChevronRight className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-            </a>
-          ) : null}
-        </section>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <section
+          className={cn(
+            "grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start",
+            heroImage ? "mt-8" : undefined,
+          )}
+        >
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-[#f5f5f5]">Record fields</h2>
-            <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-slate-400">
-              Every column from the source row, in stable order. URLs open in a new
-              tab.
-            </p>
-
-            <div className="mt-4 divide-y divide-slate-800/80 overflow-hidden rounded-xl border border-slate-700/60 bg-slate-950/40">
-              {recordEntries.map(({ key, label, value }) => {
-                const trimmed = value.trim()
-                const display = trimmed || "Not Available"
-                const url = trimmed && isProbablyUrl(key, trimmed)
-
-                return (
-                  <div key={key} className="space-y-1.5 px-4 py-3.5">
-                    <div className="text-xs font-medium tracking-wide text-slate-500">
-                      {label}
-                    </div>
-                    {url ? (
-                      <a
-                        href={trimmed}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 break-all rounded-sm text-sm font-medium transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
-                        style={{ color: ACCENT }}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
-                        {trimmed}
-                      </a>
-                    ) : (
-                      <p
-                        className={cn(
-                          "whitespace-pre-wrap break-words text-sm leading-relaxed",
-                          trimmed ? "text-slate-200" : "italic text-slate-500"
-                        )}
-                      >
-                        {display}
-                      </p>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
+            {articleBody ? (
+              <div className="whitespace-pre-wrap break-words text-[15px] leading-[1.8] text-slate-200">
+                {articleBody}
+              </div>
+            ) : null}
           </div>
 
           <aside className="lg:sticky lg:top-4">

@@ -61,11 +61,11 @@ function IndexHelpBody() {
       </li>
       <li>
         <strong className="font-medium text-[#f0f4f1]">Search:</strong> matches use case title, description,
-        company/organization name, industry, country/region, and city text.
+        organization name, industry, country/region, and city text.
       </li>
       <li>
         <strong className="font-medium text-[#f0f4f1]">Other filters:</strong> open{" "}
-        <span className="whitespace-nowrap">Other Filters</span> for city, company/organization, and updated date
+        <span className="whitespace-nowrap">Other Filters</span> for city, organization, and updated date
         range.
       </li>
       <li>

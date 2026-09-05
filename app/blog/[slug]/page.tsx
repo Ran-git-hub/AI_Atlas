@@ -11,24 +11,18 @@ import { ShareRow } from "@/components/share-row"
 import { pageMetadata } from "@/lib/page-metadata"
 import { absoluteUrl } from "@/lib/site-url"
 
+import { formatAtlasDate, formatAtlasDateRange } from "@/lib/format-date"
 export const revalidate = 600
 
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
 function formatWeekRange(weekStart: string, weekEnd: string): string {
-  const start = new Date(weekStart + "T00:00:00")
-  const end = new Date(weekEnd + "T00:00:00")
-  const opts: Intl.DateTimeFormatOptions = { month: "long", day: "numeric" }
-  return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", { ...opts, year: "numeric" })}`
+  return formatAtlasDateRange(`${weekStart}T00:00:00`, `${weekEnd}T00:00:00`)
 }
 
 function formatArticleMeta(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(iso)
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

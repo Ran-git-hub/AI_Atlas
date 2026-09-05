@@ -2,15 +2,12 @@ import Link from "next/link"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 
+import { formatAtlasDate } from "@/lib/format-date"
 function formatDate(value: string | null | undefined): string {
   if (!value) return "Unknown date"
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return "Unknown date"
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(date)
 }
 
 export function IndustryUseCaseCard({ useCase }: { useCase: UseCaseCatalogRow }) {

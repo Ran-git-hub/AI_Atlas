@@ -30,7 +30,7 @@ export function IndustrySummaryCard({ industry }: { industry: IndustrySummary })
             <div className="text-lg font-semibold leading-none text-white">
               {formatCount(industry.companyCount)}
             </div>
-            <div className="mt-1 text-xs leading-none text-slate-400">Companies/Organizations</div>
+            <div className="mt-1 text-xs leading-none text-slate-400">Organizations</div>
           </div>
           <div className="flex h-[3.25rem] flex-col justify-center rounded-lg border border-white/[0.07] bg-black/20 px-3 py-1.5">
             <div className="text-lg font-semibold leading-none text-white">

@@ -9,6 +9,7 @@ import { IndustryRelatedReports } from "@/components/industries/industry-related
 import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
 import { pageMetadata } from "@/lib/page-metadata"
+import { formatAtlasDate } from "@/lib/format-date"
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
@@ -16,11 +17,7 @@ function formatDate(value: string | null | undefined): string {
   if (!value) return "—"
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return "—"
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(date)
 }
 
 type Params = {
@@ -39,7 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
 
   return pageMetadata({
     title: `AI Use Cases in ${detail.name} — AI Atlas`,
-    description: `Explore real-world ${detail.name} AI deployments across companies/organizations and countries/regions.`,
+    description: `Explore real-world ${detail.name} AI deployments across organizations and countries/regions.`,
     path: `/industries/${encodeURIComponent(detail.slug)}`,
   })
 }
@@ -100,7 +97,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
         <IndustryStats
           items={[
             { label: "Use Cases", value: detail.useCaseCount },
-            { label: "Companies/Organizations", value: detail.companyCount },
+            { label: "Organizations", value: detail.companyCount },
             { label: "Countries/Regions", value: detail.countryCount },
             { label: "Latest Update", value: latestUpdated },
           ]}
@@ -108,7 +105,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
 
         <div className="grid gap-4 lg:grid-cols-2">
           <IndustryBreakdownList title="Top Countries/Regions" items={detail.relatedCountries} />
-          <IndustryBreakdownList title="Top Companies/Organizations" items={detail.topCompanies} />
+          <IndustryBreakdownList title="Top Organizations" items={detail.topCompanies} />
         </div>
 
         <IndustryRelatedReports reports={detail.relatedReports} />

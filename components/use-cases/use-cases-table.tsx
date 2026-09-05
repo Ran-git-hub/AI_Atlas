@@ -61,6 +61,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { toast } from "@/hooks/use-toast"
 import { UseCaseIndexDetailModalPortal } from "@/components/use-cases/use-case-index-detail-modal"
 
+import { formatAtlasDate } from "@/lib/format-date"
 type InitialState = {
   q: string
   industry: string
@@ -127,11 +128,7 @@ function formatDate(value: string | null | undefined): string {
   if (!value) return "—"
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
-  return new Intl.DateTimeFormat("en-GB", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  }).format(d)
+  return formatAtlasDate(d)
 }
 
 /** Same 24h window as globe search / detail panel for use cases. */
@@ -173,7 +170,7 @@ function sortColumnLabel(columnId: string): string {
   const labels: Record<string, string> = {
     title: "Use Case",
     updated_at: "Updated",
-    company: "Company/Organization",
+    company: "Organization",
     industry: "Industry",
     country: "Country/Region",
     city: "City",
@@ -717,7 +714,7 @@ export function UseCasesTable({
             className="-ml-3 text-[#b3b3b3] hover:bg-transparent hover:text-[#d8d8d8] focus-visible:ring-0"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Company/Organization
+            Organization
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
@@ -1030,13 +1027,13 @@ export function UseCasesTable({
     }
     if (isMobileTableLayout) {
       parts.push(
-        `${kpiStats.orgs.toLocaleString()} ${kpiStats.orgs === 1 ? "company/organization" : "companies/organizations"}`,
+        `${kpiStats.orgs.toLocaleString()} ${kpiStats.orgs === 1 ? "organization" : "organizations"}`,
         `${kpiStats.industries.toLocaleString()} industr${kpiStats.industries === 1 ? "y" : "ies"}`,
         `${kpiStats.countries.toLocaleString()} ${kpiStats.countries === 1 ? "country/region" : "countries/regions"}`
       )
     } else {
       parts.push(
-        `${kpiStats.orgs.toLocaleString()} ${kpiStats.orgs === 1 ? "company/organization" : "companies/organizations"}`,
+        `${kpiStats.orgs.toLocaleString()} ${kpiStats.orgs === 1 ? "organization" : "organizations"}`,
         `${kpiStats.industries.toLocaleString()} industr${kpiStats.industries === 1 ? "y" : "ies"}`,
         `${kpiStats.countries.toLocaleString()} ${kpiStats.countries === 1 ? "country/region" : "countries/regions"}`
       )
@@ -1154,7 +1151,7 @@ export function UseCasesTable({
       return {
         title: "No results for advanced filters",
         description:
-          "City, Company/Organization, or date range is too restrictive. Clear advanced filters or start with Industry/Country/Region first.",
+          "City, Organization, or date range is too restrictive. Clear advanced filters or start with Industry/Country/Region first.",
       }
     }
     return {
@@ -1298,7 +1295,7 @@ export function UseCasesTable({
               setSearchInput(e.target.value)
               setPagination((prev) => ({ ...prev, pageIndex: 0 }))
             }}
-            placeholder="Search Use Case / Company/Organization / Industry ..."
+            placeholder="Search Use Case / Organization / Industry ..."
             className="h-10 w-full rounded-full border-slate-700/50 bg-slate-800/60 py-0 text-base leading-none text-white placeholder:text-[#f5f5f5] focus-visible:border-cyan-500/60 focus-visible:ring-cyan-500/25 md:h-9 md:w-[535px] md:text-sm"
           />
           <div className="grid grid-cols-2 gap-2 md:ml-auto md:flex md:flex-row md:items-center md:justify-end">
@@ -1572,7 +1569,7 @@ export function UseCasesTable({
 
           <div className="flex min-w-0 items-center gap-1.5 text-xs text-[#8a8a8a]">
             <Building2 className="h-3 w-3" />
-            Company/Organization
+            Organization
           </div>
           <div className="min-w-0 w-full md:w-auto">
             <Select
@@ -1581,15 +1578,15 @@ export function UseCasesTable({
                 setOrgFilter(value === "all" ? "" : value)
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))
                 notifyAction(
-                  value === "all" ? "Company/Organization filter cleared." : `Company/Organization filter applied: ${value}.`
+                  value === "all" ? "Organization filter cleared." : `Organization filter applied: ${value}.`
                 )
               }}
             >
               <SelectTrigger className="h-9 w-full rounded-full border-slate-700/50 bg-slate-800/60 text-white md:w-[200px]">
-                <SelectValue placeholder="Company/Organization" />
+                <SelectValue placeholder="Organization" />
               </SelectTrigger>
               <SelectContent className="border-cyan-500/25 bg-slate-900/95 text-white backdrop-blur-md">
-                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All companies/organizations</SelectItem>
+                <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" value="all">All organizations</SelectItem>
                 {organizations.map((org) => (
                   <SelectItem className="text-[#f5f5f5] focus:bg-slate-800 focus:text-white" key={org} value={org}>
                     {org}
@@ -1692,7 +1689,7 @@ export function UseCasesTable({
           ) : null}
           {orgFilter ? (
             <FilterChip
-              label={`Company/Organization: ${orgFilter}`}
+              label={`Organization: ${orgFilter}`}
               onRemove={() => {
                 setOrgFilter("")
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }))

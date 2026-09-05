@@ -31,7 +31,7 @@ export function StatsBar({
           >
             <Database className="h-4 w-4 shrink-0 text-cyan-400" />
             <span className="min-w-0 truncate whitespace-nowrap text-xs leading-tight text-slate-300">
-              <span className="font-semibold tabular-nums text-white">{totalCompanies}</span> Companies/Organizations
+              <span className="font-semibold tabular-nums text-white">{totalCompanies}</span> Organizations
             </span>
           </button>
           <button
@@ -80,7 +80,7 @@ export function StatsBar({
             <Database className="h-4 w-4 shrink-0 text-cyan-400" />
             <span className="flex min-w-0 flex-col items-center justify-center gap-1 leading-tight text-slate-300">
               <span className="text-base font-semibold tabular-nums leading-none text-white">{totalCompanies}</span>
-              <span className="min-w-0 text-sm leading-tight">Companies/Organizations</span>
+              <span className="min-w-0 text-sm leading-tight">Organizations</span>
             </span>
           </button>
           <button

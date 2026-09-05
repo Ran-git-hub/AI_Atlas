@@ -9,6 +9,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
+import { formatAtlasDate } from "@/lib/format-date"
 function parseIsoDateLocal(iso: string): Date | undefined {
   if (!iso) return undefined
   const parts = iso.split("-").map((v) => Number(v))
@@ -56,7 +57,7 @@ export function AdvancedFilterDateField({
               )}
             >
               <span className="min-w-0 truncate text-left">
-                {selected ? selected.toLocaleDateString() : emptyLabel}
+                {selected ? formatAtlasDate(selected) : emptyLabel}
               </span>
               <ChevronDown className="size-4 shrink-0 opacity-50" aria-hidden />
             </Button>

@@ -1,22 +1,13 @@
 import Link from "next/link"
 import type { BlogPostRelatedItem } from "@/lib/types-blog"
 
+import { formatAtlasDate, formatAtlasDateRange } from "@/lib/format-date"
 function formatWeekRange(weekStart: string | null, weekEnd: string | null, publishedAt: string): string {
   if (weekStart && weekEnd) {
-    const start = new Date(`${weekStart}T00:00:00`)
-    const end = new Date(`${weekEnd}T00:00:00`)
-    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }
-    return `${start.toLocaleDateString("en-US", opts)} - ${end.toLocaleDateString("en-US", {
-      ...opts,
-      year: "numeric",
-    })}`
+    return formatAtlasDateRange(`${weekStart}T00:00:00`, `${weekEnd}T00:00:00`)
   }
 
-  return new Date(publishedAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(publishedAt)
 }
 
 export function IndustryRelatedReports({ reports }: { reports: BlogPostRelatedItem[] }) {

@@ -17,6 +17,7 @@ import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { cn } from "@/lib/utils"
 
+import { formatAtlasDateTime } from "@/lib/format-date"
 type Severity = "critical" | "warning" | "info"
 type Dimension = "Completeness" | "Validity" | "Consistency" | "Uniqueness" | "Traceability"
 type TableName = "Use Cases" | "Companies"
@@ -100,12 +101,12 @@ const TABLE_META: Record<TableName, { icon: LucideIcon; accent: string; glow: st
     icon: Building2,
     accent: "text-cyan-300",
     glow: "shadow-[0_0_24px_rgba(34,211,238,0.12)]",
-    description: "Company/organization master data, GICS classification, headquarters, website, and descriptions.",
+    description: "Organization master data, GICS classification, headquarters, website, and descriptions.",
   },
 }
 
 function tableDisplayName(table: TableName): string {
-  return table === "Companies" ? "Companies/Organizations" : table
+  return table === "Companies" ? "Organizations" : table
 }
 
 function passRate(rule: RuleResult) {
@@ -559,7 +560,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
             <div>
               <h1 className="text-2xl font-semibold tracking-normal">AI Atlas Data Quality</h1>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-400">
-                Live dashboard for the AI Atlas quality rules, split by Companies/Organizations and Use Cases.
+                Live dashboard for the AI Atlas quality rules, split by Organizations and Use Cases.
               </p>
             </div>
           </div>
@@ -567,7 +568,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
           <div className="flex flex-wrap items-center gap-3">
             {data ? (
               <span className="text-xs text-slate-400">
-                Generated {new Date(data.generatedAt).toLocaleString()} in {(data.elapsedMs / 1000).toFixed(1)}s
+                Generated {formatAtlasDateTime(data.generatedAt)} in {(data.elapsedMs / 1000).toFixed(1)}s
               </span>
             ) : null}
             <button
@@ -612,7 +613,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
                     <div className="mt-1 text-base font-medium leading-6 text-slate-200">
                       Overall = <span className="text-emerald-300">Use Cases score x {useCaseWeight}%</span>
                       <span className="text-slate-500"> + </span>
-                      <span className="text-cyan-200">Companies/Organizations score x {companyWeight}%</span>
+                      <span className="text-cyan-200">Organizations score x {companyWeight}%</span>
                     </div>
                   </div>
 

@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import type { NewsItem, NewsTakeContext, NewsTakeReference, NewsTakeUseCase } from "@/lib/types-news"
 import { NewsCardImage } from "@/components/news/news-card-image"
 
+import { formatAtlasDate } from "@/lib/format-date"
 const TAKE_STOPWORDS = new Set([
   "about",
   "after",
@@ -68,11 +69,7 @@ function formatNewsDate(item: NewsItem): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return "Date unavailable"
 
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatAtlasDate(d)
 }
 
 function hostnameFromUrl(url: string | null): string | null {

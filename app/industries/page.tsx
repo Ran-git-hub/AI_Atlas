@@ -10,7 +10,7 @@ const industriesShellPad =
 
 export const metadata = pageMetadata({
   title: "AI Use Cases By Industry — AI Atlas",
-  description: "Explore real-world AI deployments by industry across companies/organizations and countries/regions.",
+  description: "Explore real-world AI deployments by industry across organizations and countries/regions.",
   path: "/industries",
 })
 
@@ -46,7 +46,7 @@ export default async function IndustriesPage() {
                 {totalUseCases.toLocaleString()} use cases
               </span>
               <span className="rounded-full border border-slate-800 bg-[#1a1a1a] px-3 py-1.5">
-                {totalCompanies.toLocaleString()} company/organization appearances
+                {totalCompanies.toLocaleString()} organization appearances
               </span>
             </div>
           </div>

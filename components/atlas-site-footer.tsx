@@ -72,7 +72,7 @@ export function AtlasSiteFooter({
             <div className="space-y-3 text-sm text-slate-200">
               <p>
                 <span className="font-medium text-slate-100">Data sources:</span>{" "}
-                Company/organization websites, public announcements, and curated AI use-case records.
+                Organization websites, public announcements, and curated AI use-case records.
               </p>
               <p>
                 <span className="font-medium text-slate-100">Method note:</span>{" "}
@@ -111,7 +111,7 @@ export function AtlasSiteFooter({
                   official sources.
                 </p>
                 <p>
-                  Company/organization names, logos, and trademarks belong to their respective owners.
+                  Organization names, logos, and trademarks belong to their respective owners.
                 </p>
               </div>
               <p className="text-xs text-slate-400">

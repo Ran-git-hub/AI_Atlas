@@ -3,16 +3,13 @@
 import Link from "next/link"
 import type { BlogPostListItem } from "@/lib/types-blog"
 
+import { formatAtlasDate, formatAtlasDateRange } from "@/lib/format-date"
 function formatWeekRange(weekStart: string, weekEnd: string): string {
-  const start = new Date(weekStart + "T00:00:00")
-  const end = new Date(weekEnd + "T00:00:00")
-  const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }
-  return `${start.toLocaleDateString("en-US", opts)} – ${end.toLocaleDateString("en-US", { ...opts, year: "numeric" })}`
+  return formatAtlasDateRange(`${weekStart}T00:00:00`, `${weekEnd}T00:00:00`)
 }
 
 function formatPublished(iso: string): string {
-  const d = new Date(iso)
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+  return formatAtlasDate(iso)
 }
 
 export function BlogPostListCard({ post }: { post: BlogPostListItem }) {

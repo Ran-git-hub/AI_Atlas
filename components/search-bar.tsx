@@ -328,7 +328,7 @@ export function SearchBar({
                                       {showFavicon ? (
                                         <img
                                           src={faviconSrc}
-                                          alt={company?.name ?? "Company/Organization logo"}
+                                          alt={company?.name ?? "Organization logo"}
                                           className="h-full w-full rounded-sm bg-slate-800/90 object-contain p-1"
                                           onError={() => {
                                             if (companyId) markCompanyImageBroken(companyId, faviconSrc)
@@ -337,7 +337,7 @@ export function SearchBar({
                                       ) : showLegacyLogo ? (
                                         <img
                                           src={logoSrc}
-                                          alt={company?.name ?? "Company/Organization logo"}
+                                          alt={company?.name ?? "Organization logo"}
                                           className="h-full w-full object-contain p-1"
                                           onError={() => {
                                             if (companyId) markCompanyImageBroken(companyId, logoSrc)
@@ -360,7 +360,7 @@ export function SearchBar({
                                           border: `1px solid ${isCo ? "rgba(34,211,238,0.35)" : "rgba(60,179,113,0.4)"}`,
                                         }}
                                       >
-                                        {isCo ? "Company/Organization" : "Use case"}
+                                        {isCo ? "Organization" : "Use case"}
                                       </span>
                                       {!isCo && isRecent ? (
                                         <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
@@ -390,7 +390,7 @@ export function SearchBar({
                         </>
                       ) : showNoResults ? (
                         <div className="px-4 py-3 text-sm text-slate-400">
-                          No matching companies/organizations or use cases.
+                          No matching organizations or use cases.
                         </div>
                       ) : (
                         results.map((hit) => {
@@ -429,7 +429,7 @@ export function SearchBar({
                                     {showFavicon ? (
                                       <img
                                         src={faviconSrc}
-                                        alt={company?.name ?? "Company/Organization logo"}
+                                        alt={company?.name ?? "Organization logo"}
                                         className="h-full w-full rounded-sm bg-slate-800/90 object-contain p-1"
                                         onError={() => {
                                           if (companyId) markCompanyImageBroken(companyId, faviconSrc)
@@ -438,7 +438,7 @@ export function SearchBar({
                                     ) : showLegacyLogo ? (
                                       <img
                                         src={logoSrc}
-                                        alt={company?.name ?? "Company/Organization logo"}
+                                        alt={company?.name ?? "Organization logo"}
                                         className="h-full w-full object-contain p-1"
                                         onError={() => {
                                           if (companyId) markCompanyImageBroken(companyId, logoSrc)
@@ -461,7 +461,7 @@ export function SearchBar({
                                         border: `1px solid ${isCo ? "rgba(34,211,238,0.35)" : "rgba(60,179,113,0.4)"}`,
                                       }}
                                     >
-                                      {isCo ? "Company/Organization" : "Use case"}
+                                      {isCo ? "Organization" : "Use case"}
                                     </span>
                                     {!isCo && isRecent ? (
                                       <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
@@ -576,7 +576,7 @@ export function SearchBar({
                         className="border-slate-500/60 bg-slate-800/80 shadow-none data-[state=unchecked]:bg-slate-800/80 data-[state=checked]:border-cyan-400 data-[state=checked]:bg-cyan-500/20 data-[state=checked]:text-cyan-300"
                       />
                       <span className="text-sm text-cyan-300/95 group-hover:text-cyan-200">
-                        Company/Organization
+                        Organization
                       </span>
                     </label>
                     <label className="group flex cursor-pointer items-center gap-3">

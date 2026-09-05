@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import gicsWhitelist from "@/data/gics-industries.json"
 
 export const dynamic = "force-dynamic"
 
@@ -13,181 +14,25 @@ const VALID_CONTINENTS = new Set([
   "Antarctica",
 ])
 
-const GICS_INDUSTRIES = new Set([
-  "Energy Equipment & Services",
-  "Oil, Gas & Consumable Fuels",
-  "Chemicals",
-  "Construction Materials",
-  "Containers & Packaging",
-  "Metals & Mining",
-  "Paper & Forest Products",
-  "Aerospace & Defense",
-  "Building Products",
-  "Construction & Engineering",
-  "Electrical Equipment",
-  "Industrial Conglomerates",
-  "Machinery",
-  "Trading Companies & Distributors",
-  "Commercial Services & Supplies",
-  "Professional Services",
-  "Air Freight & Logistics",
-  "Passenger Airlines",
-  "Marine Transportation",
-  "Ground Transportation",
-  "Transportation Infrastructure",
-  "Automobile Components",
-  "Automobiles",
-  "Household Durables",
-  "Leisure Products",
-  "Textiles, Apparel & Luxury Goods",
-  "Hotels, Restaurants & Leisure",
-  "Diversified Consumer Services",
-  "Distributors",
-  "Broadline Retail",
-  "Specialty Retail",
-  "Consumer Staples Distribution & Retail",
-  "Beverages",
-  "Food Products",
-  "Tobacco",
-  "Household Products",
-  "Personal Care Products",
-  "Health Care Equipment & Supplies",
-  "Health Care Providers & Services",
-  "Health Care Technology",
-  "Biotechnology",
-  "Pharmaceuticals",
-  "Life Sciences Tools & Services",
-  "Banks",
-  "Financial Services",
-  "Consumer Finance",
-  "Capital Markets",
-  "Mortgage Real Estate Investment Trusts (REITs)",
-  "Insurance",
-  "IT Services",
-  "Software",
-  "Communications Equipment",
-  "Technology Hardware, Storage & Peripherals",
-  "Electronic Equipment, Instruments & Components",
-  "Semiconductors & Semiconductor Equipment",
-  "Diversified Telecommunication Services",
-  "Wireless Telecommunication Services",
-  "Media",
-  "Entertainment",
-  "Interactive Media & Services",
-  "Electric Utilities",
-  "Gas Utilities",
-  "Multi-Utilities",
-  "Water Utilities",
-  "Independent Power and Renewable Electricity Producers",
-  "Diversified REITs",
-  "Industrial REITs",
-  "Health Care REITs",
-  "Hotel & Resort REITs",
-  "Office REITs",
-  "Residential REITs",
-  "Retail REITs",
-  "Specialized REITs",
-  "Real Estate Management & Development",
-])
+// Generated from the ai-atlas-data-quality skill whitelist; run `npm run sync-gics` after editing it.
+const GICS_INDUSTRIES = new Set(gicsWhitelist.industries)
 
-const GICS_INDUSTRY_GROUPS = new Set([
-  "Energy",
-  "Materials",
-  "Capital Goods",
-  "Commercial & Professional Services",
-  "Transportation",
-  "Automobiles & Components",
-  "Consumer Durables & Apparel",
-  "Consumer Services",
-  "Consumer Discretionary Distribution & Retail",
-  "Consumer Staples Distribution & Retail",
-  "Food, Beverage & Tobacco",
-  "Household & Personal Products",
-  "Health Care Equipment & Services",
-  "Pharmaceuticals, Biotechnology & Life Sciences",
-  "Banks",
-  "Financial Services",
-  "Insurance",
-  "Software & Services",
-  "Technology Hardware & Equipment",
-  "Semiconductors & Semiconductor Equipment",
-  "Telecommunication Services",
-  "Media & Entertainment",
-  "Utilities",
-  "Equity Real Estate Investment Trusts (REITs)",
-  "Real Estate Management & Development",
-])
 
-const APPROVED_INDUSTRY_EXCEPTIONS = new Set([
-  "Research Institution",
-  "Public Sector / Government",
-  "Public Administration",
-])
+const APPROVED_INDUSTRY_EXCEPTIONS = new Set(gicsWhitelist.exceptions)
 
-const GICS_INDUSTRY_ALIASES = new Map([
-  ["Steel", "Metals & Mining"],
-  ["Aluminum", "Metals & Mining"],
-  ["Copper", "Metals & Mining"],
-  ["Precious Metals & Minerals", "Metals & Mining"],
-  ["Electrical Components & Equipment", "Electrical Equipment"],
-  ["Heavy Electrical Equipment", "Electrical Equipment"],
-  ["Construction Machinery & Heavy Transportation Equipment", "Machinery"],
-  ["Agricultural & Farm Machinery", "Machinery"],
-  ["Industrial Machinery & Supplies & Components", "Machinery"],
-  ["Airlines", "Passenger Airlines"],
-  ["Automobile Manufacturers", "Automobiles"],
-  ["Motorcycle Manufacturers", "Automobiles"],
-  ["Automotive Parts & Equipment", "Automobile Components"],
-  ["Auto Parts & Equipment", "Automobile Components"],
-  ["Consumer Electronics", "Household Durables"],
-  ["Housewares & Specialties", "Household Durables"],
-  ["Household & Personal Care Products", "Household & Personal Products"],
-  ["Tourism & Recreation", "Hotels, Restaurants & Leisure"],
-  ["Education", "Diversified Consumer Services"],
-  ["Internet Software & Services", "Software"],
-  ["Application Software", "Software"],
-  ["Systems Software", "Software"],
-  ["IT Consulting & Other Services", "IT Services"],
-  ["Data Processing & Outsourced Services", "IT Services"],
-  ["Technology Hardware Storage", "Technology Hardware, Storage & Peripherals"],
-  ["Electronic Equipment & Instruments", "Electronic Equipment, Instruments & Components"],
-  ["Electronic Components", "Electronic Equipment, Instruments & Components"],
-  ["Semiconductor Materials & Equipment", "Semiconductors & Semiconductor Equipment"],
-  ["Semiconductors", "Semiconductors & Semiconductor Equipment"],
-  ["Broadcasting", "Media"],
-  ["Cable & Satellite", "Media"],
-  ["Advertising", "Media"],
-  ["Publishing", "Media"],
-  ["Financial Exchanges & Data", "Capital Markets"],
-  ["Asset Management & Custody Banks", "Capital Markets"],
-  ["Investment Banking & Brokerage", "Capital Markets"],
-])
 
 function normalizeTaxonomyValue(value: unknown): string {
   return text(value).toLowerCase().replace(/\s+/g, " ").trim()
 }
 
 const GICS_INDUSTRIES_NORMALIZED = new Set([...GICS_INDUSTRIES].map(normalizeTaxonomyValue))
-const GICS_INDUSTRY_GROUPS_NORMALIZED = new Set([...GICS_INDUSTRY_GROUPS].map(normalizeTaxonomyValue))
 const APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED = new Set([...APPROVED_INDUSTRY_EXCEPTIONS].map(normalizeTaxonomyValue))
-const GICS_INDUSTRY_ALIAS_NORMALIZED = new Map(
-  [...GICS_INDUSTRY_ALIASES].map(([alias, canonical]) => [
-    normalizeTaxonomyValue(alias),
-    normalizeTaxonomyValue(canonical),
-  ])
-)
 
+// GICS L3 only: industry-group names, L4 sub-industries and pre-2023 names are all invalid.
 function isApprovedIndustry(value: unknown): boolean {
   const normalized = normalizeTaxonomyValue(value)
   if (!normalized) return false
-  if (GICS_INDUSTRIES_NORMALIZED.has(normalized)) return true
-  if (GICS_INDUSTRY_GROUPS_NORMALIZED.has(normalized)) return true
-  if (APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED.has(normalized)) return true
-  const canonical = GICS_INDUSTRY_ALIAS_NORMALIZED.get(normalized)
-  return Boolean(
-    canonical &&
-    (GICS_INDUSTRIES_NORMALIZED.has(canonical) || GICS_INDUSTRY_GROUPS_NORMALIZED.has(canonical))
-  )
+  return GICS_INDUSTRIES_NORMALIZED.has(normalized) || APPROVED_INDUSTRY_EXCEPTIONS_NORMALIZED.has(normalized)
 }
 
 const COUNTRY_CONTINENT: Record<string, string> = {
@@ -540,7 +385,7 @@ export async function GET() {
   for (const field of COMPANY_REQUIRED_FIELDS) {
     rules.push(makeRule(
       `company-required-${field}`,
-      `Companies/Organizations: ${field} is mandatory`,
+      `Organizations: ${field} is mandatory`,
       "Companies",
       "Completeness",
       "critical",
@@ -551,7 +396,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-coordinates",
-    "Companies/Organizations: HQ coordinates must be real values",
+    "Organizations: HQ coordinates must be real values",
     "Companies",
     "Completeness",
     "critical",
@@ -572,7 +417,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-description-length",
-    "Companies/Organizations: description must be at least 500 characters",
+    "Organizations: description must be at least 500 characters",
     "Companies",
     "Validity",
     "info",
@@ -677,7 +522,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "uc-industry-gics",
-    "Use cases: industry must be approved GICS industry group, industry, or approved exception",
+    "Use cases: industry must be a GICS L3 industry or approved exception",
     "Use Cases",
     "Validity",
     "warning",
@@ -688,7 +533,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-industry-gics",
-    "Companies/Organizations: industry must be approved GICS industry group, industry, or approved exception",
+    "Organizations: industry must be a GICS L3 industry or approved exception",
     "Companies",
     "Validity",
     "warning",
@@ -732,7 +577,7 @@ export async function GET() {
 
   rules.push(makeRule(
     "company-logo-null",
-    "Companies/Organizations: logo_url should remain null",
+    "Organizations: logo_url should remain null",
     "Companies",
     "Validity",
     "info",
@@ -756,7 +601,7 @@ export async function GET() {
   const duplicateCompanyNameSamples = duplicateSamples(companies, "name")
   rules.push({
     id: "company-name-duplicates",
-    name: "Companies/Organizations: official company/organization name should be unique",
+    name: "Organizations: official organization name should be unique",
     table: "Companies",
     dimension: "Uniqueness",
     severity: "critical",

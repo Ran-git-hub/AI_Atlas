@@ -16,6 +16,11 @@ import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { ShareRow } from "@/components/share-row"
 import { pageMetadata } from "@/lib/page-metadata"
 import { absoluteUrl } from "@/lib/site-url"
+import {
+  breadcrumbSchema,
+  jsonLdProps,
+  useCaseArticleSchema,
+} from "@/lib/structured-data"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
 
@@ -301,11 +306,33 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
     (entry) => entry.key.toLowerCase() !== "title",
   )
 
+  const structuredData = [
+    useCaseArticleSchema({
+      id: row.id,
+      title,
+      description: shareDescription,
+      companyName: row.company_name,
+      industry: row.industry,
+      country: row.country,
+      createdAt: row.created_at,
+      sourceUrl: ctaUrl,
+    }),
+    breadcrumbSchema([
+      { name: "AI Atlas", path: "/" },
+      { name: "Use cases", path: "/use-cases" },
+      { name: title, path: `/use-cases/${encodeURIComponent(row.id)}` },
+    ]),
+  ]
+
   return (
     <main
       className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]"
       style={{ colorScheme: "dark" }}
     >
+      {structuredData.map((schema, index) => (
+        // eslint-disable-next-line react/no-danger
+        <script key={index} {...jsonLdProps(schema)} />
+      ))}
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={detailShellPad}>
           <AtlasAppTopRow activeView="use-cases" />

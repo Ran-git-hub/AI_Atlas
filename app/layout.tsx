@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { ClientAnalytics } from '@/components/client-analytics'
 import { AnnouncementBar } from '@/components/announcement-bar'
+import { jsonLdProps, siteSchema } from '@/lib/structured-data'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -63,6 +64,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
+        {/* eslint-disable-next-line react/no-danger */}
+        <script {...jsonLdProps(siteSchema())} />
         <AnnouncementBar />
         {children}
         <ClientAnalytics />

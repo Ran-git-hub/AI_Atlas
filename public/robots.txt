@@ -1,15 +1,6 @@
 # AI Atlas — robots.txt
-# Added 2026-07-02 to throttle search engine crawler rate.
-#
-# Why: each /use-cases/[id] page hits Supabase for ~1.7 MB of data
-# (608 published use cases × ~596 KB response). Without throttling,
-# Googlebot crawls 608 URLs × 1.7 MB ≈ 1 GB in a single crawl cycle.
-#
-# Crawl-delay is honored by Bing / Yandex / Baidu / DuckDuckGo.
-# Googlebot may ignore it (it has its own crawl rate), but the request
-# rate still helps the smaller bots stay reasonable.
+
 User-agent: *
-Crawl-delay: 10
 
 # Block admin/quality/api endpoints from indexing or crawling.
 Disallow: /admin/
@@ -20,3 +11,14 @@ Disallow: /quality
 # crawl these. Without this rule, Googlebot may encounter redirect
 # variants (HTTP→HTTPS, trailing slash) and flag "Page with redirect".
 Disallow: /_next/static/
+
+Sitemap: https://ai-atlas.app/sitemap.xml
+
+# Crawl-delay was removed 2026-09-05.
+#
+# It was added 2026-07-02 because every /use-cases/[id] render pulled ~1.7 MB
+# from Supabase, so a full crawl of the catalogue cost ~1 GB. That cause is
+# gone: the related-use-cases list is now served from a 10-minute
+# unstable_cache and the catalogue queries no longer select the content
+# column. Throttling every non-Google crawler to one request per 10s was
+# suppressing discovery of 700+ URLs for a problem that no longer exists.

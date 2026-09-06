@@ -1,14 +1,13 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-export type AtlasView = "globe" | "use-cases" | "industries" | "countries" | "blog" | "news"
+export type AtlasView = "globe" | "use-cases" | "industries" | "blog" | "news"
 
 const VIEWS: Array<{ id: AtlasView; label: string; href: string }> = [
   { id: "news", label: "News", href: "/news" },
   { id: "globe", label: "Globe", href: "/" },
   { id: "use-cases", label: "Use Cases", href: "/use-cases" },
   { id: "industries", label: "Industries", href: "/industries" },
-  { id: "countries", label: "Countries", href: "/countries" },
   { id: "blog", label: "Blog", href: "/blog" },
 ]
 
@@ -27,16 +26,13 @@ export function ViewNavigation({
         className,
       )}
     >
-      {/* Decorative, and 94px wide - hidden on narrow screens so the six
-          view pills still fit without horizontal scrolling. */}
-      <span className="hidden shrink-0 px-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 atlas-header:inline atlas-header:px-2 atlas-header:text-xs">
+      <span className="shrink-0 px-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 atlas-header:px-2 atlas-header:text-xs">
         View Switcher
       </span>
       <div className="flex min-w-max items-center gap-0.5 atlas-header:gap-1">
         {VIEWS.map((view) => {
           const active = view.id === activeView
-          const greenView =
-            view.id === "use-cases" || view.id === "industries" || view.id === "countries"
+          const greenView = view.id === "use-cases" || view.id === "industries"
           return (
             <Link
               key={view.id}

@@ -16,6 +16,23 @@ import {
 
 const DEFAULT_SHARE_TITLE = "AI Atlas — real-world AI deployments worldwide"
 
+/**
+ * Site-wide section links. These live in the footer rather than the header
+ * because the view switcher is already full, and a footer link is on every
+ * content page - which is what a hub family needs so it is reachable from
+ * somewhere other than the sitemap.
+ *
+ * Rendered only in the inline layout: the fixed layout is the globe's floating
+ * bar, where an extra row would cover the map.
+ */
+const FOOTER_SECTIONS: Array<{ label: string; href: string }> = [
+  { label: "Use Cases", href: "/use-cases" },
+  { label: "Industries", href: "/industries" },
+  { label: "Countries", href: "/countries" },
+  { label: "News", href: "/news" },
+  { label: "Blog", href: "/blog" },
+]
+
 export interface AtlasSiteFooterProps {
   latestDataUpdateCet: string
   /** Globe: fixed bottom bar; index: flows below main content */
@@ -134,6 +151,20 @@ export function AtlasSiteFooter({
   if (layout === "inline") {
     return (
       <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-3 pb-5 text-slate-300">
+        <nav
+          aria-label="AI Atlas sections"
+          className="mx-auto flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-center gap-x-1 gap-y-0.5 px-2 pb-2 sm:max-w-none"
+        >
+          {FOOTER_SECTIONS.map((section) => (
+            <Link
+              key={section.href}
+              href={section.href}
+              className="px-1.5 py-0.5 text-xs text-slate-300 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
+            >
+              {section.label}
+            </Link>
+          ))}
+        </nav>
         {inner}
       </footer>
     )

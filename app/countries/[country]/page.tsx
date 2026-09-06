@@ -59,7 +59,7 @@ export default async function CountryDetailPage({ params }: { params: Promise<Pa
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={countriesShellPad}>
-          <AtlasAppTopRow activeView="countries" />
+          <AtlasAppTopRow />
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-5">
             <div className="mb-5 flex flex-wrap items-center gap-2">
               <Link

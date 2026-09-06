@@ -28,6 +28,23 @@ const nextConfig = {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
+
+  /**
+   * /sitemap.xml is a rewrite, not a route.
+   *
+   * Every previous shape of this route - Next's native app/sitemap.ts, then a
+   * route handler at app/sitemap.xml/route.ts - kept disappearing from the
+   * deployed build, leaving /sitemap.xml serving the static 404 page while it
+   * worked locally. A rewrite is resolved by the routing layer rather than by
+   * Next's metadata route handling, so the handler is an ordinary API route
+   * with an ordinary name.
+   *
+   * Googlebot only ever requests /sitemap.xml, so robots.txt's Disallow: /api/
+   * does not apply to the rewrite target.
+   */
+  async rewrites() {
+    return [{ source: "/sitemap.xml", destination: "/api/sitemap" }]
+  },
 }
 
 export default nextConfig

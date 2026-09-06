@@ -1,3 +1,11 @@
+// Served to crawlers as /sitemap.xml via a rewrite in next.config.mjs.
+//
+// It lived at app/sitemap.xml/route.ts, and before that used Next's native
+// app/sitemap.ts convention. Both kept vanishing from the Vercel build - the
+// deployed output simply had no such route, so /sitemap.xml returned the
+// static 404 page. Pinning the package manager, disabling middleware and
+// bumping a build tag all failed to hold. A plain route handler plus a
+// rewrite takes Next's metadata route resolution out of the path entirely.
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { getCachedIndustrySummaries } from "@/lib/data-industries"
@@ -5,12 +13,6 @@ import { absoluteUrl } from "@/lib/site-url"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import type { BlogPostListItem } from "@/lib/types-blog"
 import type { IndustrySummary } from "@/lib/data-industries"
-
-// Bump this to force Vercel to invalidate the stale build cache for
-// this route. The previous deploy was restoring a cached .vercel/output
-// that didn't include sitemap.xml. If you change the route logic, also
-// bump this. Last bumped: 2026-07-02 v4 (force fresh build).
-const SITEMAP_BUILD_TAG = "v4"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -63,11 +65,6 @@ export async function GET(): Promise<Response> {
     getCachedIndustrySummaries(),
     getBlogPosts(),
   ])
-
-  // Use the build tag in a no-op to ensure the file's mtime changes
-  // (helps invalidate stale caches on Vercel when the file is unchanged
-  // in content but rebuilt due to other changes).
-  void SITEMAP_BUILD_TAG
 
   const entries: Array<{ loc: string; modified?: Date; priority: number; changefreq: string }> = [
     { loc: url("/"), priority: 1, changefreq: "daily" },

@@ -1,13 +1,14 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
-export type AtlasView = "globe" | "use-cases" | "industries" | "blog" | "news"
+export type AtlasView = "globe" | "use-cases" | "industries" | "countries" | "blog" | "news"
 
 const VIEWS: Array<{ id: AtlasView; label: string; href: string }> = [
   { id: "news", label: "News", href: "/news" },
   { id: "globe", label: "Globe", href: "/" },
   { id: "use-cases", label: "Use Cases", href: "/use-cases" },
   { id: "industries", label: "Industries", href: "/industries" },
+  { id: "countries", label: "Countries", href: "/countries" },
   { id: "blog", label: "Blog", href: "/blog" },
 ]
 
@@ -32,7 +33,8 @@ export function ViewNavigation({
       <div className="flex min-w-max items-center gap-0.5 atlas-header:gap-1">
         {VIEWS.map((view) => {
           const active = view.id === activeView
-          const greenView = view.id === "use-cases" || view.id === "industries"
+          const greenView =
+            view.id === "use-cases" || view.id === "industries" || view.id === "countries"
           return (
             <Link
               key={view.id}

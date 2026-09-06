@@ -178,9 +178,10 @@ export function AtlasSiteFooter({
           <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 md:contents">
             {FOOTER_COLUMNS.map((column) => (
             <nav key={column.title} aria-label={column.title} className="flex flex-col">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {column.title}
-              </p>
+              {/* Plain 16px near-white, matching the reference footer: an
+                  uppercase 12px micro-label reads as fine print next to
+                  14px links. */}
+              <p className="text-base text-slate-100">{column.title}</p>
               <ul className="mt-3 space-y-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>

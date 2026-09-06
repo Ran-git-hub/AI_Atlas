@@ -8,6 +8,7 @@ import { IndustryBreakdownList } from "@/components/industries/industry-breakdow
 import { IndustryRelatedReports } from "@/components/industries/industry-related-reports"
 import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
+import { UseCaseLinkIndex } from "@/components/use-cases/use-case-link-index"
 import { pageMetadata } from "@/lib/page-metadata"
 import { formatAtlasDate } from "@/lib/format-date"
 const industriesShellPad =
@@ -138,6 +139,12 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
             </p>
           )}
         </section>
+
+        <UseCaseLinkIndex
+          rows={detail.allUseCases}
+          title={`All ${detail.name} use cases`}
+          description={`Every ${detail.name} deployment tracked in the catalog, A-Z.`}
+        />
       </div>
 
       <div className="mx-auto mt-8 max-w-7xl px-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">

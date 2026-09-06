@@ -24,6 +24,8 @@ export type IndustrySummary = {
 export type IndustryDetail = IndustrySummary & {
   summary: string
   recentUseCases: UseCaseCatalogRow[]
+  /** Every case in the bucket, so the hub links to all of them, not just 8. */
+  allUseCases: UseCaseCatalogRow[]
   topCompanies: CountItem[]
   relatedCountries: CountItem[]
   relatedReports: BlogPostRelatedItem[]
@@ -259,6 +261,7 @@ export async function getIndustryDetail(slug: string): Promise<IndustryDetail | 
       topCompanies,
     }),
     recentUseCases,
+    allUseCases: bucket.rows,
     topCompanies,
     relatedCountries,
     relatedReports,

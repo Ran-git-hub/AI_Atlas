@@ -1,3 +1,4 @@
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
@@ -218,7 +219,7 @@ export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
 export const getCachedCompaniesWithCoords = unstable_cache(
   async () => getCompaniesWithCoords(),
   ["companies-with-coords-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.companies] },
 )
 
 export async function getCompanyById(id: string): Promise<Company | null> {
@@ -583,13 +584,13 @@ export async function getUseCasesWithCoords(
 export const getCachedUseCasesWithCoords = unstable_cache(
   async () => getUseCasesWithCoords({ publishedOnly: true }),
   ["use-cases-with-coords-v2"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
 export const getCachedUseCasesCatalogRows = unstable_cache(
   async () => getUseCasesCatalogRows({ publishedOnly: true }),
   ["use-cases-catalog-rows-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
 export type GetUseCasesCatalogRowsOptions = {
@@ -782,5 +783,5 @@ export async function getLatestAtlasDataUpdateCetDisplay(): Promise<string> {
 export const getCachedLatestAtlasDataUpdateCetDisplay = unstable_cache(
   async () => getLatestAtlasDataUpdateCetDisplay(),
   ["latest-data-update-cet-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )

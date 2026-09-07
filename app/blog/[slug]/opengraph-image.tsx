@@ -7,7 +7,7 @@ import { formatAtlasDate, formatAtlasDateRange } from "@/lib/format-date"
 // Supabase reads go through fetch, which Next's Data Cache persists across
 // builds — without this the card keeps showing the title from whenever it was
 // first rendered, even after the post is edited.
-export const revalidate = 3600
+export const revalidate = 86400
 
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"

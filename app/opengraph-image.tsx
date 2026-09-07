@@ -6,7 +6,7 @@ import { join } from "node:path"
 // Supabase reads go through fetch, which Next's Data Cache persists across
 // builds — without this the card keeps rendering counts from whenever it was
 // first prerendered.
-export const revalidate = 3600
+export const revalidate = 86400
 
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"

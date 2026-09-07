@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
+import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
 import { getUseCaseCatalogRowById, updateUseCaseStatus } from "@/lib/data"
 
 export async function GET(
@@ -50,6 +51,10 @@ export async function PATCH(
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 })
   }
 
+  // revalidatePath only drops the route cache. The data these pages render
+  // comes from tagged caches, which it does not touch - without this an edit
+  // waited out the timer.
+  revalidateTag(CACHE_TAGS.useCases, CACHE_TAG_LIFE)
   revalidatePath("/use-cases")
   revalidatePath("/admin/use-cases")
 

@@ -19,7 +19,7 @@ export const metadata = pageMetadata({
   path: "/news",
 })
 
-export const revalidate = 3600
+export const revalidate = 86400
 
 function isPublishedStatus(status: string | null | undefined): boolean {
   return status?.trim().toLowerCase() === "published"

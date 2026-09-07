@@ -6,7 +6,7 @@ import { getUseCaseOgSummary } from "@/lib/data"
 // Supabase reads go through fetch, which Next's Data Cache persists across
 // builds — without this the card keeps showing the title and company from
 // whenever it was first rendered, even after the record is edited.
-export const revalidate = 3600
+export const revalidate = 86400
 
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"

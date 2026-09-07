@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ShareRow } from "@/components/share-row"
+import { ATLAS_SITE_TAGLINE } from "@/components/atlas-site-tagline"
 import { publicAbsoluteUrl } from "@/lib/site-url"
 import { cn } from "@/lib/utils"
 import {
@@ -152,9 +153,10 @@ export function AtlasSiteFooter({
         <div className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
           <div className="min-w-0">
             <p className="text-base font-semibold text-[#f5f5f5]">AI Atlas</p>
+            {/* The site's own tagline, shared with the header, rather than a
+                second description that could drift from it. */}
             <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-slate-400">
-              Real-world AI deployments across organizations, industries and
-              countries — each one source-linked and checked before it is published.
+              {ATLAS_SITE_TAGLINE}
             </p>
             <div className="mt-4 flex items-center gap-3">
               <a

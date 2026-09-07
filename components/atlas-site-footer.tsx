@@ -39,6 +39,7 @@ const FOOTER_COLUMNS: Array<{
       { label: "Use Cases", href: "/use-cases" },
       { label: "Industries", href: "/industries" },
       { label: "Countries", href: "/countries" },
+      { label: "Data Quality Dashboard", href: "/quality" },
     ],
   },
   {
@@ -180,6 +181,14 @@ export function AtlasSiteFooter({
                 LinkedIn
               </a>
             </p>
+            {/* Sits with the contact links rather than in the legal bar: these
+                share the current page, and bottom-right icons with nothing
+                around them read as social profiles instead. */}
+            <ShareRow
+              url={shareUrl}
+              title={shareTitle ?? DEFAULT_SHARE_TITLE}
+              className="mt-5 gap-1.5"
+            />
           </div>
 
           {FOOTER_COLUMNS.map((column) => (
@@ -207,13 +216,8 @@ export function AtlasSiteFooter({
               AI use-case records. Locations, categories, and links are best-effort
               and may contain inaccuracies.
             </p>
-            <p className="mt-2.5">
-              <Link href="/quality" className={linkClass}>
-                Data Quality Dashboard
-              </Link>
-            </p>
             <p className="mt-5 text-sm font-semibold text-slate-100">Disclaimer</p>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+            <p className="mt-2 text-sm leading-relaxed text-slate-400">
               Information is provided for reference only and does not constitute
               professional advice. Data may be incomplete, delayed, or inaccurate;
               please verify with official sources. Organization names, logos, and
@@ -222,13 +226,8 @@ export function AtlasSiteFooter({
           </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-[#2f2f2f] pt-5 text-xs text-slate-500">
-          <span>© 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}</span>
-          <ShareRow
-            url={shareUrl}
-            title={shareTitle ?? DEFAULT_SHARE_TITLE}
-            className="gap-1.5"
-          />
+        <div className="mt-10 border-t border-[#2f2f2f] pt-5 text-xs text-slate-500">
+          © 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}
         </div>
       </footer>
     )

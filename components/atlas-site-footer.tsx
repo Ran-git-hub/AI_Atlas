@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ShareRow } from "@/components/share-row"
 import { ATLAS_SITE_TAGLINE } from "@/components/atlas-site-tagline"
+import { AtlasLogoMark } from "@/components/atlas-logo-mark"
 import { publicAbsoluteUrl } from "@/lib/site-url"
 import { cn } from "@/lib/utils"
 import {
@@ -149,16 +150,21 @@ export function AtlasSiteFooter({
 
   if (layout === "inline") {
     return (
-      <footer className="pointer-events-auto mt-0 rounded-xl border border-[#2f2f2f] bg-[#161616] px-5 py-7 text-slate-300">
-        <div className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
-          <div className="min-w-0">
-            <p className="text-base font-semibold text-[#f5f5f5]">AI Atlas</p>
+      <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-8 pb-6 text-slate-300">
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 md:max-w-xs">
+            <Link href="/" className="flex items-center gap-2" aria-label="AI Atlas home">
+              <AtlasLogoMark className="h-9 w-9" />
+              <span className="text-lg font-semibold tracking-tight text-white">
+                AI Atlas
+              </span>
+            </Link>
             {/* The site's own tagline, shared with the header, rather than a
                 second description that could drift from it. */}
-            <p className="mt-2 max-w-sm text-pretty text-sm leading-relaxed text-slate-400">
+            <p className="mt-3 text-pretty text-sm leading-relaxed text-slate-400">
               {ATLAS_SITE_TAGLINE}
             </p>
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex items-center gap-3 text-sm">
               <a
                 href="https://www.linkedin.com/in/ran-he-1968885"
                 target="_blank"
@@ -174,39 +180,33 @@ export function AtlasSiteFooter({
             </div>
           </div>
 
-          {/* md:contents lets these join the parent grid on wide screens while
-              still tiling two-up on a phone, where one column each would push
-              the footer past 700px tall. */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-3 md:contents">
+          {/* Columns are grouped and sized to their content rather than given
+              equal fractions of the full width: with two to four links each,
+              stretched columns leave a void between every heading. */}
+          <div className="grid grid-cols-2 gap-x-12 gap-y-8 sm:grid-cols-3 md:flex md:gap-x-16">
             {FOOTER_COLUMNS.map((column) => (
-            <nav key={column.title} aria-label={column.title} className="flex flex-col">
-              {/* Plain 16px near-white, matching the reference footer: an
-                  uppercase 12px micro-label reads as fine print next to
-                  14px links. */}
-              <p className="text-base text-slate-100">{column.title}</p>
-              <ul className="mt-3 space-y-2.5">
-                {column.links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className={linkClass}>
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-                {column.title === "About" ? <li>{aboutDialog}</li> : null}
-              </ul>
+              <nav key={column.title} aria-label={column.title} className="flex flex-col">
+                <p className="text-sm font-semibold text-slate-100">{column.title}</p>
+                <ul className="mt-3 space-y-2.5">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                  {column.title === "About" ? <li>{aboutDialog}</li> : null}
+                </ul>
               </nav>
             ))}
           </div>
         </div>
 
-        <div className="mt-7 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-[#2f2f2f] pt-4 text-xs text-slate-400">
-          <span>
-            Latest Data Update: {latestDataUpdateCet} · © 2026 AI Atlas
-          </span>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-[#2f2f2f] pt-5 text-xs text-slate-500">
+          <span>Latest Data Update: {latestDataUpdateCet} · © 2026 AI Atlas</span>
           <ShareRow
             url={shareUrl}
             title={shareTitle ?? DEFAULT_SHARE_TITLE}
-            label={null}
             className="gap-1.5"
           />
         </div>

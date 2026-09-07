@@ -44,7 +44,7 @@ import { formatAtlasDate } from "@/lib/format-date"
 const getCachedPublishedUseCases = unstable_cache(
   () => getUseCasesCatalogRows({ publishedOnly: true }),
   ["related-use-cases-v1"],
-  { revalidate: 600 },
+  { revalidate: 3600 },
 )
 
 const ACCENT = USE_CASE_PANEL_ACCENT

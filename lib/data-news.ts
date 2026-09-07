@@ -123,7 +123,7 @@ export async function getNewsItems(limit = DEFAULT_NEWS_LIMIT): Promise<NewsItem
 export const getCachedNewsItems = unstable_cache(
   async () => getNewsItems(),
   ["news-items-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 )
 
 /** Hostnames of published news article URLs — used to allowlist the

@@ -226,7 +226,7 @@ export async function getIndustrySummaries(): Promise<IndustrySummary[]> {
 export const getCachedIndustrySummaries = unstable_cache(
   async () => getIndustrySummaries(),
   ["industries-summaries-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 )
 
 export async function getIndustryDetail(slug: string): Promise<IndustryDetail | null> {

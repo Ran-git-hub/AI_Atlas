@@ -12,7 +12,7 @@ import { pageMetadata } from "@/lib/page-metadata"
 import { absoluteUrl } from "@/lib/site-url"
 
 import { formatAtlasDate, formatAtlasDateRange } from "@/lib/format-date"
-export const revalidate = 600
+export const revalidate = 3600
 
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"

@@ -7,6 +7,7 @@
 // bumping a build tag all failed to hold. A plain route handler plus a
 // rewrite takes Next's metadata route resolution out of the path entirely.
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
+import { unstable_cache } from "next/cache"
 import { getBlogPosts } from "@/lib/data-blog"
 import { getCachedIndustrySummaries } from "@/lib/data-industries"
 import { getCachedCountrySummaries } from "@/lib/data-countries"
@@ -16,8 +17,21 @@ import type { BlogPostListItem } from "@/lib/types-blog"
 import type { IndustrySummary } from "@/lib/data-industries"
 import type { CountrySummary } from "@/lib/data-countries"
 
+// force-dynamic and revalidate contradict each other - force-dynamic wins and
+// the route is never cached, so the revalidate line was dead. Staying dynamic
+// is the right call for a sitemap: it costs no ISR writes, and every query
+// behind it is served from a one-hour data cache rather than the database.
 export const dynamic = "force-dynamic"
-export const revalidate = 3600
+
+/**
+ * The only uncached query the sitemap made. Googlebot fetches this route with
+ * 800+ URLs in it; without this every fetch hit the blog table directly.
+ */
+const getCachedBlogPosts = unstable_cache(
+  () => getBlogPosts(),
+  ["sitemap-blog-posts-v1"],
+  { revalidate: 3600 },
+)
 
 function url(path: string): string {
   return absoluteUrl(path)
@@ -66,7 +80,7 @@ export async function GET(): Promise<Response> {
     getCachedUseCasesCatalogRows(),
     getCachedIndustrySummaries(),
     getCachedCountrySummaries(),
-    getBlogPosts(),
+    getCachedBlogPosts(),
   ])
 
   const entries: Array<{ loc: string; modified?: Date; priority: number; changefreq: string }> = [

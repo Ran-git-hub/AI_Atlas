@@ -218,7 +218,7 @@ export async function getCompaniesWithCoords(): Promise<CompanyWithCoords[]> {
 export const getCachedCompaniesWithCoords = unstable_cache(
   async () => getCompaniesWithCoords(),
   ["companies-with-coords-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 )
 
 export async function getCompanyById(id: string): Promise<Company | null> {
@@ -583,13 +583,13 @@ export async function getUseCasesWithCoords(
 export const getCachedUseCasesWithCoords = unstable_cache(
   async () => getUseCasesWithCoords({ publishedOnly: true }),
   ["use-cases-with-coords-v2"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 )
 
 export const getCachedUseCasesCatalogRows = unstable_cache(
   async () => getUseCasesCatalogRows({ publishedOnly: true }),
   ["use-cases-catalog-rows-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 )
 
 export type GetUseCasesCatalogRowsOptions = {
@@ -782,5 +782,5 @@ export async function getLatestAtlasDataUpdateCetDisplay(): Promise<string> {
 export const getCachedLatestAtlasDataUpdateCetDisplay = unstable_cache(
   async () => getLatestAtlasDataUpdateCetDisplay(),
   ["latest-data-update-cet-v1"],
-  { revalidate: 600 },
+  { revalidate: 3600 },
 )

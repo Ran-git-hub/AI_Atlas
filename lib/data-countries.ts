@@ -176,7 +176,7 @@ export async function getCountrySummaries(): Promise<CountrySummary[]> {
 export const getCachedCountrySummaries = unstable_cache(
   async () => getCountrySummaries(),
   ["countries-summaries-v1"],
-  { revalidate: 300 },
+  { revalidate: 3600 },
 )
 
 export async function getCountryDetail(slug: string): Promise<CountryDetail | null> {

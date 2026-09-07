@@ -9,10 +9,12 @@
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
 import { getBlogPosts } from "@/lib/data-blog"
 import { getCachedIndustrySummaries } from "@/lib/data-industries"
+import { getCachedCountrySummaries } from "@/lib/data-countries"
 import { absoluteUrl } from "@/lib/site-url"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import type { BlogPostListItem } from "@/lib/types-blog"
 import type { IndustrySummary } from "@/lib/data-industries"
+import type { CountrySummary } from "@/lib/data-countries"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 3600
@@ -60,9 +62,10 @@ ${body}
 }
 
 export async function GET(): Promise<Response> {
-  const [useCases, industries, blogPosts] = await Promise.all([
+  const [useCases, industries, countries, blogPosts] = await Promise.all([
     getCachedUseCasesCatalogRows(),
     getCachedIndustrySummaries(),
+    getCachedCountrySummaries(),
     getBlogPosts(),
   ])
 
@@ -70,6 +73,7 @@ export async function GET(): Promise<Response> {
     { loc: url("/"), priority: 1, changefreq: "daily" },
     { loc: url("/use-cases"), priority: 0.9, changefreq: "daily" },
     { loc: url("/industries"), priority: 0.8, changefreq: "weekly" },
+    { loc: url("/countries"), priority: 0.8, changefreq: "weekly" },
     { loc: url("/news"), priority: 0.8, changefreq: "daily" },
     { loc: url("/blog"), priority: 0.7, changefreq: "weekly" },
     { loc: url("/quality"), priority: 0.4, changefreq: "weekly" },
@@ -81,6 +85,12 @@ export async function GET(): Promise<Response> {
     })),
     ...(industries as IndustrySummary[]).map((item) => ({
       loc: url(`/industries/${encodeURIComponent(item.slug)}`),
+      modified: lastModified(item.latestUpdatedAt),
+      changefreq: "weekly",
+      priority: 0.7,
+    })),
+    ...(countries as CountrySummary[]).map((item) => ({
+      loc: url(`/countries/${encodeURIComponent(item.slug)}`),
       modified: lastModified(item.latestUpdatedAt),
       changefreq: "weekly",
       priority: 0.7,

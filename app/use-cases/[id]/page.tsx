@@ -12,6 +12,7 @@ import {
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { getCachedIndustrySummaries, slugifyTaxonomyValue } from "@/lib/data-industries"
+import { getCachedCountrySummaries } from "@/lib/data-countries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { ShareRow } from "@/components/share-row"
@@ -276,11 +277,12 @@ export async function generateMetadata({
 
 export default async function UseCaseDetailPage({ params }: UseCaseDetailPageProps) {
   const { id } = await params
-  const [row, allRows, latestDataUpdateCet, industries] = await Promise.all([
+  const [row, allRows, latestDataUpdateCet, industries, countries] = await Promise.all([
     getUseCaseCatalogRowById(id),
     getCachedPublishedUseCases(),
     getCachedLatestAtlasDataUpdateCetDisplay(),
     getCachedIndustrySummaries(),
+    getCachedCountrySummaries(),
   ])
   if (!row) notFound()
 
@@ -299,6 +301,10 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   const industrySlug = industryName ? slugifyTaxonomyValue(industryName) : ""
   const hasIndustryHub =
     industrySlug !== "" && industries.some((item) => item.slug === industrySlug)
+  const countryName = row.country?.trim() ?? ""
+  const countrySlug = countryName ? slugifyTaxonomyValue(countryName) : ""
+  const hasCountryHub =
+    countrySlug !== "" && countries.some((item) => item.slug === countrySlug)
   // subtitleForHero truncates for the hero; an email should carry the whole
   // sentence rather than a trailing ellipsis.
   const shareDescription = row.description?.trim().split(/\n+/)[0]?.trim() || null
@@ -390,15 +396,30 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
             <p className="mt-4 max-w-3xl text-pretty text-base leading-relaxed text-slate-400">
               {subtitle}
             </p>
-            {hasIndustryHub ? (
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-slate-500">Industry</span>
-                <Link
-                  href={`/industries/${industrySlug}`}
-                  className="inline-flex items-center rounded-full border border-slate-700 bg-[#1a1a1a] px-3 py-1 font-medium text-slate-200 transition-colors hover:border-[#43cc93]/60 hover:text-[#43cc93] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
-                >
-                  {industryName}
-                </Link>
+            {hasIndustryHub || hasCountryHub ? (
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                {hasIndustryHub ? (
+                  <span className="flex items-center gap-2">
+                    <span className="text-slate-500">Industry</span>
+                    <Link
+                      href={`/industries/${industrySlug}`}
+                      className="inline-flex items-center rounded-full border border-slate-700 bg-[#1a1a1a] px-3 py-1 font-medium text-slate-200 transition-colors hover:border-[#43cc93]/60 hover:text-[#43cc93] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
+                    >
+                      {industryName}
+                    </Link>
+                  </span>
+                ) : null}
+                {hasCountryHub ? (
+                  <span className="flex items-center gap-2">
+                    <span className="text-slate-500">Country/Region</span>
+                    <Link
+                      href={`/countries/${countrySlug}`}
+                      className="inline-flex items-center rounded-full border border-slate-700 bg-[#1a1a1a] px-3 py-1 font-medium text-slate-200 transition-colors hover:border-[#43cc93]/60 hover:text-[#43cc93] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/35"
+                    >
+                      {countryName}
+                    </Link>
+                  </span>
+                ) : null}
               </div>
             ) : null}
             <div className="mt-6 flex flex-wrap items-center gap-3">

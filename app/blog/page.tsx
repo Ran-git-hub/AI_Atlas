@@ -14,7 +14,7 @@ const blogShellPad =
 // call throws DYNAMIC_SERVER_USAGE, and Vercel's cloud packaging
 // then drops the sitemap route from out/ because it shares a chunk
 // with /blog. /blog/[slug] already has this flag.
-export const revalidate = 600
+export const revalidate = 3600
 
 export const metadata = pageMetadata({
   title: "Blog — AI Atlas",

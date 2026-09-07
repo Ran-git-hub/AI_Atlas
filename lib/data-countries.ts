@@ -1,3 +1,4 @@
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
 import { slugifyTaxonomyValue } from "@/lib/data-industries"
@@ -176,7 +177,7 @@ export async function getCountrySummaries(): Promise<CountrySummary[]> {
 export const getCachedCountrySummaries = unstable_cache(
   async () => getCountrySummaries(),
   ["countries-summaries-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
 export async function getCountryDetail(slug: string): Promise<CountryDetail | null> {

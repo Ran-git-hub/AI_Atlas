@@ -1,3 +1,4 @@
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
@@ -123,7 +124,7 @@ export async function getNewsItems(limit = DEFAULT_NEWS_LIMIT): Promise<NewsItem
 export const getCachedNewsItems = unstable_cache(
   async () => getNewsItems(),
   ["news-items-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.news] },
 )
 
 /** Hostnames of published news article URLs — used to allowlist the

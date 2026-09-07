@@ -1,3 +1,5 @@
+import { revalidateTag } from "next/cache"
+import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
 import { NextResponse } from "next/server"
 import { updateNewsStatus } from "@/lib/data-news"
 
@@ -23,5 +25,6 @@ export async function PATCH(
   }
 
   const result = await updateNewsStatus(id, status)
+  if (result.ok) revalidateTag(CACHE_TAGS.news, CACHE_TAG_LIFE)
   return NextResponse.json(result, { status: result.ok ? 200 : 400 })
 }

@@ -1,3 +1,4 @@
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import { getBlogPostsWithRelatedCaseIds } from "@/lib/data-blog"
 import { getIndustryMetadata, type IndustryMetadata } from "@/lib/industry-metadata"
@@ -226,7 +227,7 @@ export async function getIndustrySummaries(): Promise<IndustrySummary[]> {
 export const getCachedIndustrySummaries = unstable_cache(
   async () => getIndustrySummaries(),
   ["industries-summaries-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
 export async function getIndustryDetail(slug: string): Promise<IndustryDetail | null> {

@@ -1,3 +1,4 @@
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
@@ -44,7 +45,7 @@ import { formatAtlasDate } from "@/lib/format-date"
 const getCachedPublishedUseCases = unstable_cache(
   () => getUseCasesCatalogRows({ publishedOnly: true }),
   ["related-use-cases-v1"],
-  { revalidate: 3600 },
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
 const ACCENT = USE_CASE_PANEL_ACCENT

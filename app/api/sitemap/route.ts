@@ -7,7 +7,12 @@
 // bumping a build tag all failed to hold. A plain route handler plus a
 // rewrite takes Next's metadata route resolution out of the path entirely.
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
-import { unstable_cache } from "next/cache"
+// Deliberately uncached, unlike the other three queries here. getBlogPosts
+// builds a cookie-scoped Supabase client and leans on RLS to hide unpublished
+// posts; inside unstable_cache the cookie API is unavailable, the client throws,
+// the catch swallows it and the sitemap silently lost 23 of its 25 blog URLs.
+// Reaching for the service-role client instead would bypass the RLS that does
+// the hiding, so a per-request query is the honest cost here.
 import { getBlogPosts } from "@/lib/data-blog"
 import { getCachedIndustrySummaries } from "@/lib/data-industries"
 import { getCachedCountrySummaries } from "@/lib/data-countries"
@@ -22,16 +27,6 @@ import type { CountrySummary } from "@/lib/data-countries"
 // is the right call for a sitemap: it costs no ISR writes, and every query
 // behind it is served from a one-hour data cache rather than the database.
 export const dynamic = "force-dynamic"
-
-/**
- * The only uncached query the sitemap made. Googlebot fetches this route with
- * 800+ URLs in it; without this every fetch hit the blog table directly.
- */
-const getCachedBlogPosts = unstable_cache(
-  () => getBlogPosts(),
-  ["sitemap-blog-posts-v1"],
-  { revalidate: 3600 },
-)
 
 function url(path: string): string {
   return absoluteUrl(path)
@@ -80,7 +75,7 @@ export async function GET(): Promise<Response> {
     getCachedUseCasesCatalogRows(),
     getCachedIndustrySummaries(),
     getCachedCountrySummaries(),
-    getCachedBlogPosts(),
+    getBlogPosts(),
   ])
 
   const entries: Array<{ loc: string; modified?: Date; priority: number; changefreq: string }> = [

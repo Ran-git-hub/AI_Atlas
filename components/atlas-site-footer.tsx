@@ -48,10 +48,6 @@ const FOOTER_COLUMNS: Array<{
       { label: "Blog", href: "/blog" },
     ],
   },
-  {
-    title: "About",
-    links: [{ label: "Data Quality Dashboard", href: "/quality" }],
-  },
 ]
 
 export interface AtlasSiteFooterProps {
@@ -150,9 +146,13 @@ export function AtlasSiteFooter({
 
   if (layout === "inline") {
     return (
-      <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-8 pb-6 text-slate-300">
-        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
-          <div className="min-w-0 md:max-w-xs">
+      <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-10 pb-7 text-slate-300">
+        {/* One grid, one row. Provenance used to sit in a second banded block
+            below, which read as a separate panel while the top row stood half
+            empty; as a fourth column it fills that space and the band goes
+            away. */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
+          <div className="col-span-2 min-w-0 md:col-span-1">
             <Link href="/" className="flex items-center gap-2" aria-label="AI Atlas home">
               <AtlasLogoMark className="h-9 w-9" />
               <span className="text-lg font-semibold tracking-tight text-white">
@@ -164,7 +164,13 @@ export function AtlasSiteFooter({
             <p className="mt-3 text-pretty text-sm leading-relaxed text-slate-400">
               {ATLAS_SITE_TAGLINE}
             </p>
-            <div className="mt-4 flex items-center gap-3 text-sm">
+            <p className="mt-4 text-sm leading-relaxed text-slate-400">
+              Maintained by Ran
+              <br />
+              <a href="mailto:allenheran@gmail.com" className={linkClass}>
+                Contact
+              </a>
+              {" · "}
               <a
                 href="https://www.linkedin.com/in/ran-he-1968885"
                 target="_blank"
@@ -173,37 +179,52 @@ export function AtlasSiteFooter({
               >
                 LinkedIn
               </a>
-              <span className="text-slate-700">·</span>
-              <a href="mailto:allenheran@gmail.com" className={linkClass}>
-                Contact
-              </a>
-            </div>
+            </p>
           </div>
 
-          {/* Columns are grouped and sized to their content rather than given
-              equal fractions of the full width: with two to four links each,
-              stretched columns leave a void between every heading. */}
-          <div className="grid grid-cols-2 gap-x-12 gap-y-8 sm:grid-cols-3 md:flex md:gap-x-16">
-            {FOOTER_COLUMNS.map((column) => (
-              <nav key={column.title} aria-label={column.title} className="flex flex-col">
-                <p className="text-sm font-semibold text-slate-100">{column.title}</p>
-                <ul className="mt-3 space-y-2.5">
-                  {column.links.map((link) => (
-                    <li key={link.href}>
-                      <Link href={link.href} className={linkClass}>
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                  {column.title === "About" ? <li>{aboutDialog}</li> : null}
-                </ul>
-              </nav>
-            ))}
+          {FOOTER_COLUMNS.map((column) => (
+            <nav key={column.title} aria-label={column.title} className="flex flex-col">
+              <p className="text-sm font-semibold text-slate-100">{column.title}</p>
+              <ul className="mt-3 space-y-2.5">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className={linkClass}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+
+          {/* Was an About dialog. A modal hides provenance behind a click,
+              which is the wrong default for a site whose case for itself is
+              that every record is sourced. */}
+          <div className="col-span-2 min-w-0 md:col-span-1">
+            <p className="text-sm font-semibold text-slate-100">Data &amp; method</p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              Sourced from organization websites, public announcements, and curated
+              AI use-case records. Locations, categories, and links are best-effort
+              and may contain inaccuracies.
+            </p>
+            <p className="mt-2.5">
+              <Link href="/quality" className={linkClass}>
+                Data Quality Dashboard
+              </Link>
+            </p>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t border-[#2f2f2f] pt-5 text-xs text-slate-500">
-          <span>Latest Data Update: {latestDataUpdateCet} · © 2026 AI Atlas</span>
+        <div className="mt-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-t border-[#2f2f2f] pt-5">
+          <p className="max-w-3xl text-xs leading-relaxed text-slate-500">
+            Information is provided for reference only and does not constitute
+            professional advice. Data may be incomplete, delayed, or inaccurate;
+            please verify with official sources. Organization names, logos, and
+            trademarks belong to their respective owners.
+            <span className="mt-2 block text-slate-600">
+              © 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}
+            </span>
+          </p>
           <ShareRow
             url={shareUrl}
             title={shareTitle ?? DEFAULT_SHARE_TITLE}

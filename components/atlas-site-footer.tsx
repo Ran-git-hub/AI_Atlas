@@ -212,19 +212,17 @@ export function AtlasSiteFooter({
                 Data Quality Dashboard
               </Link>
             </p>
+            <p className="mt-4 text-xs leading-relaxed text-slate-500">
+              Information is provided for reference only and does not constitute
+              professional advice. Data may be incomplete, delayed, or inaccurate;
+              please verify with official sources. Organization names, logos, and
+              trademarks belong to their respective owners.
+            </p>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-t border-[#2f2f2f] pt-5">
-          <p className="max-w-3xl text-xs leading-relaxed text-slate-500">
-            Information is provided for reference only and does not constitute
-            professional advice. Data may be incomplete, delayed, or inaccurate;
-            please verify with official sources. Organization names, logos, and
-            trademarks belong to their respective owners.
-            <span className="mt-2 block text-slate-600">
-              © 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}
-            </span>
-          </p>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t border-[#2f2f2f] pt-5 text-xs text-slate-500">
+          <span>© 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}</span>
           <ShareRow
             url={shareUrl}
             title={shareTitle ?? DEFAULT_SHARE_TITLE}

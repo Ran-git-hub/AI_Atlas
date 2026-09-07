@@ -151,8 +151,8 @@ export function AtlasSiteFooter({
             below, which read as a separate panel while the top row stood half
             empty; as a fourth column it fills that space and the band goes
             away. */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
-          <div className="col-span-2 min-w-0 md:col-span-1">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-6">
+          <div className="col-span-2 min-w-0">
             <Link href="/" className="flex items-center gap-2" aria-label="AI Atlas home">
               <AtlasLogoMark className="h-9 w-9" />
               <span className="text-lg font-semibold tracking-tight text-white">
@@ -200,7 +200,7 @@ export function AtlasSiteFooter({
           {/* Was an About dialog. A modal hides provenance behind a click,
               which is the wrong default for a site whose case for itself is
               that every record is sourced. */}
-          <div className="col-span-2 min-w-0 md:col-span-1">
+          <div className="col-span-2 min-w-0">
             <p className="text-sm font-semibold text-slate-100">Data &amp; method</p>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
               Sourced from organization websites, public announcements, and curated
@@ -212,7 +212,8 @@ export function AtlasSiteFooter({
                 Data Quality Dashboard
               </Link>
             </p>
-            <p className="mt-4 text-xs leading-relaxed text-slate-500">
+            <p className="mt-5 text-sm font-semibold text-slate-100">Disclaimer</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">
               Information is provided for reference only and does not constitute
               professional advice. Data may be incomplete, delayed, or inaccurate;
               please verify with official sources. Organization names, logos, and

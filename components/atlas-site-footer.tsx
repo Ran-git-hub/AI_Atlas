@@ -147,7 +147,7 @@ export function AtlasSiteFooter({
 
   if (layout === "inline") {
     return (
-      <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-10 pb-7 text-slate-300">
+      <footer className="pointer-events-auto mt-0 border-t border-[#2f2f2f] pt-10 pb-10 text-slate-300">
         {/* One grid, one row. Provenance used to sit in a second banded block
             below, which read as a separate panel while the top row stood half
             empty; as a fourth column it fills that space and the band goes
@@ -189,6 +189,12 @@ export function AtlasSiteFooter({
               title={shareTitle ?? DEFAULT_SHARE_TITLE}
               className="mt-5 gap-1.5"
             />
+            {/* The one deliberate step down from the footer's 14px body: a
+                legal line is conventionally set smaller, and the extra space
+                above keeps it from reading as a fifth list item. */}
+            <p className="mt-6 text-xs leading-relaxed text-slate-500">
+              © 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}
+            </p>
           </div>
 
           {FOOTER_COLUMNS.map((column) => (
@@ -226,9 +232,6 @@ export function AtlasSiteFooter({
           </div>
         </div>
 
-        <div className="mt-10 border-t border-[#2f2f2f] pt-5 text-xs text-slate-500">
-          © 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}
-        </div>
       </footer>
     )
   }

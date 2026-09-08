@@ -693,7 +693,8 @@ export async function getUseCasesCatalogRows(
 }
 
 export async function getUseCaseCatalogRowById(
-  id: string
+  id: string,
+  { includeArchived = false }: { includeArchived?: boolean } = {}
 ): Promise<UseCaseCatalogRow | null> {
   const supabase =
     createServiceRoleClient() ?? (await createClient())
@@ -719,7 +720,7 @@ export async function getUseCaseCatalogRowById(
   return rowToUseCaseCatalogRow(
     useCaseResult.data as Record<string, unknown>,
     companyNameById,
-    { includeArchived: false, publishedOnly: false, includeFieldEntries: true }
+    { includeArchived, publishedOnly: false, includeFieldEntries: true }
   )
 }
 

@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server"
+import { unstable_cache } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import gicsWhitelist from "@/data/gics-industries.json"
 
 export const dynamic = "force-dynamic"
@@ -324,7 +327,12 @@ function makeRule(
 }
 
 async function fetchAll(table: string): Promise<Row[]> {
-  const supabase = await createClient()
+  // Not createClient() on its own: this now runs inside unstable_cache, where
+  // the cookie API is unavailable and a cookie-scoped client throws. Verified
+  // that anon and service-role see identical row counts on both tables
+  // (1702 / 1302), and this report deliberately reads every row regardless of
+  // status, so the service-role client changes nothing about what it sees.
+  const supabase = createServiceRoleClient() ?? (await createClient())
   const pageSize = 1000
   const rows: Row[] = []
 
@@ -342,7 +350,7 @@ async function fetchAll(table: string): Promise<Row[]> {
   return rows
 }
 
-export async function GET() {
+async function buildQualityReport() {
   const started = performance.now()
   const [allUseCases, allCompanies] = await Promise.all([
     fetchAll("AI_Atlas_Use_Cases"),
@@ -677,5 +685,29 @@ export async function GET() {
     },
   }
 
-  return NextResponse.json(response)
+  return response
+}
+
+/**
+ * The report, cached - not the rows it is built from.
+ *
+ * This route is public and unauthenticated (middleware.ts only guards /admin,
+ * /api/admin and PATCH on /api/use-cases), it is force-dynamic, and every GET
+ * used to run two full select("*") scans: 1702 use cases and 1302 companies,
+ * 6.77 MB a call, of which 3.75 MB is the content column fetched only so a
+ * rule can ask whether it is blank. The dashboard fetches this on mount and
+ * again on every Refresh click.
+ *
+ * Caching the rows would not have worked: Vercel's Data Cache drops items over
+ * 2 MB silently, so a 6.77 MB entry would never be stored and every request
+ * would still hit Supabase. The finished report is 20.7 KB.
+ */
+const getCachedQualityReport = unstable_cache(
+  async () => buildQualityReport(),
+  ["quality-report-v1"],
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
+)
+
+export async function GET() {
+  return NextResponse.json(await getCachedQualityReport())
 }

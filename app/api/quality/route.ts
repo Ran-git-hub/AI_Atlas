@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { unstable_cache } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createServiceRoleClient } from "@/lib/supabase/service-role"
-import { CACHE_TAGS } from "@/lib/cache-tags"
 import gicsWhitelist from "@/data/gics-industries.json"
 
 export const dynamic = "force-dynamic"
@@ -705,7 +704,10 @@ async function buildQualityReport() {
 const getCachedQualityReport = unstable_cache(
   async () => buildQualityReport(),
   ["quality-report-v1"],
-  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
+  // No tag: this is a once-a-day report, not a live view. Tagging it useCases
+  // would make every admin status change and every pipeline purge recompute it,
+  // which is two full table scans for a number nobody is watching in real time.
+  { revalidate: 86400 },
 )
 
 export async function GET() {

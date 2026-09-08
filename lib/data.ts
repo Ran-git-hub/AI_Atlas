@@ -544,8 +544,16 @@ async function fetchAllCompanies<T = { id: unknown; name: unknown; status?: unkn
   })
 }
 
+// is_trending, source_name, confidence_score and published_at are deliberately
+// not fetched here: they are in HIDDEN_USE_CASE_DETAIL_KEYS, so the row
+// mappers below never map them onto UseCaseCatalogRow/UseCaseWithCoords and
+// buildUseCaseFieldEntries filters them out of fieldEntries too — fetched
+// weight that reached no output. getUseCaseCatalogRowById fetches "*"
+// directly and is unaffected. app/api/quality/route.ts also reads
+// source_name/confidence_score, but via its own independent select("*")
+// against the table, not through this constant.
 const USE_CASES_ROW_SELECT =
-  "id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,published_at,status,is_trending,source_name,confidence_score,created_at,\"URL\""
+  "id,company_id,type,title,summary,industry,continent,country,city,latitude,longitude,status,created_at,\"URL\""
 
 /** Fetch every row of AI_Atlas_Use_Cases, paging past Supabase's 1000-row
   * REST limit (the table currently has 1500+ rows). */

@@ -571,14 +571,6 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
                 Generated {formatAtlasDateTime(data.generatedAt)} in {(data.elapsedMs / 1000).toFixed(1)}s
               </span>
             ) : null}
-            <button
-              onClick={fetchData}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-900/70 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
-            >
-              <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-              Refresh
-            </button>
           </div>
         </div>
       </header>

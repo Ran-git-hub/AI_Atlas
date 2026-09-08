@@ -458,9 +458,17 @@ function rowToUseCaseWithCoords(
 function rowToUseCaseCatalogRow(
   row: Record<string, unknown>,
   companyNameById: Map<string, string>,
-  { includeArchived, publishedOnly }: { includeArchived: boolean; publishedOnly: boolean } = {
+  {
+    includeArchived,
+    publishedOnly,
+    includeFieldEntries,
+  }: { includeArchived: boolean; publishedOnly: boolean; includeFieldEntries: boolean } = {
     includeArchived: false,
     publishedOnly: false,
+    // Defaults to true so getUseCaseCatalogRowById (single-row detail,
+    // called with no third argument) is unaffected. getUseCasesCatalogRows
+    // (the bulk list) passes includeFieldEntries: false explicitly.
+    includeFieldEntries: true,
   }
 ): UseCaseCatalogRow | null {
   const id = row.id
@@ -499,7 +507,7 @@ function rowToUseCaseCatalogRow(
     updated_at: null,
     lat,
     lng,
-    fieldEntries: buildUseCaseFieldEntries(row, companyNameById),
+    fieldEntries: includeFieldEntries ? buildUseCaseFieldEntries(row, companyNameById) : undefined,
   }
 }
 
@@ -641,8 +649,18 @@ export async function getUseCasesCatalogRows(
 
   const companyNameById = buildCompanyNameById(companiesData, { includeArchived })
 
+  // Bulk list: also exclude fieldEntries, the heaviest remaining piece
+  // (~0.98 MB of redundant {key,label,value} triples). Detail views fetch
+  // the full row, fieldEntries included, from GET /api/use-cases/[id] when
+  // they open — see getUseCaseCatalogRowById below.
   return rows
-    .map((row) => rowToUseCaseCatalogRow(row, companyNameById, { includeArchived, publishedOnly }))
+    .map((row) =>
+      rowToUseCaseCatalogRow(row, companyNameById, {
+        includeArchived,
+        publishedOnly,
+        includeFieldEntries: false,
+      })
+    )
     .filter(Boolean) as UseCaseCatalogRow[]
 }
 
@@ -672,7 +690,8 @@ export async function getUseCaseCatalogRowById(
 
   return rowToUseCaseCatalogRow(
     useCaseResult.data as Record<string, unknown>,
-    companyNameById
+    companyNameById,
+    { includeArchived: false, publishedOnly: false, includeFieldEntries: true }
   )
 }
 

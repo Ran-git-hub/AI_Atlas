@@ -60,8 +60,12 @@ export interface UseCaseWithCoords extends UseCase {
 export interface UseCaseCatalogRow extends UseCase {
   lat?: number | null
   lng?: number | null
-  /** One entry per DB column (stable order) for table details/expansion */
-  fieldEntries: UseCaseFieldEntry[]
+  /** One entry per DB column (stable order) for table details/expansion.
+    * Only present on a row fetched singly via getUseCaseCatalogRowById
+    * (the case detail page, GET /api/use-cases/[id]). Bulk rows from
+    * getUseCasesCatalogRows omit it to keep the list caches small; fetch
+    * it per-row from GET /api/use-cases/[id] when a detail view opens. */
+  fieldEntries?: UseCaseFieldEntry[]
 }
 
 export function useCaseDisplayName(u: UseCase): string {

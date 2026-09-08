@@ -298,13 +298,13 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   // The write-up itself, lifted out of fieldEntries so it reads as the page
   // body rather than a row in a database dump.
   const articleBody =
-    row.fieldEntries
+    (row.fieldEntries ?? [])
       .find((entry) => entry.key.toLowerCase() === "content")
       ?.value.trim() || null
 
   // Everything else worth showing. content is the body above and URL is the
   // View source button, so both would only repeat themselves here.
-  const detailEntries = row.fieldEntries
+  const detailEntries = (row.fieldEntries ?? [])
     .filter((entry) => !DETAIL_OMITTED_KEYS.has(entry.key.toLowerCase()))
     .map((entry) => ({
       ...entry,

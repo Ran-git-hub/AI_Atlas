@@ -6,7 +6,7 @@ import { createPortal } from "react-dom"
 import { ArrowLeft, ExternalLink, SquareArrowOutUpRight, X } from "lucide-react"
 import { CopyLinkButton } from "@/components/copy-link-button"
 import { absoluteUrl } from "@/lib/site-url"
-import type { UseCaseCatalogRow } from "@/lib/types"
+import type { UseCaseCatalogRow, UseCaseFieldEntry } from "@/lib/types"
 import { isUseCasePendingValidation, USE_CASE_STATUSES, useCaseDisplayName } from "@/lib/types"
 import {
   Select,
@@ -69,49 +69,33 @@ export function UseCaseIndexDetailModal({
 }) {
   const backdropRef = React.useRef<HTMLDivElement>(null)
   const openedAt = React.useRef(Date.now())
-  const [lazyContent, setLazyContent] = React.useState<string | null>(null)
-  const [contentLoading, setContentLoading] = React.useState(false)
+  // Bulk catalog rows (the `detail` this modal is normally given) no longer
+  // carry fieldEntries — it was ~0.98 MB of redundant {key,label,value}
+  // triples duplicated across every list/hub cache. Fetch the full row's
+  // fieldEntries from the existing GET /api/use-cases/[id] route (which
+  // still returns them, via getUseCaseCatalogRowById) the same way this
+  // component already lazy-loaded `content` alone.
+  const [lazyFieldEntries, setLazyFieldEntries] = React.useState<UseCaseFieldEntry[] | null>(null)
+  const [entriesLoading, setEntriesLoading] = React.useState(false)
 
-  const hasContentField = detail.fieldEntries.some(
-    (e) => e.key.toLowerCase() === "content",
-  )
-
-  // Insert lazy-loaded content into fieldEntries at its correct position
-  // (content has preferred order 20, between title=10 and url=30).
-  const displayEntries = React.useMemo(() => {
-    if (!lazyContent || hasContentField) return detail.fieldEntries
-    const entries = [...detail.fieldEntries]
-    const idx = entries.findIndex((e) => {
-      // Insert after the last field with preferred order < 20
-      const key = e.key.toLowerCase()
-      return key === "title" || key === "description" || key === "summary"
-    })
-    entries.splice(
-      idx >= 0 ? idx + 1 : entries.length,
-      0,
-      { key: "content", label: "Content", value: lazyContent },
-    )
-    return entries
-  }, [detail.fieldEntries, lazyContent, hasContentField])
+  const displayEntries = detail.fieldEntries ?? lazyFieldEntries ?? []
 
   React.useEffect(() => {
-    if (hasContentField) return
-    setLazyContent(null)
-    setContentLoading(true)
+    if (detail.fieldEntries) return
+    setLazyFieldEntries(null)
+    setEntriesLoading(true)
     let cancelled = false
-    setContentLoading(true)
     fetch(`/api/use-cases/${encodeURIComponent(detail.id)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: Record<string, unknown> | null) => {
         if (cancelled || !data) return
-        const entries = (data as { fieldEntries?: Array<{ key: string; value: string }> }).fieldEntries
-        const contentEntry = entries?.find((e) => e.key.toLowerCase() === "content")
-        if (contentEntry?.value) setLazyContent(contentEntry.value)
+        const entries = (data as { fieldEntries?: UseCaseFieldEntry[] }).fieldEntries
+        if (entries) setLazyFieldEntries(entries)
       })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setContentLoading(false) })
+      .finally(() => { if (!cancelled) setEntriesLoading(false) })
     return () => { cancelled = true }
-  }, [detail.id, hasContentField])
+  }, [detail.id, detail.fieldEntries])
 
   React.useEffect(() => {
     const prev = document.body.style.overflow
@@ -391,10 +375,10 @@ export function UseCaseIndexDetailModal({
               )
             })}
 
-            {/* Lazy content loading indicator — shown while fetch is in flight */}
-            {!hasContentField && contentLoading ? (
+            {/* Lazy field-entries loading indicator — shown while the
+              * per-row fetch is in flight (bulk rows carry none up front). */}
+            {!detail.fieldEntries && !lazyFieldEntries && entriesLoading ? (
               <div style={{ padding: "12px 20px", borderBottom: "1px solid #2f2f2f" }}>
-                <p style={{ margin: 0, fontSize: 12, fontWeight: 500, letterSpacing: "0.03em", color: "#8a8a8a" }}>Content</p>
                 <p style={{ margin: "8px 0 0", fontSize: 14, color: "#555" }}>Loading…</p>
               </div>
             ) : null}

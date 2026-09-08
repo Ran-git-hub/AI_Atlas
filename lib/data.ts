@@ -552,6 +552,34 @@ async function fetchAllCompanies<T = { id: unknown; name: unknown; status?: unkn
   })
 }
 
+/**
+ * The id -> name lookup every case page needs, cached.
+ *
+ * getUseCaseCatalogRowById paged the whole companies table on every call just
+ * to translate one company_id, and it is called twice per case page view
+ * (generateMetadata and the page body) plus once per GET /api/use-cases/[id].
+ * At 1302 rows that is ~124 KB a call, ~255 KB a page view, and roughly 175 MB
+ * for a full crawl of the case pages - most of the remaining Supabase egress.
+ *
+ * This caches the rows, not the Map. unstable_cache round-trips through JSON,
+ * and JSON.stringify(new Map(...)) is "{}", so caching buildCompanyNameById's
+ * return value would hand back an empty map on every hit and blank every
+ * company name on the site without raising anything.
+ *
+ * Note the default select and the absence of publishedOnly: that matches what
+ * this path fetched before. getCachedCompaniesWithCoords is not a substitute -
+ * it filters to published, and buildCompanyNameById excludes only archived, so
+ * reusing it would silently drop pending companies' names.
+ */
+const getCachedCompanyNameRows = unstable_cache(
+  async () => {
+    const supabase = createServiceRoleClient() ?? (await createClient())
+    return fetchAllCompanies(supabase)
+  },
+  ["company-name-rows-v1"],
+  { revalidate: 86400, tags: [CACHE_TAGS.companies] },
+)
+
 // is_trending, source_name, confidence_score and published_at are deliberately
 // not fetched here: they are in HIDDEN_USE_CASE_DETAIL_KEYS, so the row
 // mappers below never map them onto UseCaseCatalogRow/UseCaseWithCoords and
@@ -671,7 +699,7 @@ export async function getUseCaseCatalogRowById(
     createServiceRoleClient() ?? (await createClient())
 
   const [companiesData, useCaseResult] = await Promise.all([
-    fetchAllCompanies(supabase),
+    getCachedCompanyNameRows(),
     supabase
       .from("AI_Atlas_Use_Cases")
       .select("*")

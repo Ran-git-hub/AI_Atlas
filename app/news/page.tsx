@@ -1,7 +1,6 @@
 import { getCachedUseCasesCatalogRows, getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getCachedNewsItems } from "@/lib/data-news"
-import { useCaseDisplayName } from "@/lib/types"
-import type { NewsItem, NewsTakeContext } from "@/lib/types-news"
+import { buildTakeRenders } from "@/lib/news-take-render"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { NewsFeed } from "@/components/news/news-feed"
@@ -25,27 +24,6 @@ function isPublishedStatus(status: string | null | undefined): boolean {
   return status?.trim().toLowerCase() === "published"
 }
 
-function buildTakeContext(items: NewsItem[], useCases: Awaited<ReturnType<typeof getCachedUseCasesCatalogRows>>): NewsTakeContext {
-  return {
-    useCases: useCases
-      .filter((row) => isPublishedStatus(row.status))
-      .map((row) => ({
-        id: row.id,
-        title: useCaseDisplayName(row),
-        companyName: row.company_name?.trim() || "Unknown organization",
-        industry: row.industry?.trim() || row.sector?.trim() || "Uncategorized",
-        description: row.description?.trim() || "",
-      })),
-    news: items.map((item) => ({
-      id: item.id,
-      title: item.title,
-      summary: item.summary,
-      sourceName: item.sourceName,
-      tags: item.tags,
-    })),
-  }
-}
-
 export default async function NewsPage() {
   const [items, useCases, latestDataUpdateCet] = await Promise.all([
     getCachedNewsItems(),
@@ -53,7 +31,7 @@ export default async function NewsPage() {
     getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
   const publishedUseCases = useCases.filter((row) => isPublishedStatus(row.status))
-  const takeContext = buildTakeContext(items, useCases)
+  const takeRenders = buildTakeRenders(items, publishedUseCases)
 
   return (
     <main
@@ -79,7 +57,7 @@ export default async function NewsPage() {
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-6 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
-        <NewsFeed items={items} takeContext={takeContext} useCaseRows={publishedUseCases} />
+        <NewsFeed items={items} takeRenders={takeRenders} />
       </div>
 
       <div className="mx-auto mt-8 max-w-7xl px-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">

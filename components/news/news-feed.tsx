@@ -3,8 +3,8 @@
 import { ArrowUp, Search, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { useCaseDisplayName } from "@/lib/types"
-import type { NewsItem, NewsTakeContext } from "@/lib/types-news"
+import type { RelatedUseCase } from "@/lib/related-use-cases"
+import type { NewsItem, NewsTakeRender } from "@/lib/types-news"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -54,120 +54,12 @@ function tagOptions(items: NewsItem[]): string[] {
   return Array.from(tags.values()).sort((a, b) => a.localeCompare(b))
 }
 
-type RelatedUseCase = {
-  row: UseCaseCatalogRow
-  reasons: string[]
-  score: number
-}
-
-const RELATED_STOP_WORDS = new Set([
-  "about",
-  "after",
-  "agent",
-  "across",
-  "also",
-  "and",
-  "are",
-  "artificial",
-  "based",
-  "case",
-  "company",
-  "deploy",
-  "deployed",
-  "deploying",
-  "deployment",
-  "from",
-  "for",
-  "into",
-  "its",
-  "the",
-  "this",
-  "through",
-  "use",
-  "uses",
-  "using",
-  "with",
-])
-
-function cleanComparable(value: string | null | undefined): string {
-  return value?.trim().toLowerCase() ?? ""
-}
-
-function useCaseTokens(row: UseCaseCatalogRow): Set<string> {
-  const text = [useCaseDisplayName(row), row.description, row.sector, row.industry]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase()
-
-  const words = text.match(/[a-z0-9]{3,}/g) ?? []
-  return new Set(words.filter((word) => !RELATED_STOP_WORDS.has(word)))
-}
-
-function relatedUseCasesFor(row: UseCaseCatalogRow, rows: UseCaseCatalogRow[], limit = 6): RelatedUseCase[] {
-  const baseCompany = cleanComparable(row.company_name || row.company_id)
-  const baseIndustry = cleanComparable(row.industry)
-  const baseCountry = cleanComparable(row.country)
-  const baseCity = cleanComparable(row.city)
-  const baseTokens = useCaseTokens(row)
-
-  return rows
-    .filter((candidate) => candidate.id !== row.id)
-    .map((candidate) => {
-      let score = 0
-      const reasons: string[] = []
-      const company = cleanComparable(candidate.company_name || candidate.company_id)
-      const industry = cleanComparable(candidate.industry)
-      const country = cleanComparable(candidate.country)
-      const city = cleanComparable(candidate.city)
-
-      if (baseCompany && company && baseCompany === company) {
-        score += 10
-        reasons.push("Same company")
-      }
-      if (baseIndustry && industry && baseIndustry === industry) {
-        score += 7
-        reasons.push("Same industry")
-      }
-      if (baseCountry && country && baseCountry === country) {
-        score += 4
-        reasons.push("Same country")
-      }
-      if (baseCity && city && baseCity === city) {
-        score += 3
-        reasons.push("Same city")
-      }
-
-      let sharedTerms = 0
-      for (const token of useCaseTokens(candidate)) {
-        if (baseTokens.has(token)) sharedTerms += 1
-      }
-      if (sharedTerms > 0) {
-        score += Math.min(sharedTerms, 8)
-        if (reasons.length < 2) reasons.push(`${sharedTerms} shared terms`)
-      }
-
-      return { row: candidate, reasons, score }
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score
-      const bTime = Date.parse(b.row.updated_at ?? b.row.created_at ?? "") || 0
-      const aTime = Date.parse(a.row.updated_at ?? a.row.created_at ?? "") || 0
-      return bTime - aTime
-    })
-    .slice(0, limit)
-}
-
-const EMPTY_TAKE_CONTEXT: NewsTakeContext = { useCases: [], news: [] }
-
 export function NewsFeed({
   items,
-  takeContext = EMPTY_TAKE_CONTEXT,
-  useCaseRows = [],
+  takeRenders = {},
 }: {
   items: NewsItem[]
-  takeContext?: NewsTakeContext
-  useCaseRows?: UseCaseCatalogRow[]
+  takeRenders?: Record<string, NewsTakeRender>
 }) {
   const [query, setQuery] = useState("")
   const [source, setSource] = useState("all")
@@ -177,41 +69,52 @@ export function NewsFeed({
   const [pageSize, setPageSize] = useState(20)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [activeDetail, setActiveDetail] = useState<UseCaseCatalogRow | null>(null)
-  const [detailHistory, setDetailHistory] = useState<UseCaseCatalogRow[]>([])
+  const [activeRelated, setActiveRelated] = useState<RelatedUseCase[]>([])
+  const [detailHistory, setDetailHistory] = useState<{ row: UseCaseCatalogRow; related: RelatedUseCase[] }[]>([])
 
   const sources = useMemo(() => sourceOptions(items), [items])
   const tags = useMemo(() => tagOptions(items), [items])
   const queryNorm = normalizeText(query)
-  const activeDetailRelated = useMemo(
-    () => (activeDetail ? relatedUseCasesFor(activeDetail, useCaseRows) : []),
-    [activeDetail, useCaseRows],
-  )
-
-  const openUseCaseDetail = async (id: string) => {
-    const localRow = useCaseRows.find((row) => row.id === id)
-    if (localRow) {
-      setDetailHistory([])
-      setActiveDetail(localRow)
-      return
+  // The catalog no longer travels with the page, so both the case and its
+  // related list come from the API. It answers with fieldEntries too, which the
+  // modal used to fetch separately - one round trip either way.
+  const loadUseCaseDetail = async (id: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/use-cases/${encodeURIComponent(id)}?related=1`)
+      if (!response.ok) {
+        console.error("[news] use case fetch", response.status, id)
+        return false
+      }
+      const payload = (await response.json()) as { row: UseCaseCatalogRow; related: RelatedUseCase[] }
+      setActiveDetail(payload.row)
+      setActiveRelated(payload.related ?? [])
+      return true
+    } catch (error) {
+      console.error("[news] use case fetch", error)
+      return false
     }
-
-    const response = await fetch(`/api/use-cases/${encodeURIComponent(id)}`)
-    if (!response.ok) return
-    const row = (await response.json()) as UseCaseCatalogRow
-    setDetailHistory([])
-    setActiveDetail(row)
   }
 
-  const openRelatedDetail = (row: UseCaseCatalogRow) => {
-    setDetailHistory((history) => (activeDetail ? [...history, activeDetail] : history))
-    setActiveDetail(row)
+  const openUseCaseDetail = async (id: string) => {
+    const opened = await loadUseCaseDetail(id)
+    if (opened) setDetailHistory([])
+  }
+
+  const openRelatedDetail = async (row: UseCaseCatalogRow) => {
+    const previous = activeDetail
+    const previousRelated = activeRelated
+    const opened = await loadUseCaseDetail(row.id)
+    if (opened && previous) {
+      setDetailHistory((history) => [...history, { row: previous, related: previousRelated }])
+    }
   }
 
   const goBackInDetail = () => {
     setDetailHistory((history) => {
       const previous = history.at(-1)
       if (!previous) return history
-      setActiveDetail(previous)
+      setActiveDetail(previous.row)
+      setActiveRelated(previous.related)
       return history.slice(0, -1)
     })
   }
@@ -219,6 +122,7 @@ export function NewsFeed({
   const closeDetail = () => {
     setDetailHistory([])
     setActiveDetail(null)
+    setActiveRelated([])
   }
 
   const applyTagFilter = (nextTag: string) => {
@@ -444,7 +348,7 @@ export function NewsFeed({
             <NewsListCard
               key={item.id}
               item={item}
-              takeContext={takeContext}
+              render={takeRenders[item.id]}
               onUseCaseClick={openUseCaseDetail}
               onTagClick={applyTagFilter}
             />
@@ -457,7 +361,7 @@ export function NewsFeed({
       {activeDetail ? (
         <UseCaseIndexDetailModalPortal
           detail={activeDetail}
-          relatedUseCases={activeDetailRelated}
+          relatedUseCases={activeRelated}
           onRelatedUseCaseClick={openRelatedDetail}
           onBack={goBackInDetail}
           canGoBack={detailHistory.length > 0}

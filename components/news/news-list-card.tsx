@@ -1,67 +1,11 @@
 "use client"
 
-import type { ReactNode } from "react"
-import type { NewsItem, NewsTakeContext, NewsTakeReference, NewsTakeUseCase } from "@/lib/types-news"
+import { useState, type ReactNode } from "react"
+import type { NewsItem, NewsTakeLink, NewsTakeRender } from "@/lib/types-news"
+import { topicPhrase, truncatePhrase } from "@/lib/news-take-render"
 import { NewsCardImage } from "@/components/news/news-card-image"
 
 import { formatAtlasDate } from "@/lib/format-date"
-const TAKE_STOPWORDS = new Set([
-  "about",
-  "after",
-  "again",
-  "across",
-  "also",
-  "among",
-  "and",
-  "are",
-  "artificial",
-  "because",
-  "before",
-  "being",
-  "between",
-  "builders",
-  "captured",
-  "company",
-  "companies",
-  "could",
-  "for",
-  "follow",
-  "from",
-  "global",
-  "has",
-  "have",
-  "intelligence",
-  "into",
-  "news",
-  "not",
-  "more",
-  "over",
-  "post",
-  "rather",
-  "shared",
-  "source",
-  "their",
-  "there",
-  "these",
-  "this",
-  "those",
-  "through",
-  "time",
-  "under",
-  "update",
-  "use",
-  "used",
-  "uses",
-  "using",
-  "was",
-  "while",
-  "will",
-  "with",
-  "would",
-  "you",
-  "your",
-])
-
 function formatNewsDate(item: NewsItem): string {
   const iso = item.createdAt ?? item.publishedAt
   if (!iso) return "Date unavailable"
@@ -83,179 +27,78 @@ function hostnameFromUrl(url: string | null): string | null {
   }
 }
 
-function tokenize(value: string): Set<string> {
-  const words = value
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, " ")
-    .split(/\s+/)
-    .map((word) => word.trim())
-    .filter((word) => word.length > 2 && !TAKE_STOPWORDS.has(word))
-
-  return new Set(words)
-}
-
-function sharedTokenScore(tokens: Set<string>, text: string): number {
-  const candidateTokens = tokenize(text)
-  let score = 0
-  for (const token of tokens) {
-    if (candidateTokens.has(token)) score += 1
-  }
-  return score
-}
-
-function tagScore(tags: string[], text: string): number {
-  const haystack = text.toLowerCase()
-  return tags.reduce((score, tag) => {
-    const normalized = tag.trim().toLowerCase()
-    if (!normalized) return score
-    return haystack.includes(normalized) ? score + 3 : score
-  }, 0)
-}
-
-function truncatePhrase(value: string, max = 88): string {
-  const trimmed = value.replace(/\s+/g, " ").trim()
-  if (trimmed.length <= max) return trimmed
-  return `${trimmed.slice(0, max - 3).trim()}...`
-}
-
-function topicPhrase(tags: string[]): string {
-  const topics = tags.filter(Boolean).slice(0, 3)
-  if (topics.length === 0) return "AI deployment"
-  if (topics.length === 1) return topics[0]
-  return `${topics.slice(0, -1).join(", ")} and ${topics[topics.length - 1]}`
-}
-
-function rankUseCases(item: NewsItem, useCases: NewsTakeUseCase[]): NewsTakeUseCase[] {
-  const itemText = `${item.title} ${item.summary} ${item.tags.join(" ")}`
-  const itemTokens = tokenize(itemText)
-
-  return useCases
-    .map((useCase) => {
-      const text = `${useCase.title} ${useCase.companyName} ${useCase.industry} ${useCase.description}`
-      return {
-        useCase,
-        score: sharedTokenScore(itemTokens, text) + tagScore(item.tags, text),
-      }
-    })
-    .filter((entry) => entry.score > 3)
-    .sort((a, b) => b.score - a.score || a.useCase.title.localeCompare(b.useCase.title))
-    .map((entry) => entry.useCase)
-}
-
-function rankNews(item: NewsItem, news: NewsTakeReference[]): NewsTakeReference[] {
-  const itemText = `${item.title} ${item.summary} ${item.tags.join(" ")}`
-  const itemTokens = tokenize(itemText)
-
-  return news
-    .filter((reference) => reference.id !== item.id)
-    .map((reference) => {
-      const text = `${reference.title} ${reference.summary} ${reference.sourceName} ${reference.tags.join(" ")}`
-      return {
-        reference,
-        score: sharedTokenScore(itemTokens, text) + tagScore(item.tags, text),
-      }
-    })
-    .filter((entry) => entry.score > 3)
-    .sort((a, b) => b.score - a.score || a.reference.title.localeCompare(b.reference.title))
-    .map((entry) => entry.reference)
-}
-
-function useCaseLabel(useCase: NewsTakeUseCase): string {
-  const company = useCase.companyName && useCase.companyName !== "Unknown organization" ? `${useCase.companyName}: ` : ""
-  return `${company}${useCase.title}`
-}
-
-const EMPTY_TAKE_CONTEXT: NewsTakeContext = { useCases: [], news: [] }
-
 function UseCaseTextLink({
-  useCase,
+  id,
+  label,
   onUseCaseClick,
   children,
 }: {
-  useCase: NewsTakeUseCase
-  onUseCaseClick: (id: string) => void
+  id: string
+  label: string
+  onUseCaseClick: (id: string) => void | Promise<void>
   children?: ReactNode
 }) {
-  const openUseCase = () => onUseCaseClick(useCase.id)
+  // The row is no longer on the page - opening one is a fetch now, so the click
+  // needs acknowledging or the link reads as dead for the round trip.
+  const [pending, setPending] = useState(false)
+
+  const openUseCase = async () => {
+    if (pending) return
+    setPending(true)
+    try {
+      await onUseCaseClick(id)
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <span
       role="button"
       tabIndex={0}
+      aria-busy={pending}
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        openUseCase()
+        void openUseCase()
       }}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return
         event.preventDefault()
         event.stopPropagation()
-        openUseCase()
+        void openUseCase()
       }}
-      className="inline cursor-pointer whitespace-normal break-words text-left align-baseline font-semibold leading-[inherit] text-cyan-300 underline decoration-cyan-400/35 underline-offset-2 transition-colors hover:text-cyan-200 hover:decoration-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40"
+      className={`inline whitespace-normal break-words text-left align-baseline font-semibold leading-[inherit] text-cyan-300 underline decoration-cyan-400/35 underline-offset-2 transition-colors hover:text-cyan-200 hover:decoration-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/40 ${
+        pending ? "cursor-wait opacity-60" : "cursor-pointer"
+      }`}
       style={{ overflowWrap: "anywhere" }}
     >
-      {children ?? truncatePhrase(useCaseLabel(useCase), 76)}
+      {children ?? label}
     </span>
   )
 }
 
-function dbTakeLinkTargets(take: string, useCases: NewsTakeUseCase[]) {
-  const candidates = useCases
-    .flatMap((useCase) => {
-      const labels = [
-        truncatePhrase(useCaseLabel(useCase), 86),
-        truncatePhrase(useCaseLabel(useCase), 76),
-        truncatePhrase(useCase.title, 86),
-        truncatePhrase(useCase.title, 76),
-        useCaseLabel(useCase),
-        useCase.title,
-      ]
-      return Array.from(new Set(labels.filter((label) => label && take.includes(label)))).map((label) => ({
-        label,
-        useCase,
-        index: take.indexOf(label),
-      }))
-    })
-    .filter((target) => target.index >= 0)
-    .sort((a, b) => a.index - b.index || b.label.length - a.label.length)
-
-  const targets: typeof candidates = []
-  for (const candidate of candidates) {
-    const candidateEnd = candidate.index + candidate.label.length
-    const overlaps = targets.some((target) => {
-      const targetEnd = target.index + target.label.length
-      return candidate.index < targetEnd && candidateEnd > target.index
-    })
-    if (!overlaps) targets.push(candidate)
-  }
-
-  return targets
-}
-
 function LinkedDbTake({
   take,
-  takeContext,
+  links,
   onUseCaseClick,
 }: {
   take: string
-  takeContext: NewsTakeContext
-  onUseCaseClick: (id: string) => void
+  links: NewsTakeLink[]
+  onUseCaseClick: (id: string) => void | Promise<void>
 }) {
-  const targets = dbTakeLinkTargets(take, takeContext.useCases)
   const nodes: ReactNode[] = []
   let cursor = 0
 
-  for (const target of targets) {
-    const index = target.index
-    if (index > cursor) nodes.push(take.slice(cursor, index))
+  for (const link of links) {
+    if (link.index > cursor) nodes.push(take.slice(cursor, link.index))
+    const label = take.slice(link.index, link.index + link.length)
     nodes.push(
-      <UseCaseTextLink key={`${target.useCase.id}-${index}`} useCase={target.useCase} onUseCaseClick={onUseCaseClick}>
-        {target.label}
+      <UseCaseTextLink key={`${link.id}-${link.index}`} id={link.id} label={label} onUseCaseClick={onUseCaseClick}>
+        {label}
       </UseCaseTextLink>,
     )
-    cursor = index + target.label.length
+    cursor = link.index + link.length
   }
 
   if (cursor < take.length) nodes.push(take.slice(cursor))
@@ -265,39 +108,40 @@ function LinkedDbTake({
 
 function AtlasTake({
   item,
-  takeContext,
+  render,
   onUseCaseClick,
 }: {
   item: NewsItem
-  takeContext: NewsTakeContext
-  onUseCaseClick: (id: string) => void
+  render?: NewsTakeRender
+  onUseCaseClick: (id: string) => void | Promise<void>
 }) {
   if (item.aiAtlasTake.trim()) {
     return (
       <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong>{" "}
-        <LinkedDbTake take={item.aiAtlasTake.trim()} takeContext={takeContext} onUseCaseClick={onUseCaseClick} />
+        <LinkedDbTake take={item.aiAtlasTake.trim()} links={render?.links ?? []} onUseCaseClick={onUseCaseClick} />
       </p>
     )
   }
 
-  const topic = topicPhrase(item.tags)
-  const relatedUseCases = rankUseCases(item, takeContext.useCases).slice(0, 2)
-  const relatedNews = rankNews(item, takeContext.news).slice(0, 1)
+  const fallback = render?.fallback
+  const topic = fallback?.topic ?? topicPhrase(item.tags)
+  const relatedUseCases = fallback?.useCases ?? []
+  const relatedNews = fallback?.newsTitles ?? []
 
   if (relatedUseCases.length > 0 && relatedNews.length > 0) {
     return (
       <p className="text-sm leading-6 text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> This looks like a {topic} signal
         that already has deployment echoes in the atlas, especially{" "}
-        <UseCaseTextLink useCase={relatedUseCases[0]} onUseCaseClick={onUseCaseClick} />
+        <UseCaseTextLink id={relatedUseCases[0].id} label={relatedUseCases[0].label} onUseCaseClick={onUseCaseClick} />
         {relatedUseCases[1] ? (
           <>
             {" "}
-            and <UseCaseTextLink useCase={relatedUseCases[1]} onUseCaseClick={onUseCaseClick} />
+            and <UseCaseTextLink id={relatedUseCases[1].id} label={relatedUseCases[1].label} onUseCaseClick={onUseCaseClick} />
           </>
         ) : null}
-        . Read next to "{truncatePhrase(relatedNews[0].title, 86)}", it suggests the same pressure is showing up
+        . Read next to "{truncatePhrase(relatedNews[0], 86)}", it suggests the same pressure is showing up
         in both market news and implemented use cases.
       </p>
     )
@@ -308,7 +152,7 @@ function AtlasTake({
     return (
       <p className="text-sm leading-6 text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> The closest published use-case match
-        is <UseCaseTextLink useCase={primary} onUseCaseClick={onUseCaseClick} /> in {primary.industry}. That makes this news worth tracking as a
+        is <UseCaseTextLink id={primary.id} label={primary.label} onUseCaseClick={onUseCaseClick} /> in {primary.industry}. That makes this news worth tracking as a
         deployment signal, not just a company announcement, because it may affect how similar organizations budget,
         govern, or operationalize {topic}.
       </p>
@@ -319,7 +163,7 @@ function AtlasTake({
     return (
       <p className="text-sm leading-6 text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> No close published use-case match
-        stands out yet, but this connects to recent news such as "{truncatePhrase(relatedNews[0].title, 90)}". For AI
+        stands out yet, but this connects to recent news such as "{truncatePhrase(relatedNews[0], 90)}". For AI
         Atlas, the next test is whether this {topic} signal starts appearing in customer deployments rather than
         remaining a vendor or builder narrative.
       </p>
@@ -337,13 +181,13 @@ function AtlasTake({
 
 export function NewsListCard({
   item,
-  takeContext = EMPTY_TAKE_CONTEXT,
+  render,
   onUseCaseClick,
   onTagClick,
 }: {
   item: NewsItem
-  takeContext?: NewsTakeContext
-  onUseCaseClick: (id: string) => void
+  render?: NewsTakeRender
+  onUseCaseClick: (id: string) => void | Promise<void>
   onTagClick: (tag: string) => void
 }) {
   const source = item.sourceName || hostnameFromUrl(item.url) || "Unknown source"
@@ -409,7 +253,7 @@ export function NewsListCard({
       )}
 
       <div className="col-span-full border-t border-slate-800/80 pt-4">
-        <AtlasTake item={item} takeContext={takeContext} onUseCaseClick={onUseCaseClick} />
+        <AtlasTake item={item} render={render} onUseCaseClick={onUseCaseClick} />
       </div>
     </article>
   )

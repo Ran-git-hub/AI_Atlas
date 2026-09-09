@@ -12,23 +12,21 @@ export interface NewsItem {
   status?: string | null
 }
 
-export interface NewsTakeUseCase {
+/** One case name inside a take: `take.slice(index, index + length)` is the label. */
+export interface NewsTakeLink {
   id: string
-  title: string
-  companyName: string
-  industry: string
-  description: string
+  index: number
+  length: number
 }
 
-export interface NewsTakeReference {
-  id: string
-  title: string
-  summary: string
-  sourceName: string
-  tags: string[]
+/** Ingredients of the generated take shown when the pipeline left one empty. */
+export interface NewsTakeFallback {
+  topic: string
+  useCases: { id: string; label: string; industry: string }[]
+  newsTitles: string[]
 }
 
-export interface NewsTakeContext {
-  useCases: NewsTakeUseCase[]
-  news: NewsTakeReference[]
+export interface NewsTakeRender {
+  links: NewsTakeLink[]
+  fallback: NewsTakeFallback | null
 }

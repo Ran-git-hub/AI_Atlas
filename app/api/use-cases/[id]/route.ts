@@ -3,10 +3,11 @@ import { cookies } from "next/headers"
 import { revalidatePath, revalidateTag } from "next/cache"
 import { verifyAdminToken } from "@/lib/admin-auth"
 import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
-import { getUseCaseCatalogRowById, updateUseCaseStatus } from "@/lib/data"
+import { getCachedUseCasesCatalogRows, getUseCaseCatalogRowById, updateUseCaseStatus } from "@/lib/data"
+import { relatedUseCasesFor } from "@/lib/related-use-cases"
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id: rawId } = await context.params
@@ -24,6 +25,16 @@ export async function GET(
   const row = await getUseCaseCatalogRowById(id, { includeArchived: isAdmin })
   if (!row) {
     return NextResponse.json({ error: "not_found" }, { status: 404 })
+  }
+
+  // /news asks for this: its cards no longer carry the catalog, so the Related
+  // sidebar has to be built here. Published only, matching what the page used
+  // to filter to before handing rows to the browser. Opt-in, so the four other
+  // callers keep receiving a bare row.
+  if (new URL(request.url).searchParams.get("related") === "1") {
+    const rows = await getCachedUseCasesCatalogRows()
+    const published = rows.filter((candidate) => candidate.status?.trim().toLowerCase() === "published")
+    return NextResponse.json({ row, related: relatedUseCasesFor(row, published) })
   }
 
   return NextResponse.json(row)

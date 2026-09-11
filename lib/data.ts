@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -692,10 +693,13 @@ export async function getUseCasesCatalogRows(
     .filter(Boolean) as UseCaseCatalogRow[]
 }
 
-export async function getUseCaseCatalogRowById(
+// Wrapped in React's cache(): generateMetadata and the page component both
+// need this row, and without memoisation each view issued the single-row select
+// twice - verified with a probe, two round trips 10ms apart.
+export const getUseCaseCatalogRowById = cache(async (
   id: string,
   { includeArchived = false }: { includeArchived?: boolean } = {}
-): Promise<UseCaseCatalogRow | null> {
+): Promise<UseCaseCatalogRow | null> => {
   const supabase =
     createServiceRoleClient() ?? (await createClient())
 
@@ -722,7 +726,7 @@ export async function getUseCaseCatalogRowById(
     companyNameById,
     { includeArchived, publishedOnly: false, includeFieldEntries: true }
   )
-}
+})
 
 /** Lazy-load only the content column for a single use case — used by the
   * detail modal to avoid shipping ~1MB of content in the list query. */

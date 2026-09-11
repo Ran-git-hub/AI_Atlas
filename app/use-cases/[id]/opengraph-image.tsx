@@ -8,6 +8,16 @@ import { getUseCaseOgSummary } from "@/lib/data"
 // whenever it was first rendered, even after the record is edited.
 export const revalidate = 86400
 
+// The [id] segment makes this route dynamic, so Next never files it in the ISR
+// cache the way it does the site-level card: measured x-vercel-cache MISS on
+// five consecutive requests across two ids, age 0 every time. Every hit was
+// therefore re-running getUseCaseOgSummary and a ~1.5s Satori render — 686
+// cards, once per crawl. These headers hand the caching to the CDN instead,
+// where a hit costs no function invocation and no Supabase read.
+const CACHE_HEADERS = {
+  "cache-control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
+} as const
+
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt = "AI use case on AI Atlas"
@@ -171,6 +181,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
       </div>
     ),
-    { ...size },
+    { ...size, headers: CACHE_HEADERS },
   )
 }

@@ -248,18 +248,28 @@ export function AtlasSiteFooter({
         <span className="whitespace-nowrap text-center">
           Latest Data Update: {latestDataUpdateCet}
         </span>
-        <div className="flex items-center justify-center gap-2 whitespace-nowrap">
-          <span className="text-slate-600">|</span>
-          <span className="whitespace-nowrap">© 2026 AI Atlas</span>
-          <span className="text-slate-600">|</span>
+        {/* Wraps rather than running off the side: with four items this row is
+            wider than a phone. The dividers are hidden once it wraps, where
+            they strand a dangling pipe at the end of a line. */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="hidden text-slate-600 sm:inline">|</span>
           <Link
             href="/quality"
-            className="px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
+            className="whitespace-nowrap px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
           >
             Data Quality Dashboard
           </Link>
-          <span className="text-slate-600">|</span>
+          <span className="hidden text-slate-600 sm:inline">|</span>
+          <Link
+            href="/methodology-and-agents"
+            className="whitespace-nowrap px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
+          >
+            Methodology &amp; Agents
+          </Link>
+          <span className="hidden text-slate-600 sm:inline">|</span>
           {aboutDialog}
+          <span className="hidden text-slate-600 sm:inline">|</span>
+          <span className="whitespace-nowrap">© 2026 AI Atlas</span>
         </div>
         <ShareRow
           url={shareUrl}

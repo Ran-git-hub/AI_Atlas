@@ -167,7 +167,7 @@ export function AtlasSiteFooter({
             </p>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
               Maintained by Ran
-              <br />
+              {" · "}
               <a href="mailto:allenheran@gmail.com" className={linkClass}>
                 Contact
               </a>
@@ -216,11 +216,17 @@ export function AtlasSiteFooter({
               which is the wrong default for a site whose case for itself is
               that every record is sourced. */}
           <div className="col-span-2 min-w-0">
-            <p className="text-sm font-semibold text-slate-100">Data &amp; method</p>
+            <p className="text-sm font-semibold text-slate-100">Methodology &amp; Agents</p>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
-              Sourced from organization websites, public announcements, and curated
-              AI use-case records. Locations, categories, and links are best-effort
-              and may contain inaccuracies.
+              How the atlas is sourced and curated &mdash; by a team of agents,
+              against written rules, with a human review before anything is
+              published.{" "}
+              <Link
+                href="/methodology-and-agents"
+                className="font-semibold text-cyan-300 transition-colors hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40"
+              >
+                read more here
+              </Link>
             </p>
             <p className="mt-5 text-sm font-semibold text-slate-100">Disclaimer</p>
             <p className="mt-2 text-sm leading-relaxed text-slate-400">

@@ -7,11 +7,17 @@ import { join } from "node:path"
 
 const LOGO_URL = "https://ai-atlas.app/ai-atlas-logo.png"
 
-// Transparent sphere: the original og-globe.png bakes the site background into
-// its corners, which shows as a rectangle once it overlaps the card gradient.
+// Transparent sphere, saturation- and midtone-boosted. og-globe-alpha.png as
+// captured is too dark to survive the downscale: LinkedIn renders the card at
+// roughly 550px in the feed and 160px in some panels, and at those sizes the
+// navy landmasses and hairline borders collapse into mud. The boosted copy was
+// derived from it with Pillow — Color(2.0), gamma 0.78, Contrast(1.05) — which
+// lifts the continents and the deployment dots while leaving the oceans black.
+// (The plain og-globe.png, opaque with the site background baked into its
+// corners, showed as a rectangle over the card gradient and is long gone.)
 const GLOBE_DATA_URL = (() => {
   try {
-    const buf = readFileSync(join(process.cwd(), "public", "og-globe-alpha.png"))
+    const buf = readFileSync(join(process.cwd(), "public", "og-globe-alpha-boost.png"))
     return `data:image/png;base64,${buf.toString("base64")}`
   } catch {
     return null
@@ -35,8 +41,8 @@ const PAD_Y = 42
 // and bottom, so only its limb and the European deployment cluster are in
 // frame. The limb deliberately runs behind the headline; a soft left-to-right
 // scrim is all that is needed to keep the copy readable over it.
-const GLOBE_SIZE = 1150
-const GLOBE_LEFT = 300
+const GLOBE_SIZE = 920
+const GLOBE_LEFT = 500
 // Sits 20px below the card's centre, which puts the European cluster just under
 // the headline instead of behind it.
 const globeTop = (height: number) => height / 2 + 20 - GLOBE_SIZE / 2
@@ -109,7 +115,7 @@ export function OgSiteCard({ height }: { height: number }) {
           width: `${WIDTH}px`,
           height: `${height + PAD_Y * 2}px`,
           background:
-            "linear-gradient(90deg, rgba(5,13,20,0.7) 0%, rgba(5,13,20,0.55) 28%, rgba(5,13,20,0.22) 52%, rgba(5,13,20,0) 70%)",
+            "linear-gradient(90deg, rgba(5,13,20,0.7) 0%, rgba(5,13,20,0.55) 25%, rgba(5,13,20,0.2) 45%, rgba(5,13,20,0) 62%)",
         }}
       />
 

@@ -19,10 +19,13 @@ export function StatsBar({
   totalUseCases,
   onStatClick = () => {},
 }: StatsBarProps) {
-  // The bottom offsets clear the footer bar, which wraps to 124px on a phone
-  // and 76px on a tablet; this card sits at z-30 over it and hid those links.
+  // The bottom offsets sit this card just above the footer bar, which is
+  // z-20 underneath it and changes height as its links wrap: 124px on a
+  // phone, 84px until the row fits on one line at about 1064px, 52px above
+  // that. Each tier leaves roughly 12px of air; too little and the card
+  // covers the links, too much and the two read as unrelated.
   return (
-    <div className="fixed bottom-32 left-1/2 z-30 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2 sm:max-w-xl md:bottom-20 md:w-auto md:max-w-none">
+    <div className="fixed bottom-32 left-1/2 z-30 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2 sm:max-w-xl md:bottom-24 md:w-auto md:max-w-none min-[1080px]:bottom-16">
       {/* Mobile layout */}
       <div className="md:hidden">
         <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-700/50 bg-slate-900/70 p-3 backdrop-blur-md">

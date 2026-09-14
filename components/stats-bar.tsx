@@ -24,8 +24,13 @@ export function StatsBar({
   // phone, 84px until the row fits on one line at about 1064px, 52px above
   // that. Each tier stops just inside the bar's own top padding, so the two
   // read as one block the way they did before the bar gained a fourth link.
+  //
+  // The tablet tier is capped at 1079px rather than left open as `md:`.
+  // `md:bottom-20` and `min-[1080px]:bottom-12` have equal specificity, and
+  // Tailwind emits the arbitrary variant first, so the plain `md:` rule won
+  // at every width above 1080px. Non-overlapping ranges make the order moot.
   return (
-    <div className="fixed bottom-32 left-1/2 z-30 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2 sm:max-w-xl md:bottom-20 md:w-auto md:max-w-none min-[1080px]:bottom-12">
+    <div className="fixed bottom-32 left-1/2 z-30 w-[calc(100%-1rem)] max-w-sm -translate-x-1/2 sm:max-w-xl md:w-auto md:max-w-none md:max-[1079px]:bottom-20 min-[1080px]:bottom-12">
       {/* Mobile layout */}
       <div className="md:hidden">
         <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-700/50 bg-slate-900/70 p-3 backdrop-blur-md">

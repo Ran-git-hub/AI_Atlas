@@ -1027,7 +1027,7 @@ const LANES=[
 
 const NODES=[
  {id:'web', x:24, y:229, w:172, h:82,  kind:'io',   title:'The open web',
-  role:'Where the evidence lives', line:'News, case studies, vendor pages',
+  role:'Where evidence lives', line:'News and case studies',
   panel:{lead:'Everything the pipeline knows comes from public writing about AI deployments. That writing is overwhelmingly promotional, which is the single fact the rest of the design is built around.',
          secs:[['What arrives from here','Links to articles that look, from a search result, like they might describe a deployment. The great majority are marketing pages, announcements and roundups wearing the grammar of a case study.'],
                ['Why it is drawn as a source, not a stage','Nothing here is under the pipeline\u2019s control. The design cannot improve the web; it can only decide what to ask it and what to believe.']]}},
@@ -1046,7 +1046,7 @@ const NODES=[
                ['A worked example','Coordinates must be genuinely looked up; placeholders are prohibited. On a globe a placeholder is not a missing value, it is a visible point in the wrong place.']]}},
 
  {id:'k1', x:250, y:80, w:206, h:64, kind:'know', title:'Query design', own:'hermes',
-  role:'Reference', line:'Layers, rotation, retired queries',
+  role:'Reference', line:'Layers, rotation, retired',
   panel:{lead:'Owns what gets asked: the three layers, the daily rotation, the shape a query must have, and which tool answers which layer.',
          secs:[['Why queries rotate','A fixed set stops working after a few days. It keeps finding the same articles, which are by then already on record, and the day\u2019s entire output becomes duplicates.'],
                ['What it remembers','Queries measured at a zero survival rate are retired by name. Framework-name queries return tutorials; buzzword queries return vendor concept pages.']]}},
@@ -1059,7 +1059,7 @@ const NODES=[
                ['Why it is drawn touching all four','It was written as the memory of one stage and turned out to be the memory of the run. Keeping it attached to a single stage is what let the same lesson be relearned elsewhere.']]}},
 
  {id:'qc', x:250, y:450, w:206, h:86, kind:'job', title:'Quality check', own:'hermes',
-  role:'Every day', line:'The standard, run over stored cases',
+  role:'Every day', line:'Run over everything stored',
   panel:{lead:'This job has no standard of its own. It is the quality bar and the data standard turned into checks and pointed at everything already stored \u2014 which is why it is drawn hanging off them rather than off the pipeline.',
          secs:[['Why it exists at all','The daily stages only ever see one day. Damage that accumulates \u2014 a deployer that stopped resolving, a vocabulary that drifted, a field that was thin from the start \u2014 only shows up when the whole dataset is read at once.'],
                ['What it checks','Exactly what the two standards specify: the fields the data standard requires and the shape it requires them in, and the substance the quality bar demands. Nothing it looks for is invented here.'],
@@ -1083,7 +1083,7 @@ const NODES=[
                ['Why machines check it afterwards','On two separate days it was confident and wrong. Deterministic checks now scan its output for its known failure modes before anything is stored.']]}},
 
  {id:'s3', x:810, y:220, w:206, h:100, kind:'step', go:'s3', accent:'#43cc93', own:'hermes',
-  eyebrow:'STAGE 3', title:'Persist', line:'Records each survivor once',
+  eyebrow:'STAGE 3', title:'Persist', line:'Records each survivor',
   panel:{lead:'By this point every judgment has been made. This stage is deliberately mechanical \u2014 its only intelligence is about identity.',
          secs:[['Its one job','Recognise an article the atlas has already seen, store the case whole rather than as a link, and write it down awaiting review.'],
                ['What counts as already seen','Anything previously recorded, and anything a reviewer has archived. An archived case is a decision that this source is not worth carrying; re-ingesting it would overrule that decision automatically, every week, forever.'],
@@ -1126,14 +1126,14 @@ const NODES=[
                ['Why the step is explicit','Recording and publishing are deliberately two different acts. The pipeline can be trusted to write something down; it is not trusted to decide that the public should see it.']]}},
 
  {id:'arc', x:1380, y:550, w:206, h:86, kind:'sink', tint:'#f2607a', title:'Archived',
-  role:'Retired by a reviewer', line:'Kept, hidden, and remembered',
+  role:'Retired by a reviewer', line:'Kept, hidden, remembered',
   panel:{lead:'A case a human reviewer has read and judged not worth carrying. It is retired rather than deleted, and the decision is kept where the pipeline can use it.',
          secs:[['Why not deleted','The history stays auditable. A record that simply vanishes leaves no way to answer why something is no longer there, or whether it was ever there at all.'],
                ['It feeds the deduplication','Archived cases are part of what the recording stage treats as already seen. Without that, a source a reviewer rejected would be found again, judged again, and written again \u2014 and the reviewer would have to make the same decision every week.'],
                ['Where it is visible','Nowhere on the public site. It is excluded from every frontend surface, and its URL is blocked from re-entering.']]}},
 
  {id:'atlas', x:1090, y:689, w:206, h:86, kind:'sink', title:'The atlas', own:'pm',
-  role:'The dataset behind the product', line:'Every recorded use case',
+  role:'The dataset behind the site', line:'Every recorded use case',
   panel:{lead:'What the whole pipeline exists to fill: a map of where AI is actually deployed, and to do what.',
          secs:[['What arrives unreviewed','New cases are visible in the product but labelled as not yet validated \u2014 a deliberate trade. Showing them is more useful than hiding them, as long as nobody can mistake them for verified.'],
                ['What is owned at this level','Everything in this band: the standard the pipeline is held to, the dataset itself, and the standing work around it \u2014 the weekly report on whether the system is working, the weekly backup, and the advertorial audit.'],
@@ -1182,6 +1182,12 @@ const EDGES=[
  {a:'ran', as:'b', b:'arc', bs:'t', flow:0, cls:'bad', cp:[1310,320,1310,550]},
  /* an archived case is one of the things stage 3 treats as already seen */
  {a:'arc', as:'l', b:'dup', bs:'r', flow:0, cls:'feedback', label:'archived, never re-ingested'},
+ /* both decisions are written back to the same dataset, so the review gate
+    returns to the atlas rather than ending at two loose outcomes */
+ {a:'pub', as:'l', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1280,470,1330,732]},
+ {a:'arc', as:'b', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1483,706,1392,748], label:'status synced'},
+ /* what is already on record is also kept out of the judging, not only of the writing */
+ {a:'dup', as:'l', b:'s2', bs:'b', flow:0, cls:'feedback', cp:[790,400,700,330], label:'excluded at validation'},
  /* what has been discarded is kept out of what gets asked for next */
  {a:'rej', as:'l', b:'s1', bs:'b', flow:0, cls:'feedback', back:true, label:'excluded from later searches'},
  {a:'k1',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
@@ -1193,6 +1199,11 @@ const EDGES=[
  /* the standard reaches up into the pipeline through the gaps between stages */
  {a:'k2',  as:'r', b:'s2', bs:'l', flow:0, cls:'know'},
  {a:'k3',  as:'r', b:'s3', bs:'l', flow:0, cls:'know'},
+ /* the dashboard measures the stored data against the standard that defines it */
+ {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard'},
+ /* the audit judges stored records against both standards, so it reads from each */
+ {a:'k2',  as:'b', b:'audit', bs:'t', flow:0, cls:'know'},
+ {a:'k3',  as:'b', b:'audit', bs:'r', flow:0, cls:'know', cp:[600,800,500,890]},
  /* the quality check is nothing but those two standards, run over stored cases */
  {a:'k2',  as:'t', b:'qc', bs:'b', flow:0, cls:'know'},
  {a:'k3',  as:'l', b:'qc', bs:'r', flow:0, cls:'know'},
@@ -1258,10 +1269,14 @@ LANES.forEach(L=>{
   const r=mk('rect',{class:'lane','pointer-events':'none',x:L.x,y:L.y,width:L.w,height:L.h,rx:18,
     fill:o.c,'fill-opacity':.038,stroke:o.c,'stroke-opacity':.26,'stroke-width':1,'stroke-dasharray':'7 6'});
   gLanes.appendChild(r);
-  gLanes.appendChild(mk('text',{x:L.x+18,y:L.y+23,fill:o.c,'fill-opacity':.78,'pointer-events':'none',
-    'font-family':'Geist Mono, monospace','font-size':11,'letter-spacing':'1.5','font-weight':500},L.label));
-  gLanes.appendChild(mk('text',{x:L.x+18+L.label.length*8.35+18,y:L.y+23,fill:'#5f748f','pointer-events':'none',
-    'font-family':'Geist, sans-serif','font-size':11.5},L.sub));
+  const lab=mk('text',{x:L.x+18,y:L.y+23,fill:o.c,'fill-opacity':.78,'pointer-events':'none',
+    'font-family':'Geist Mono, monospace','font-size':12.5,'letter-spacing':'1.5','font-weight':500},L.label);
+  gLanes.appendChild(lab);
+  /* measured, not estimated from a per-character width: that estimate was
+     calibrated for one font size and collided with the sub the moment it changed */
+  const sub=mk('text',{x:L.x+18+lab.getComputedTextLength()+18,y:L.y+23,fill:'#5f748f','pointer-events':'none',
+    'font-family':'Geist, sans-serif','font-size':13},L.sub);
+  gLanes.appendChild(sub);
 });
 
 /* edges */
@@ -1276,7 +1291,7 @@ EDGES.forEach((e,i)=>{
     const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
     const g=mk('g',{class:'elabel'});
     const mx=(x1+x2)/2, my=(y1+y2)/2 - (e.as==='r'?11:0);
-    const t=mk('text',{x:mx,y:my,fill:'#7d93b1','font-family':'Geist Mono, monospace','font-size':11,'text-anchor':'middle','letter-spacing':'.06em'},e.label);
+    const t=mk('text',{x:mx,y:my,fill:'#7d93b1','font-family':'Geist Mono, monospace','font-size':12.5,'text-anchor':'middle','letter-spacing':'.06em'},e.label);
     g.appendChild(t); g.dataset.a=e.a; g.dataset.b=e.b;
     gLabels.appendChild(g);
   }
@@ -1301,16 +1316,16 @@ NODES.forEach(n=>{
   if(n.tint){box.setAttribute('stroke',n.tint);box.setAttribute('stroke-opacity','.6');}
   g.appendChild(box);
   if(n.eyebrow){
-    g.appendChild(mk('text',{x:n.x+18,y:n.y+28,fill:n.accent,'font-family':'Geist Mono, monospace','font-size':11,'letter-spacing':'1.7'},n.eyebrow));
-    g.appendChild(mk('text',{x:n.x+18,y:n.y+58,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':21,'font-weight':600},n.title));
-    g.appendChild(mk('text',{x:n.x+18,y:n.y+81,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':13},n.line));
+    g.appendChild(mk('text',{x:n.x+18,y:n.y+28,fill:n.accent,'font-family':'Geist Mono, monospace','font-size':12,'letter-spacing':'1.7'},n.eyebrow));
+    g.appendChild(mk('text',{x:n.x+18,y:n.y+58,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':23,'font-weight':600},n.title));
+    g.appendChild(mk('text',{x:n.x+18,y:n.y+81,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':14.5},n.line));
   } else if(n.kind==='know'){
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+26,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':15,'font-weight':600},n.title));
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+45,fill:'#7d93b1','font-family':'Geist, sans-serif','font-size':12},n.line));
+    g.appendChild(mk('text',{x:n.x+16,y:n.y+26,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
+    g.appendChild(mk('text',{x:n.x+16,y:n.y+45,fill:'#7d93b1','font-family':'Geist, sans-serif','font-size':13.5},n.line));
   } else {
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':16.5,'font-weight':600},n.title));
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+50,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':12.5},n.role||''));
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+67,fill:'#5f748f','font-family':'Geist, sans-serif','font-size':12},n.line||''));
+    g.appendChild(mk('text',{x:n.x+16,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
+    g.appendChild(mk('text',{x:n.x+16,y:n.y+50,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':14},n.role||''));
+    g.appendChild(mk('text',{x:n.x+16,y:n.y+67,fill:'#5f748f','font-family':'Geist, sans-serif','font-size':13.5},n.line||''));
   }
   g.addEventListener('click',ev=>{ev.stopPropagation();select(n.id);});
   g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(n.id);}});

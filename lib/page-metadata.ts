@@ -12,12 +12,17 @@ export function pageMetadata({
   path,
   image,
   type = "website",
+  publishedTime,
+  modifiedTime,
 }: {
   title: string
   description: string
   path: string
   image?: string | null
   type?: "website" | "article"
+  /** article only — LinkedIn and Google both read the date off these. */
+  publishedTime?: string
+  modifiedTime?: string
 }): Metadata {
   const canonical = absoluteUrl(path)
   const trimmedImage = image?.trim()
@@ -30,6 +35,7 @@ export function pageMetadata({
       url: canonical,
       title,
       description,
+      ...(type === "article" ? { publishedTime, modifiedTime } : {}),
       // Omit `images` entirely when there's no explicit one: setting it to
       // undefined reads as "this page has no image" and suppresses the
       // opengraph-image.tsx file convention, leaving shared links imageless.

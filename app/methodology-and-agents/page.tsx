@@ -12,6 +12,13 @@ export const metadata = pageMetadata({
   description:
     "How AI Atlas collects and verifies real-world AI deployments: an autonomous agent running nightly, the rules it is held to, and the review every record passes before it is published.",
   path: "/methodology-and-agents",
+  // A written piece, not a landing page. LinkedIn's rich link card is built by
+  // an "articleshare" pipeline that wants a type and a date; without them the
+  // page resolves to the minimal card and its share image is served as a
+  // thumbnail. Google reads the same dates for article rich results.
+  type: "article",
+  publishedTime: "2026-09-14T00:00:00.000Z",
+  modifiedTime: "2026-09-15T00:00:00.000Z",
 })
 
 /**

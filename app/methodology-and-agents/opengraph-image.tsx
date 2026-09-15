@@ -5,7 +5,7 @@ import { join } from "node:path"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 export const alt =
-  "The agent architecture behind AI Atlas: four pipeline stages fed by a shared reference layer, the discards that feed back into search, and a human review before anything is published"
+  "The multi-agent architecture behind AI Atlas: four pipeline stages fed by a shared reference layer, the discards that feed back into search, and a human review before anything is published"
 
 const LOGO_DATA_URL = (() => {
   try {
@@ -277,7 +277,7 @@ export default function Image() {
             </span>
           </div>
           <span style={{ fontSize: "15px", letterSpacing: "0.15em", color: "#7d90a4" }}>
-            THE AGENT ARCHITECTURE
+            THE MULTI-AGENT ARCHITECTURE
           </span>
         </div>
 

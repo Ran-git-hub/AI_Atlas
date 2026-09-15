@@ -92,6 +92,9 @@ body:has(.mth){overflow-x:clip}
 
 /* ---------- section rhythm: hairlines, not boxes ---------- */
 .mth .hero{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:76px;align-items:start;padding:44px 0 0}
+/* the funnel is the lede's counterpart, so the two blocks centre on each other;
+   .hero.side keeps align-items:start because its right column is a sticky rail */
+.mth .hero:not(.side){align-items:center}
 .mth .hero-l{display:flex;flex-direction:column;gap:22px}
 .mth .band{padding-top:64px}
 /* a heading alone above a column of prose left the other half of the row empty;
@@ -135,10 +138,10 @@ body:has(.mth){overflow-x:clip}
 .mth .fstep:first-of-type{padding-top:0}
 .mth .fstep:last-of-type{border-bottom:0;padding-bottom:0}
 .mth .fstep .row{display:flex;align-items:baseline;gap:10px}
-.mth .fstep .v{font-family:var(--mono);font-size:28px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.mth .fstep .l{font-size:14.4px;color:var(--muted)}
+.mth .fstep .v{font-family:var(--mono);font-size:31px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.mth .fstep .l{font-size:15.2px;color:var(--muted)}
 .mth .fstep .bar{height:7px;border-radius:2px;opacity:.9}
-.mth .fnote{margin-top:20px;font-size:13.8px;line-height:1.58;color:var(--faint);max-width:46ch}
+.mth .fnote{margin-top:20px;font-size:14.2px;line-height:1.58;color:var(--faint);max-width:46ch}
 
 /* ---------- inline figures (replace stat tiles) ---------- */
 .mth .figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 20px;

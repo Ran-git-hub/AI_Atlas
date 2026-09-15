@@ -455,7 +455,7 @@ export default function Image() {
               eyebrow="HUMAN IN THE LOOP"
               accent={HUMAN}
               title="Review"
-              line="A person decides, every time"
+              line="A human decides, every time"
             />
             <div style={{ display: "flex", justifyContent: "center", marginTop: "5px" }}>
               <Tick color={`${HUMAN}99`} h={9} />
@@ -538,7 +538,7 @@ export default function Image() {
             ai-atlas.app/methodology-and-agents
           </span>
           <span style={{ fontSize: "15px", color: DIM }}>
-            Sourced by agents · published by a person
+            Sourced by agents · published by a human
           </span>
         </div>
       </div>

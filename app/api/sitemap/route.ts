@@ -85,6 +85,7 @@ export async function GET(): Promise<Response> {
     { loc: url("/countries"), priority: 0.8, changefreq: "weekly" },
     { loc: url("/news"), priority: 0.8, changefreq: "daily" },
     { loc: url("/blog"), priority: 0.7, changefreq: "weekly" },
+    { loc: url("/methodology-and-agents"), priority: 0.6, changefreq: "monthly" },
     { loc: url("/quality"), priority: 0.4, changefreq: "weekly" },
     ...(useCases as UseCaseCatalogRow[]).map((item) => ({
       loc: url(`/use-cases/${encodeURIComponent(item.id)}`),

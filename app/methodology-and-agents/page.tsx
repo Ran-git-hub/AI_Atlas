@@ -3,6 +3,7 @@ import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { MethodologyBody } from "@/components/methodology/methodology-body"
 import { pageMetadata } from "@/lib/page-metadata"
+import { absoluteUrl } from "@/lib/site-url"
 
 const shellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
@@ -12,6 +13,20 @@ export const metadata = pageMetadata({
   description:
     "How AI Atlas collects and verifies real-world AI deployments: an autonomous agent running nightly, the rules it is held to, and the review every record passes before it is published.",
   path: "/methodology-and-agents",
+  // A static file rather than the generated opengraph-image route. LinkedIn
+  // was only ever building a 160px rendition of the generated one, and a plain
+  // .png with no query string is the one variable left that we control.
+  // Regenerate with: curl -o public/og/methodology.png \
+  //   http://localhost:3000/methodology-and-agents/opengraph-image
+  // after editing opengraph-image.tsx, which stays the source of the drawing.
+  image: {
+    url: absoluteUrl("/og/methodology.png"),
+    secureUrl: absoluteUrl("/og/methodology.png"),
+    type: "image/png",
+    width: 1200,
+    height: 630,
+    alt: "The multi-agent architecture behind AI Atlas: four pipeline stages fed by a shared reference layer, the discards that feed back into search, and a human review before anything is published",
+  },
   // A written piece, not a landing page. LinkedIn's rich link card is built by
   // an "articleshare" pipeline that wants a type and a date; without them the
   // page resolves to the minimal card and its share image is served as a

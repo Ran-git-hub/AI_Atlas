@@ -154,6 +154,7 @@ body:has(.mth){overflow-x:clip}
 /* ---------- stage rail ---------- */
 .mth .stagegrid{display:grid;grid-template-columns:392px minmax(0,1fr);gap:80px;padding:56px 0 0;align-items:start}
 .mth .hero.side{grid-template-columns:minmax(0,1fr) 372px}
+.mth .hero.solo{grid-template-columns:minmax(0,1fr)}
 @media(max-width:1100px){.mth .stagegrid{grid-template-columns:1fr;gap:44px}.mth .hero,.mth .hero.side{grid-template-columns:minmax(0,1fr);gap:44px}}
 .mth .rail{display:flex;flex-direction:column;gap:30px;position:sticky;top:calc(var(--chrome,140px) + 20px)}
 /* each skill is its own module, lifted off the ground so the four read as blocks
@@ -508,7 +509,7 @@ body:has(.mth){overflow-x:clip}
 
 /* --- the record standard: fields and the gates they are --- */
 .mth .rec{border-top:1px solid var(--line)}
-.mth .rec .rh,.mth .rec .rr{display:grid;grid-template-columns:152px 128px minmax(0,1fr) 172px;gap:0 20px;align-items:baseline}
+.mth .rec .rh,.mth .rec .rr{display:grid;grid-template-columns:152px 128px minmax(0,1fr);gap:0 20px;align-items:baseline}
 .mth .rec.g3 .rh,.mth .rec.g3 .rr{grid-template-columns:180px minmax(0,1fr) 200px}
 .mth .rec .rh{padding:9px 0 8px;font-family:var(--mono);font-size:10px;letter-spacing:.15em;
   text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line-soft)}
@@ -526,6 +527,12 @@ body:has(.mth){overflow-x:clip}
 .mth .rec .rc code{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:5px;white-space:nowrap;
   background:rgba(242,96,122,.1);border:1px solid rgba(242,96,122,.28);color:#f18ea3}
 .mth .rec .rc em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.mth .rexw{display:flex;flex-direction:column;gap:7px;margin-top:14px;padding-top:13px;border-top:1px solid var(--hair)}
+.mth .rexw div{display:flex;gap:12px;align-items:baseline}
+.mth .rexw span{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--faint);flex:none;min-width:132px}
+.mth .rexw i{font-style:normal;font-family:var(--mono);font-size:11.5px;color:#8ba0bd;line-height:1.6}
+@media(max-width:820px){.mth .rexw div{flex-direction:column;gap:3px}.mth .rexw span{min-width:0}}
 .mth .recfoot{margin-top:14px;font-size:13.4px;line-height:1.6;color:var(--faint);max-width:82ch}
 .mth .recsplit{display:flex;align-items:center;gap:16px;margin-top:44px;margin-bottom:14px}
 .mth .recsplit span{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);flex:none}

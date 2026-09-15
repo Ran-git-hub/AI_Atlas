@@ -145,7 +145,7 @@ const MARKUP = `<header class="topbar">
         <div class="seq-b">
           <b>One job per stage, and a hard boundary around it</b>
           <p class="lead">Every stage may do exactly one thing &mdash; and is forbidden from its neighbour's.</p>
-          <p class="body">Search may reject an obviously bad link but never opens the article. Validation judges and never writes. Persistence writes and never re-judges. Reporting only reads. Each boundary sits where the decision on the other side of it is actually accountable, because a stage that quietly does a neighbour's job is a stage whose failures cannot be attributed.</p>
+          <p class="body">Search can drop a link that is obviously wrong, but it never opens the article. Validate decides, and never writes. Persist writes, and never decides again. Report only reads. The lines are drawn where they are so that when something goes wrong, it is clear which stage did it. A stage that quietly does its neighbour's job hides its own mistakes.</p>
         </div>
       </div>
       <div class="seq">
@@ -153,7 +153,7 @@ const MARKUP = `<header class="topbar">
         <div class="seq-b">
           <b>The pipeline may fail; the report may not</b>
           <p class="lead">A day that finds nothing still says which kind of nothing it found.</p>
-          <p class="body">Every stage hands the next one something, even when that something is empty, and a stage that produces nothing does not halt the run. Nothing searched means a tool broke; nothing survived means the questions were badly aimed; everything already on record means the queries have saturated. Silence would be indistinguishable from a crash.</p>
+          <p class="body">Every stage passes something on, even when that something is empty, and a stage with nothing to give does not stop the run. Nothing found means a tool broke. Nothing survived means the day's questions were badly aimed. Everything already on record means the queries have gone stale. If the pipeline simply went quiet, none of that could be told apart from a crash.</p>
         </div>
       </div>
       <div class="seq">
@@ -161,7 +161,7 @@ const MARKUP = `<header class="topbar">
         <div class="seq-b">
           <b>When in doubt, reject</b>
           <p class="lead">A missed case is recoverable. A false one is not.</p>
-          <p class="body">A case that should have been captured can be found again tomorrow. A vendor brochure recorded as a deployment sits in the dataset and on the globe until someone notices. The asymmetry is deliberate, and it is why more than eight in ten candidates are discarded on a normal day.</p>
+          <p class="body">A case that gets missed today can be found again tomorrow. A vendor brochure filed as a real deployment sits in the data, and on the globe, until someone spots it. That trade is on purpose, and it is why more than eight in ten candidates are thrown out on a normal day.</p>
         </div>
       </div>
       <div class="seq">
@@ -169,7 +169,7 @@ const MARKUP = `<header class="topbar">
         <div class="seq-b">
           <b>Deterministic checks verify the model's judgment</b>
           <p class="lead">The model is trusted to judge. It is not trusted to be the last word.</p>
-          <p class="body">The reading and the reasoning are the part only it can do. But it fails in known, repeatable ways &mdash; it forgets to translate, it accepts a vendor's own product page as a customer deployment &mdash; so its output passes through mechanical checks before anything is written down.</p>
+          <p class="body">Reading the article and weighing it up is the part only the model can do. But it gets things wrong in the same ways over and over &mdash; it forgets to translate, it takes a vendor's own product page for a customer deployment. So everything it produces runs through plain mechanical checks before it is written down.</p>
         </div>
       </div>
     </div>
@@ -177,7 +177,7 @@ const MARKUP = `<header class="topbar">
 
   <div class="band rowh">
     <div class="band-h"><h2>Where a human sits in the loop</h2><span class="label">nothing publishes itself</span></div>
-    <p class="body" style="max-width:82ch">The pipeline never publishes on its own authority. Everything it records arrives in an unreviewed state and waits for review.</p>
+    <p class="body" style="max-width:92ch">The pipeline never publishes on its own authority. Everything it records arrives in an unreviewed state and waits for review.</p>
     <div class="dl two" style="margin-top:20px">
         <div>
           <span class="what">Cases arrive labelled, not hidden</span>
@@ -218,7 +218,7 @@ const MARKUP = `<header class="topbar">
             <h1 class="sm">Search</h1>
           </div>
         </div>
-        <p class="lede" style="font-size:17px">Produces a list of links worth reading, and is deliberately kept ignorant of what those links say &mdash; because a searcher that starts forming opinions about content will discard things the validator would have caught, on far less evidence.</p>
+        <p class="lede" style="font-size:17px">Produces a list of links worth reading, and is deliberately kept ignorant of what those links say. A searcher that starts forming opinions about content will discard things the validator would have caught, on far less evidence.</p>
       </div>
       <div class="duty">
         <div class="can">
@@ -260,7 +260,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--violet)">D1</span>
         <div class="seq-b">
           <b>Three query layers, aimed at three different blind spots</b>
-          <p class="body">Searching one way finds one kind of case. The layers exist so that no single dimension of coverage can quietly collapse.</p>
+          <p class="body">Searching one way finds one kind of case. The layers exist so that no one kind of coverage can quietly collapse.</p>
           <div class="tw"><table>
             <thead><tr><th>Layer</th><th>Asks about</th><th>Guards against</th></tr></thead>
             <tbody>
@@ -276,7 +276,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--violet)">D2</span>
         <div class="seq-b">
           <b>Every query must name a process, a deployment, and a number</b>
-          <p class="body">A query that asks only about "AI" returns opinion. The shape that works asks for all three at once: a concrete business process, a word that means the thing is actually running, and a word that implies a measured outcome. That triple is the cheapest available proxy for the distinction the validator will later have to make properly &mdash; between something a company <em>announced</em> and something a company <em>does</em>. Queries that drop any leg of the triple have been measured at a zero percent survival rate.</p>
+          <p class="body">A query that asks only about "AI" returns opinion. The shape that works asks for all three at once: a concrete business process, a word that means the thing is actually running, and a word that implies a measured outcome. That triple is the cheapest stand-in for the call the validator will later have to make properly &mdash; between something a company <em>announced</em> and something a company <em>does</em>. Queries that drop any leg of the triple have been measured at a zero survival rate.</p>
         </div>
       </div>
 
@@ -284,7 +284,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--violet)">D3</span>
         <div class="seq-b">
           <b>Queries rotate daily out of a larger pool</b>
-          <p class="body">A fixed set of queries stops working after about three days: it keeps finding the same articles, which are by then already on record, and the run's entire output becomes duplicates. Rotation ensures the same question does not repeat for weeks. The selection derives from the date, so it is deterministic and reproducible &mdash; the same day always asks the same questions, which matters when you are trying to explain why a particular day found nothing.</p>
+          <p class="body">A fixed set of queries stops working after about three days: it keeps finding the same articles, which are by then already on record, and the run's entire output becomes duplicates. Rotation ensures the same question does not repeat for weeks. The choice comes from the date, so the same day always asks the same questions &mdash; which matters when you are trying to explain why a particular day found nothing.</p>
         </div>
       </div>
 
@@ -292,7 +292,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--violet)">D4</span>
         <div class="seq-b">
           <b>Each layer has its own preferred search tool</b>
-          <p class="body">Originally every query tried the tools in one fixed order, falling through on failure. The effect was that the cheapest tool answered almost everything and the strongest semantic search was never reached at all &mdash; it went weeks without being called once. Assigning each layer a primary tool forces all of them into use, and a measured comparison showed the previously-starved tool producing several times more surviving candidates than the chain it was buried under.</p>
+          <p class="body">Originally every query tried the tools in one fixed order, falling through on failure. The effect was that the cheapest tool answered almost everything and the strongest semantic search was never reached at all &mdash; it went weeks without being called once. Assigning each layer a primary tool forces all of them into use, and a measured comparison showed that the starved tool produced several times more surviving candidates than the chain it had been buried under.</p>
         </div>
       </div>
 
@@ -327,7 +327,7 @@ const MARKUP = `<header class="topbar">
             <h1 class="sm">Validate</h1>
           </div>
         </div>
-        <p class="lede" style="font-size:17px">The stage the whole pipeline exists to protect. Everything upstream is cheap and everything downstream is mechanical &mdash; this is where judgment happens, and its posture is adversarial: every candidate is marketing until the article proves otherwise.</p>
+        <p class="lede" style="font-size:17px">The stage the whole pipeline exists to protect. Everything upstream is cheap and everything downstream is mechanical. This is where judgment happens, and it is adversarial by design: every candidate is marketing until the article proves otherwise.</p>
       </div>
       <div class="duty">
         <div class="can">
@@ -357,8 +357,8 @@ const MARKUP = `<header class="topbar">
       </div>
       <div class="figs">
         <div class="fig"><span class="v" style="color:var(--amber)">10</span><span class="l">rules, all must pass</span></div>
-        <div class="fig"><span class="v" style="color:var(--rose)">91.8%</span><span class="l">rejected, last run</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">2</span><span class="l">machine re-checks</span></div>
+        <div class="fig"><span class="v" style="color:var(--rose)">85%</span><span class="l">rejected at validation</span></div>
+        <div class="fig"><span class="v" style="color:var(--green)">2</span><span class="l">mechanical checks on its output</span></div>
       </div>
     </div>
 
@@ -369,7 +369,7 @@ const MARKUP = `<header class="topbar">
         <span class="n warm">D1</span>
         <div class="seq-b">
           <b>Language is a translation problem, never a quality signal</b>
-          <p class="body">A Chinese power-grid deployment and a Japanese bank rollout are first-class cases. The source may be in any language; the output must be English &mdash; so a non-English article is translated, not discarded. This is enforced mechanically because the failure runs both ways: told "output must be English", a model starts throwing away perfectly good foreign-language sources; told "translate everything", it sometimes leaves the original text in place. Both have happened.</p>
+          <p class="body">A Chinese power-grid deployment and a Japanese bank rollout are first-class cases. The source may be in any language. The output must be English, so a non-English article is translated, not discarded. A machine check enforces that, because the failure runs both ways: told "output must be English", a model starts throwing away perfectly good foreign-language sources; told "translate everything", it sometimes leaves the original text in place. Both have happened.</p>
         </div>
       </div>
 
@@ -380,11 +380,11 @@ const MARKUP = `<header class="topbar">
           <p class="body">Most of what the web publishes about enterprise AI is a press release about intent. It shares almost every word with a real case study &mdash; the same company names, the same "AI", the same "deployed". The distinction comes down to verb tense.</p>
           <div class="split">
             <div>
-              <span class="label" style="color:var(--rose)">Reject pattern</span>
+              <span class="label" style="color:var(--rose)">Reject patterns</span>
               <p style="color:#98a9c0">will enable &middot; is set to &middot; announces a partnership &middot; launches &middot; no metric yet</p>
             </div>
             <div>
-              <span class="label" style="color:var(--green)">Accept pattern</span>
+              <span class="label" style="color:var(--green)">Accept patterns</span>
               <p style="color:var(--bright)">deployed at &middot; in production &middot; reduced review time 40% &middot; saved 6 hours per case</p>
             </div>
           </div>
@@ -395,7 +395,7 @@ const MARKUP = `<header class="topbar">
         <span class="n warm">D3</span>
         <div class="seq-b">
           <b>Scale is not a use case</b>
-          <p class="body">"Two hundred thousand employees now have access to an AI assistant" is a real, verifiable, well-sourced fact, and it says nothing about how anyone's work changed. The bar is set explicitly: headcount announcements are not use cases and carry no meaning for the atlas. The same company becomes acceptable the moment the article names a process &mdash; claims handling, document review, fraud triage &mdash; and what changed about it.</p>
+          <p class="body">"Two hundred thousand employees now have access to an AI assistant" is a real, verifiable, well-sourced fact, and it says nothing about how anyone's work changed. The bar says so explicitly: headcount announcements are not use cases and mean nothing for the atlas. The same company becomes acceptable the moment the article names a process &mdash; claims handling, document review, fraud triage &mdash; and what changed about it.</p>
         </div>
       </div>
 
@@ -403,7 +403,7 @@ const MARKUP = `<header class="topbar">
         <span class="n warm">D4</span>
         <div class="seq-b">
           <b>A named company, or nothing at all</b>
-          <p class="body">Anonymous case studies &mdash; "a leading European insurer" &mdash; are dropped entirely rather than recorded with a blank. The temptation for a model is to infer a plausible name, and a single fabricated company would undermine every other record in the dataset. Consortiums, alliances, initiatives and project names are likewise not companies. The atlas is a map of who is doing this, and a point on it that names nobody is worse than an empty space.</p>
+          <p class="body">Anonymous case studies &mdash; "a leading European insurer" &mdash; are dropped entirely rather than recorded with a blank. A model will be tempted to invent a plausible name, and one fabricated company would undermine every other record in the dataset. Consortiums, alliances, initiatives and project names are likewise not companies. The atlas is a map of who is doing this, and a point on it that names nobody is worse than an empty space.</p>
         </div>
       </div>
 
@@ -412,7 +412,7 @@ const MARKUP = `<header class="topbar">
         <span class="n warm">D5</span>
         <div class="seq-b">
           <b>The model's output is checked by something that cannot be persuaded</b>
-          <p class="body">After the validator finishes, mechanical checks run over its output looking for the specific ways it is known to fail: untranslated text left in place, vendor press domains accepted as sources, announcement phrasing, roundups and listicles, missing geography. Anything they catch is moved into the rejected pile before persistence sees it. These exist because on two separate days the validator was confident and wrong &mdash; once shipping untranslated records, once shipping seventeen vendor pages. They are not optional and are not skipped when the output "looks fine", since looking fine is exactly the failure mode.</p>
+          <p class="body">After the validator finishes, mechanical checks run over its output looking for the specific ways it is known to fail: untranslated text left in place, vendor press domains accepted as sources, announcement phrasing, roundups and listicles, missing geography. Anything they catch is moved into the rejected pile before persistence sees it. These exist because on two separate days the validator was confident and wrong &mdash; once shipping untranslated records, once shipping seventeen vendor pages. They are not optional, and they do not get skipped when the output "looks fine" &mdash; looking fine is exactly the failure mode.</p>
         </div>
       </div>
     </div>
@@ -437,7 +437,7 @@ const MARKUP = `<header class="topbar">
             <h1 class="sm">Persist</h1>
           </div>
         </div>
-        <p class="lede" style="font-size:17px">By this point every judgment about the case has been made. This stage is deliberately mechanical &mdash; its only intelligence is about identity: has this article already been recorded, and does everything the case needs to exist actually resolve?</p>
+        <p class="lede" style="font-size:17px">By this point every judgment about the case has been made. This stage is deliberately mechanical. Its only intelligence is about identity: has this article already been recorded, and does everything the case depends on actually resolve?</p>
       </div>
       <div class="duty">
         <div class="can">
@@ -465,8 +465,8 @@ const MARKUP = `<header class="topbar">
         </div>
       </div>
       <div class="figs">
-        <div class="fig"><span class="v" style="color:var(--green)">500+</span><span class="l">characters stored per case</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">1</span><span class="l">case per source article</span></div>
+        <div class="fig"><span class="v" style="color:var(--green)">4</span><span class="l">things must resolve before a case is written</span></div>
+        <div class="fig"><span class="v" style="color:var(--green)">2</span><span class="l">ways to be already known</span></div>
         <div class="fig"><span class="v" style="color:var(--amber)">0</span><span class="l">auto-published</span></div>
       </div>
     </div>
@@ -478,7 +478,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--green)">D1</span>
         <div class="seq-b">
           <b>Deduplication ignores whether the earlier record was any good</b>
-          <p class="body">If an article is already on record it is skipped &mdash; including when that earlier record was reviewed and retired. This is counter-intuitive but deliberate: retired means someone looked at this source and judged it invalid. Re-ingesting it would mean overruling a human decision automatically, every week, forever. Reviving a retired case is a manual act, never an automatic one.</p>
+          <p class="body">If an article is already on record it is skipped &mdash; even when a reviewer read that earlier record and retired it. That is counter-intuitive but deliberate: retired means someone judged this source invalid. Re-ingesting it would overrule that decision automatically, every week, forever. Reviving a retired case is a manual act, never an automatic one.</p>
         </div>
       </div>
 
@@ -487,7 +487,7 @@ const MARKUP = `<header class="topbar">
         <div class="seq-b">
           <b>A case is stored whole, and keeps a pointer to its source</b>
           <p class="body">The record keeps the deployment's full text &mdash; five hundred characters at minimum &mdash; rather than a link and a headline. Articles rot: they get retracted, paywalled, restructured, or quietly rewritten to say something softer. A case that lives only as a URL is a case that can evaporate without anyone touching the database.</p>
-          <p class="body">It also makes a specific repair possible. When an article turns out to be poor but the deployment behind it is worth keeping, there is a dedicated procedure to find a better source and attach it, instead of discarding the case and hoping the same deployment surfaces again.</p>
+          <p class="body">It also makes a specific repair possible. When the article turns out to be poor but the deployment behind it is worth keeping, there is a set procedure: find a better source and attach it, rather than throw the case away and hope the same deployment turns up again.</p>
         </div>
       </div>
 
@@ -495,7 +495,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--green)">D3</span>
         <div class="seq-b">
           <b>A case exists only once everything it points at resolves</b>
-          <p class="body">A use case is not a standalone note. It carries a deployer, a place, an industry and a source, and each of those has to resolve to something real before the case can be written &mdash; a named organisation the atlas can attach it to, coordinates that put it somewhere on the globe, an industry drawn from the closed vocabulary. A field that does not resolve sends the case back; it is never filled with a blank.</p>
+          <p class="body">A use case is not a standalone note. It carries a deployer, a place, an industry and a source, and each has to resolve to something real before the case can be written &mdash; a named organisation, coordinates that put it somewhere on the globe, an industry from the closed vocabulary. A field that does not resolve sends the case back. It is never filled with a blank.</p>
           <p class="body">A retired case is never revived automatically. It was retired because that article was judged bad, and nothing about a later day makes it good.</p>
         </div>
       </div>
@@ -504,7 +504,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--green)">D4</span>
         <div class="seq-b">
           <b>New cases arrive unreviewed, on purpose</b>
-          <p class="body">A case is written in a state that means "awaiting review". It is visible in the product but carries a label saying so, which is a deliberate trade: showing it unverified is more useful than hiding it, as long as nobody can mistake it for verified. The pipeline never promotes its own work.</p>
+          <p class="body">A case is written in a state that means "awaiting review". It is visible in the product, but labelled as such. That is a deliberate trade: showing it unverified is more useful than hiding it, as long as nobody can mistake it for verified. The pipeline never promotes its own work.</p>
         </div>
       </div>
 
@@ -512,7 +512,7 @@ const MARKUP = `<header class="topbar">
         <span class="n" style="color:var(--green)">D5</span>
         <div class="seq-b">
           <b>One bad case never takes down the day</b>
-          <p class="body">A malformed field is corrected and retried; a network failure is retried once. If a case still cannot be written it is skipped and recorded as skipped, and the run continues with the rest. The stage always hands something onward, even when it wrote nothing at all &mdash; because the alternative is a day that ends in silence, and silence is the one outcome the design does not permit.</p>
+          <p class="body">A malformed field is corrected and retried. A network failure is retried once. If a case still cannot be written, it is skipped and recorded as skipped, and the run continues with the rest. The stage always hands something onward, even when it wrote nothing at all &mdash; because the alternative is a day that ends in silence, and silence is the one outcome the design does not permit.</p>
         </div>
       </div>
     </div>
@@ -538,7 +538,7 @@ const MARKUP = `<header class="topbar">
             <h1 class="sm">Report</h1>
           </div>
         </div>
-        <p class="lede" style="font-size:17px">The pipeline's contract with its maintainer. The least sophisticated stage and the least optional one: a day that finds nothing still ends with a message, because an absent message means something broke and nobody knows what.</p>
+        <p class="lede" style="font-size:17px">The pipeline's contract with its reviewer. The least sophisticated stage and the least optional one: a day that finds nothing still ends with a message, because an absent message means something broke and nobody knows what.</p>
       </div>
       <div class="duty">
         <div class="can">
@@ -563,7 +563,7 @@ const MARKUP = `<header class="topbar">
             <li>Re-checking content or re-validating a case</li>
             <li>Recomputing numbers the earlier stages established</li>
           </ul>
-          <p class="body" style="font-size:14px;margin-top:4px">The single exception is a counts-only look at the database, purely to say how large the review queue has become.</p>
+          <p class="body" style="font-size:14px;margin-top:4px">The one exception is a counts-only look at the database, just to say how large the review queue has become.</p>
         </div>
       </div>
       <div class="figs">
@@ -580,15 +580,15 @@ const MARKUP = `<header class="topbar">
         <span class="n">D1</span>
         <div class="seq-b">
           <b>A zero day still gets a report, and says which zero it was</b>
-          <p class="body">There are several ways for a day to produce nothing, and they call for completely different responses. Nothing was searched means a tool is broken. Nothing survived validation means the day's questions were poorly aimed. Everything was already on record means the queries have saturated and need rotating. Collapsing all three into "no results" would throw away the only signal that says what to fix.</p>
+          <p class="body">A day can produce nothing in several different ways, and each calls for a different fix. Nothing was searched means a tool is broken. Nothing survived validation means the day's questions were poorly aimed. Everything was already on record means the queries have saturated and need rotating. Collapsing all three into "no results" would throw away the only signal that says what to fix.</p>
         </div>
       </div>
 
       <div class="seq">
         <span class="n">D2</span>
         <div class="seq-b">
-          <b>The report watches the human, not just the machine</b>
-          <p class="body">Because everything the pipeline records waits for review, the review queue is a real bottleneck &mdash; and one the pipeline can see but not fix. So the daily message reports the backlog and changes its tone as it grows, from a note to a warning. The pipeline is designed to be able to say that it is producing faster than it is being reviewed.</p>
+          <b>The report says when review has fallen behind</b>
+          <p class="body">Because everything the pipeline records waits for review, the review queue is a real bottleneck &mdash; and one the pipeline can see but not fix. So the daily message reports the backlog and changes its tone as it grows, from a note to a warning.</p>
         </div>
       </div>
 
@@ -596,7 +596,7 @@ const MARKUP = `<header class="topbar">
         <span class="n">D3</span>
         <div class="seq-b">
           <b>A run is counted only once the message actually lands</b>
-          <p class="body">The day's metrics are archived after delivery is confirmed, never before. This makes the metrics history mean something precise: every line in it is a run that completed and was communicated. A run that produced cases but failed to report leaves no line, which is correct &mdash; from the maintainer's point of view that day did not happen, and the gap in the record is the honest representation of that.</p>
+          <p class="body">The day's metrics are archived after delivery is confirmed, never before. This makes the metrics history mean something precise: every line in it is a run that finished and got reported. A run that produced cases but failed to report leaves no line. That is correct: from the reviewer's point of view that day did not happen, and the gap says so honestly.</p>
         </div>
       </div>
 
@@ -604,7 +604,7 @@ const MARKUP = `<header class="topbar">
         <span class="n">D4</span>
         <div class="seq-b">
           <b>Reporting reads the same learnings the searcher does</b>
-          <p class="body">The observations at the end of each report are written against the accumulated record of what has and has not been working, not off the day in isolation. That shared reference is what turns a daily message into a feedback loop: patterns noticed in reports become notes, notes become retired queries and new rules, and those rules change what tomorrow's search asks.</p>
+          <p class="body">The observations at the end of each report are written against the running record of what has and has not been working, not off the day in isolation. That shared reference is what turns a daily message into a feedback loop: patterns noticed in reports become notes, notes become retired queries and new rules, and those rules change what tomorrow's search asks.</p>
         </div>
       </div>
     </div>
@@ -620,135 +620,51 @@ const MARKUP = `<header class="topbar">
       <p class="lede">Nearly every design decision in the pipeline is downstream of this definition. It is worth stating plainly, because most of what the web publishes about enterprise AI fails it.</p>
     </div>
     <div class="funnel">
-      <span class="label">A case qualifies when</span>
-      <ul class="list" style="gap:11px;font-size:15.2px;padding-left:0;list-style:none">
-        <li><b>A named company</b> is doing it &mdash; a real business entity, not a consortium or project name</li>
-        <li>It is <b>running</b>, in production or real operation, not planned or announced</li>
-        <li>It changes a <b>specific business process</b> &mdash; claims, inspection, underwriting, triage</li>
-        <li>Something was <b>measured</b>: a percentage, an amount of time, a cost, a rate</li>
-        <li>The source is a <b>substantive article</b> about that deployment, not a page about a product</li>
-      </ul>
-      <p class="fnote">A vendor's own writing can qualify, but only when it names the actual customer and reports real numbers. Otherwise it is a brochure with a case study's grammar.</p>
+      <span class="label">The hard numbers</span>
+      <div class="figs" style="border-top:0;padding-top:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px">
+        <div class="fig"><span class="v" style="color:var(--rose)">5</span><span class="l">families of rejection</span></div>
+        <div class="fig"><span class="v" style="color:var(--amber)">3</span><span class="l">tests an advertorial must pass</span></div>
+        <div class="fig"><span class="v" style="color:var(--violet)">17</span><span class="l">rules, run by hand</span></div>
+      </div>
     </div>
+      </div>
+
+  <div class="band rowh">
+    <div class="band-h"><h2>Where the bar sits, and why</h2></div>
+    <p class="body" style="max-width:80ch;font-size:16.5px;padding-top:18px;border-top:1px solid var(--hair)">The atlas exists to answer a question that is otherwise very hard to answer honestly: where is AI actually being used, and to do what. Announcements, headcount figures and market reports are abundant and answer none of that. The bar is not conservative by accident &mdash; it is what makes the remaining tenth worth anything.</p>
+    <span class="label" style="display:block;margin-top:26px">A case qualifies when</span>
+      <ul class="list" style="gap:11px;font-size:15.2px;padding-left:0;list-style:none">
+        <li><b>A named company</b> &mdash; a real business entity, not a consortium or a project</li>
+        <li><b>Actually running</b>, not planned or announced</li>
+        <li>It changes a <b>specific process</b> &mdash; claims, inspection, underwriting, triage</li>
+        <li><b>Something was measured</b> &mdash; a percentage, a time, a cost, a rate</li>
+        <li>A <b>substantive article</b> about the deployment, not a product page</li>
+      </ul>
+      <p class="fnote" style="max-width:80ch;margin-top:16px">A vendor's own writing counts only if it names the customer and reports real numbers. Otherwise it is a brochure with a case study's grammar.</p>
   </div>
 
   <div class="band rowh">
-    <div class="band-h"><h2>Why the bar sits here</h2><span class="label">what the filtering buys</span></div>
-    <p class="body" style="max-width:80ch;font-size:16.5px;padding-top:18px;border-top:1px solid var(--hair)">The atlas is meant to answer a question that is otherwise very hard to answer honestly: where is AI actually being used, and to do what. Announcements, headcount figures and market reports are abundant and answer none of that. Filtering them out is most of the work, and it is the reason the pipeline discards more than eight of every ten things it finds. The bar is not conservative by accident &mdash; it is what makes the remaining tenth worth anything.</p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>The five families of rejection</h2><span class="label">select one</span></div>
+    <div class="band-h"><h2>What the bar rejects</h2></div>
     <p class="body" style="padding-bottom:18px">Every rejected candidate is recorded with a reason, and those reasons cluster into five recognisable families. Knowing which family dominates on a given day is what tells you whether the problem is the queries, the sources, or the bar.</p>
+    <div class="recsplit"><span>The five families of rejection</span></div>
     <div class="rex">
       <div class="rex-nav" id="rexNav"></div>
       <div class="rex-p" id="rexPanel"></div>
     </div>
-  </div>
-</section>
-
-<!-- ==================== THE RULES ==================== -->
-<section class="sec" id="sec-rules">
-  <div class="hero side">
-    <div class="hero-l">
-      <div class="sectitle"><span class="grp">The harness around them:</span><b>Rules</b></div>
-      <h1>A standard a model can follow is a standard<span class="fade"> written as thresholds</span></h1>
-      <p class="lede">"Good quality" is not executable. Every judgment in this pipeline had to be turned into something with a number, a list, or a yes-or-no test attached &mdash; otherwise each day's run would apply a slightly different bar, and the dataset would drift without anyone being able to say when.</p>
-    </div>
-    <div class="funnel">
-      <span class="label">The hard numbers</span>
-      <div class="figs" style="border-top:0;padding-top:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px">
-        <div class="fig"><span class="v" style="color:var(--amber)">10</span><span class="l">gates every candidate passes</span></div>
-        <div class="fig"><span class="v" style="color:var(--amber)">6</span><span class="l">phrase families that reject on sight</span></div>
-        <div class="fig"><span class="v" style="color:var(--violet)">17</span><span class="l">advertorial rules, run by hand</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">15</span><span class="l">fields the rules cover</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Why it is written this way</h2><span class="label">the point of the whole exercise</span></div>
-    <p class="body" style="font-size:16.5px;max-width:82ch">A skill is only as reliable as the loosest thing in it. Tell a model to "reject low-quality content" and it will agree, then apply a different standard on Tuesday than it did on Monday, and there is no artifact you can point at to prove it drifted. Tell it that content is at least five hundred characters, that a summary is at least two hundred, that an industry must come from a fixed list of seventy-six values, that a coordinate is never zero &mdash; and every run applies the same bar, every rejection carries a reason code, and a disagreement becomes a question about a rule rather than about taste.</p>
-    <p class="body" style="max-width:82ch;margin-top:14px">That is the trade this project made everywhere. The rules below are not documentation written after the fact; they <em>are</em> the pipeline. Each one exists because something got through without it.</p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>What a record must be</h2><span class="label">ten gates &middot; nothing is scored</span></div>
-    <p class="body" style="max-width:82ch;margin-bottom:20px">A candidate is not scored, it is admitted or rejected. Six of the ten gates are nothing more than the record's own fields being filled to their stated constraint; the other four decide whether the thing is a deployment at all. Every rejection carries a machine-readable reason, which is what makes a bad day diagnosable rather than merely disappointing.</p>
-    <div class="rec">
-      <div class="rh"><span>Field</span><span>Constraint</span><span>The rule</span><span>On failure</span></div>
-      <div class="rr"><code class="fn">title</code><span class="ct">English</span><span class="rw">A brief name for the AI application &mdash; not the article headline verbatim.</span><span class="rc"><em class="nil">&mdash;</em></span></div>
-      <div class="rr"><code class="fn">summary</code><span class="ct hard">200+ chars</span><span class="rw">Describes the deployment, not the organisation behind it.</span><span class="rc"><em class="nil">&mdash;</em></span></div>
-      <div class="rr"><code class="fn">content</code><span class="ct hard">500+ chars</span><span class="rw">A real use-case description, never marketing copy. A non-English source is translated, never discarded.</span><span class="rc"><code>content_length</code></span></div>
-      <div class="rr"><code class="fn">URL</code><span class="ct hard">specific article</span><span class="rw">A post, release or case study. Never a homepage, product or pricing page, never LinkedIn, never an academic repository.</span><span class="rc"><code>url_type</code></span></div>
-      <div class="rr"><code class="fn">company_id</code><span class="ct no">must resolve</span><span class="rw">An anonymous deployment drops the whole case. Never null, never a generated name, never a consortium standing in for a business.</span><span class="rc"><code>company_unverified</code></span></div>
-      <div class="rr"><code class="fn">industry</code><span class="ct hard">1 of 76</span><span class="rw">Chosen by the deploying organisation's primary business, not by what the AI does.</span><span class="rc"><code>industry_invalid</code></span></div>
-      <div class="rr"><code class="fn">published_at</code><span class="ct">ISO-8601</span><span class="rw">The article's own publication date, read from the page rather than assumed.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">country</code><span class="ct">standardised</span><span class="rw">The canonical country name, not whatever spelling the article used.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">city</code><span class="ct hard">mandatory</span><span class="rw">Where the deployment actually is.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">continent</code><span class="ct">derived</span><span class="rw">Checked for consistency with the country, not assumed.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">latitude / longitude</code><span class="ct no">never 0 &middot; 999 &middot; null</span><span class="rw">Looked up from the real city. On a globe a placeholder is not a missing value, it is a visible point in the wrong place.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">type</code><span class="ct">enum</span><span class="rw">Deployment &mdash; in real operation, with metrics. Experiment &mdash; a pilot. Research &mdash; academic or R&amp;D.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">source_name</code><span class="ct">enum</span><span class="rw">Media, company website, research report or analyst firm.</span><span class="rc"><em>re-extracted</em></span></div>
-      <div class="rr"><code class="fn">confidence_score</code><span class="ct hard">fixed 0.8</span><span class="rw">A constant, so nobody invents a precision the pipeline does not have.</span><span class="rc"><em class="nil">&mdash;</em></span></div>
-      <div class="rr"><code class="fn">status</code><span class="ct hard">pending</span><span class="rw">Always pending on insert. Only a human reviewer moves it from there.</span><span class="rc"><em class="nil">&mdash;</em></span></div>
-    </div>
-    <p class="recfoot">One gate rewrites rather than rejects: any output field still carrying CJK after the translation pass is translated again &mdash; never the source text itself, which is kept as found.</p>
-
-    <div class="recsplit"><span>Four gates no field can carry</span></div>
-    <p class="body" style="max-width:82ch;margin-bottom:16px">These are judgments about the article, not about a column. They are written out literally because a rule a model has to infer is a rule it will apply inconsistently.</p>
-    <div class="rec g3">
-      <div class="rh"><span>Gate</span><span>What it catches</span><span>On failure</span></div>
-      <div class="rr"><b class="gn">Contamination</b><span class="rw">Text that is mostly navigation, CTA, footer or cookie banner. Text that opens with a document tag fails immediately. PDFs are allowed; raw extraction artifacts are not.</span><span class="rc"><code>contamination</code><code>html_page_contamination</code></span></div>
-      <div class="rr"><b class="gn">Generic description</b><span class="rw">Boilerplate with no named deployment &mdash; &ldquo;leading provider of AI-powered solutions&rdquo;.</span><span class="rc"><code>generic_description</code></span></div>
-      <div class="rr"><b class="gn">Deployment vs news</b><span class="rw">Future tense, partnership announcements, launches, government initiatives &mdash; anything with no measured outcome yet.</span><span class="rc"><code>news_announcement</code></span></div>
-      <div class="rr"><b class="gn">Scale announcement</b><span class="rw">All four at once: the claim is a headcount, no business process is named, the tool is a general-purpose assistant, no operational metric is given.</span><span class="rc"><code>scale_announcement_only</code></span></div>
-    </div>
-    <p class="recfoot">Two more reasons are emitted before any of this runs &mdash; <code>negative_list</code> and <code>negative_list_domain</code>, for a URL or a whole domain that has been permanently retired. Those candidates are never fetched at all.</p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Words that reject on sight</h2><span class="label">checked in title and summary</span></div>
-    <p class="body" style="max-width:82ch;margin-bottom:8px">Six families of phrasing are treated as disqualifying before anything subtler is considered. They are listed literally rather than described, so there is nothing left to interpret.</p>
-    <div class="sigs">
-      <div class="sig"><span class="sl">News announcement</span><div class="words"><span>announces</span><span>brings</span><span>partners&nbsp;with</span><span>collaboration&nbsp;with</span><span>launches&nbsp;new</span><span>joins&nbsp;forces</span></div></div>
-      <div class="sig"><span class="sl">Roundup / statistics</span><div class="words"><span>benchmark</span><span>statistics</span><span>top&nbsp;10</span><span>top&nbsp;5</span><span>ranking</span><span>comparison</span><span>vs.</span><span>versus</span><span>trends&nbsp;2026</span></div></div>
-      <div class="sig"><span class="sl">Vendor guide</span><div class="words"><span>guide</span><span>tutorial</span><span>how&nbsp;to&nbsp;choose</span><span>what&nbsp;is</span><span>introduction&nbsp;to</span><span>getting&nbsp;started</span><span>complete&nbsp;guide</span></div></div>
-      <div class="sig"><span class="sl">Research report</span><div class="words"><span>white&nbsp;paper</span><span>benchmark&nbsp;report</span><span>market&nbsp;report</span><span>industry&nbsp;report</span><span>survey</span></div></div>
-      <div class="sig"><span class="sl">Self-promotion</span><div class="words"><span>our&nbsp;platform</span><span>our&nbsp;solution</span><span>how&nbsp;[vendor]&nbsp;uses&nbsp;its&nbsp;own&nbsp;product</span></div></div>
-      <div class="sig"><span class="sl">Generic study</span><div class="words"><span>study&nbsp;shows</span><span>research&nbsp;finds</span><span>survey&nbsp;finds</span><span>report&nbsp;reveals</span></div></div>
-    </div>
-    <p class="body" style="max-width:82ch;margin-top:14px">The one deliberate exception: a vendor's own writing survives if it names the actual customer <em>and</em> reports quantitative deployment metrics. That exception is itself written down, so it is applied the same way every time instead of being re-argued each day.</p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Three states, enforced by the database</h2><span class="label">not a convention &mdash; a constraint</span></div>
-    <p class="body" style="max-width:82ch;margin-bottom:10px">The record state is not a string anyone can invent. It is a database-level constraint permitting exactly three values, so an invalid state cannot be written even by mistake.</p>
-    <div class="states">
-      <div class="state" style="--sc:#43cc93"><span class="sn">published</span><span class="sm">Reviewed and approved</span><span class="sd">Rendered normally, everywhere in the product.</span></div>
-      <div class="state" style="--sc:#e8a33d"><span class="sn">pending</span><span class="sm">Written by the pipeline, not yet reviewed</span><span class="sd">Rendered, but labelled <em style="font-style:normal;color:#e6edf7">To be validated</em> &mdash; visible is more useful than hidden, as long as nobody can mistake it for verified.</span></div>
-      <div class="state" style="--sc:#f2607a"><span class="sn">archived</span><span class="sm">Retired, kept for history and audit</span><span class="sd">Excluded from every frontend surface, and its URL is permanently blocked from re-entering.</span></div>
-    </div>
-    <p class="body" style="max-width:82ch;margin-top:14px">Extending that set is explicitly a two-part change: the constraint and the display logic move together, or the product renders a state it does not understand.</p>
-  </div>
-
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Telling a deployment from an advertorial</h2><span class="label">17 rules &middot; a periodic manual audit</span></div>
-    <p class="body" style="font-size:16.5px;max-width:82ch">The ten gates run every day and catch what is structurally wrong. This is the harder judgment, and it is deliberately <b>not</b> automated on a schedule: a separate rule set, applied by hand in batches as a periodic spot-check of records already stored, for deciding whether an article that passed everything else is reporting a deployment or selling one.</p>
-    <p class="body" style="max-width:82ch;margin-top:14px">Its whole standard fits in one line &mdash; <em>technical detail is acceptable, pure hype is not</em> &mdash; where technical detail means a tool, a platform, a model, an architecture or an implementation step. "Improved efficiency" and "reduced cost" are business outcomes, not technical detail.</p>
-    <p class="body" style="max-width:82ch;margin:18px 0 10px">That one line turned out to be too loose on its own, so it was split into three independent dimensions that must <b>all</b> be satisfied. Each has a qualifying signal and a vague one, written out so the same call is made every time.</p>
+  
+    <div class="recsplit"><span>Telling a deployment from an advertorial</span></div>
+    <p class="body" style="font-size:16.5px;max-width:82ch">A separate rule set, applied by hand over records already stored, decides whether an article that passed every daily gate is reporting a deployment or selling one.</p>
+    <p class="body" style="max-width:82ch;margin:14px 0 10px">The standard fits in one line: <em>technical detail is acceptable, pure hype is not</em> &mdash; a named tool, platform, model or implementation step, not &ldquo;improved efficiency&rdquo;. One line proved too loose, so it became three tests that must all pass.</p>
+    
     <div class="dims">
       <div class="dim"><span class="dn">AI technology</span><span class="dq">Is a specific model, algorithm or tool named?</span><div class="ex ok"><span class="h">Qualifies</span>“a bespoke CNN model” &middot; “Azure OpenAI” &middot; “a time-series LLM”</div><div class="ex no"><span class="h">Too vague</span>“uses AI” &middot; “AI-driven” &middot; “advanced algorithms”</div></div>
       <div class="dim"><span class="dn">Deployment scenario</span><span class="dq">Which line, which process, which task?</span><div class="ex ok"><span class="h">Qualifies</span>“overhead conveyor line, clip and clamp detection” &middot; “claims processing at a named hospital”</div><div class="ex no"><span class="h">Too vague</span>“improving efficiency” &middot; “optimising operations” &middot; “transforming X”</div></div>
       <div class="dim"><span class="dn">Anchored numbers</span><span class="dq">Is the figure tied to that scenario?</span><div class="ex ok"><span class="h">Qualifies</span>“30 ms processing” &middot; “86% accuracy” &middot; “20 minutes down to 10 seconds”</div><div class="ex no"><span class="h">Too vague</span>“significantly improved” &middot; “high accuracy” &middot; a bare “N% better”</div></div>
     </div>
-    <p class="body" style="max-width:82ch;margin-top:16px"><b>The counter-intuitive signal:</b> few numbers, all anchored, are stronger than many numbers that float. Five figures tied to a specific CNN on a specific conveyor line qualify. Fifteen figures attached to nothing more specific than a product name and three broad departments are weaker &mdash; accepted only when the deployer is large enough that the scale itself is evidence.</p>
-    <p class="body" style="max-width:82ch;margin-top:12px">The template it exists to catch reads exactly like a case study and satisfies none of the three: <em>"X deployed AI to revolutionise Y. The system uses advanced computer vision to detect defects with high accuracy, improving quality and reducing costs."</em></p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>The seventeen rules</h2><span class="label">one pre-check &middot; thirteen verdicts &middot; one disposition &middot; two audits</span></div>
+    <p class="body" style="max-width:82ch;margin-top:16px">Few numbers, all anchored, beat many that float. The template it exists to catch satisfies none of the three: &ldquo;X deployed AI to revolutionise Y. The system uses advanced computer vision to detect defects with high accuracy, improving quality and reducing costs.&rdquo;</p>
+    
+    <div class="recsplit"><span>The seventeen rules</span></div>
+    <p class="recfoot" style="margin:0 0 12px">one pre-check &middot; thirteen verdicts &middot; one disposition &middot; two audits</p>
     <div class="triage">
 
       <div class="tbar" style="--tc:#22d3ee">
@@ -811,6 +727,70 @@ const MARKUP = `<header class="topbar">
 
     </div>
   </div>
+</section>
+
+<!-- ==================== THE RULES ==================== -->
+<section class="sec" id="sec-rules">
+  <div class="hero side">
+    <div class="hero-l">
+      <div class="sectitle"><span class="grp">The harness around them:</span><b>Rules</b></div>
+      <h1>A standard agents can follow is a standard<span class="fade"> written as thresholds</span></h1>
+      <p class="lede">"Good quality" is not executable. Every judgment here had to be turned into something with a number, a list, or a yes-or-no test attached. Without that, each day's run applies a slightly different bar, and the dataset drifts without anyone being able to say when.</p>
+    </div>
+    <div class="funnel">
+      <span class="label">The hard numbers</span>
+      <div class="figs" style="border-top:0;padding-top:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px">
+        <div class="fig"><span class="v" style="color:var(--amber)">14</span><span class="l">fields a record carries</span></div>
+        <div class="fig"><span class="v" style="color:var(--amber)">4</span><span class="l">judgements no field can carry</span></div>
+        <div class="fig"><span class="v" style="color:var(--violet)">3</span><span class="l">states the database allows</span></div>
+        <div class="fig"><span class="v" style="color:var(--green)">76</span><span class="l">industry values allowed</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="band rowh">
+    <div class="band-h"><h2>Why it is written this way</h2><span class="label">the point of the whole exercise</span></div>
+    <p class="body" style="font-size:16.5px;max-width:82ch">A skill is only as reliable as the loosest thing in it. Tell a model to "reject low-quality content" and it will agree, then apply a different standard on Tuesday than it did on Monday, and nothing on record proves it drifted. Tell it that content is at least five hundred characters, that a summary is at least two hundred, that an industry must come from a fixed list of seventy-six values, that a coordinate is never zero &mdash; and every run applies the same bar, every rejection carries a reason code, and an argument becomes a question about a rule rather than about taste.</p>
+    <p class="body" style="max-width:82ch;margin-top:14px">That is the trade this project made everywhere. The rules below were not written up afterwards. They are the pipeline. Each one exists because something got through without it.</p>
+  </div>
+
+  <div class="band rowh">
+    <div class="band-h"><h2>What a record must be</h2><span class="label">fourteen fields &middot; four judgements</span></div>
+    <p class="body" style="max-width:82ch;margin-bottom:20px">A candidate is not scored. It is admitted or rejected. Most of the rows below only check that a field is filled and within its limit. The last four decide whether the thing is a deployment at all. Every rejection carries a reason code, which is what makes a bad day diagnosable rather than just disappointing.</p>
+    <div class="rec">
+      <div class="rh"><span>Field</span><span>Constraint</span><span>The rule</span></div>
+      <div class="rr"><code class="fn">title</code><span class="ct">English</span><span class="rw">A brief name for the AI application &mdash; not the article headline verbatim.</span></div>
+      <div class="rr"><code class="fn">summary</code><span class="ct hard">200+ chars</span><span class="rw">Describes the deployment, not the organisation behind it.</span></div>
+      <div class="rr"><code class="fn">content</code><span class="ct hard">500+ chars</span><span class="rw">A real use-case description, never marketing copy. A non-English source is translated, never discarded.</span></div>
+      <div class="rr"><code class="fn">URL</code><span class="ct hard">specific article</span><span class="rw">A post, release or case study. Never a homepage, product or pricing page, never LinkedIn, never an academic repository.</span></div>
+      <div class="rr"><code class="fn">company_id</code><span class="ct no">must resolve</span><span class="rw">An anonymous deployment drops the whole case. Never null, never a generated name, never a consortium standing in for a business.</span></div>
+      <div class="rr"><code class="fn">industry</code><span class="ct hard">1 of 76</span><span class="rw">Chosen by the deploying organisation's primary business, not by what the AI does.</span></div>
+      <div class="rr"><code class="fn">published_at</code><span class="ct">ISO-8601</span><span class="rw">The article's own publication date, read from the page rather than assumed.</span></div>
+      <div class="rr"><code class="fn">country</code><span class="ct">standardised</span><span class="rw">The canonical country name, not whatever spelling the article used.</span></div>
+      <div class="rr"><code class="fn">city</code><span class="ct hard">mandatory</span><span class="rw">Where the deployment actually is.</span></div>
+      <div class="rr"><code class="fn">continent</code><span class="ct">derived</span><span class="rw">Checked for consistency with the country, not assumed.</span></div>
+      <div class="rr"><code class="fn">latitude / longitude</code><span class="ct no">never 0 &middot; 999 &middot; null</span><span class="rw">Looked up from the real city. On a globe a placeholder is not a missing value, it is a visible point in the wrong place.</span></div>
+      <div class="rr"><code class="fn">type</code><span class="ct">enum</span><span class="rw">Deployment &mdash; in real operation, with metrics. Experiment &mdash; a pilot. Research &mdash; academic or R&amp;D.</span></div>
+      <div class="rr"><code class="fn">source_name</code><span class="ct">enum</span><span class="rw">Media, company website, research report or analyst firm.</span></div>
+      <div class="rr"><code class="fn">status</code><span class="ct hard">pending</span><span class="rw">Always pending on insert. Only a human reviewer moves it from there.</span></div>
+      <div class="rr"><b class="gn">Contamination</b><span class="ct no">judgement</span><span class="rw">Text that is mostly navigation, CTA, footer or cookie banner. Text that opens with a document tag fails immediately. PDFs are allowed; raw extraction artifacts are not.</span></div>
+      <div class="rr"><b class="gn">Generic description</b><span class="ct no">judgement</span><span class="rw">Boilerplate with no named deployment &mdash; &ldquo;leading provider of AI-powered solutions&rdquo;.</span></div>
+      <div class="rr"><b class="gn">Deployment vs news</b><span class="ct no">judgement</span><span class="rw">Future tense, partnership announcements, launches, government initiatives &mdash; anything with no measured outcome yet.</span></div>
+      <div class="rr"><b class="gn">Scale announcement</b><span class="ct no">judgement</span><span class="rw">All four at once: the claim is a headcount, no business process is named, the tool is a general-purpose assistant, no operational metric is given.</span></div>
+    </div>
+  </div>
+
+  <div class="band rowh">
+    <div class="band-h"><h2>Three states, enforced by the database</h2><span class="label">not a convention &mdash; a constraint</span></div>
+    <p class="body" style="max-width:82ch;margin-bottom:10px">The record state is not a string anyone can invent. The database itself allows exactly three values, so a wrong one cannot be written even by mistake.</p>
+    <div class="states">
+      <div class="state" style="--sc:#43cc93"><span class="sn">published</span><span class="sm">Reviewed and approved</span><span class="sd">Rendered normally, everywhere in the product.</span></div>
+      <div class="state" style="--sc:#e8a33d"><span class="sn">pending</span><span class="sm">Written by the pipeline, not yet reviewed</span><span class="sd">Rendered, but labelled <em style="font-style:normal;color:#e6edf7">To be validated</em> &mdash; visible is more useful than hidden, as long as nobody can mistake it for verified.</span></div>
+      <div class="state" style="--sc:#f2607a"><span class="sn">archived</span><span class="sm">Retired, kept for history and audit</span><span class="sd">Excluded from every frontend surface, and its URL is permanently blocked from re-entering.</span></div>
+    </div>
+    <p class="body" style="max-width:82ch;margin-top:14px">Extending that set is explicitly a two-part change: the constraint and the display logic move together, or the product shows a state it does not understand.</p>
+  </div>
+
 
 </section>
 
@@ -821,7 +801,7 @@ const MARKUP = `<header class="topbar">
     <div class="hero-l">
       <div class="sectitle"><span class="grp">The harness around them:</span><b>Resilience</b></div>
       <h1>Designed around the assumption that things go wrong<span class="fade"> quietly</span></h1>
-      <p class="lede">The pipeline's failure handling was not designed in advance. Almost every rule in it is the scar tissue of a specific day that went wrong in a way nobody noticed at the time &mdash; and every one of those days produced plausible output. Nothing crashed, nothing threw, and the run reported success. That is the specific hazard of a pipeline built on a language model and a set of external services: <em>the default failure mode is not an error, it is a confident, well-formed, wrong result.</em> Which is why the recurring theme is not "retry harder" but "make the failure visible", and why the design invests far more in detecting silent failure &mdash; empty-as-error, mechanical re-checks, per-tool statistics, recorded reasons &mdash; than in recovering from loud failure, which was never the real risk.</p>
+      <p class="lede">The pipeline's failure handling was not designed in advance. Almost every rule in it is the scar tissue of a day that went wrong in a way nobody noticed &mdash; and every one of those days produced plausible output. Nothing crashed, nothing threw, and the run reported success. That is the hazard of a pipeline built on a language model and a set of external services: <em>the default failure mode is not an error, it is a confident, well-formed, wrong result.</em> So the theme is not "retry harder" but "make the failure visible". The design spends far more on detecting silent failure &mdash; empty-as-error, mechanical checks, per-tool statistics, recorded reasons &mdash; than on recovering from loud failure, which was never the real risk.</p>
     </div>
     <div class="funnel">
       <span class="label">Three standing rules</span>
@@ -879,6 +859,11 @@ const MARKUP = `<header class="topbar">
     <div class="srcs" id="srcShared"></div>
   </div>
 
+  <div class="band rowh">
+    <div class="band-h"><h2>Product &amp; codebase</h2><span class="label">the side that is built, not run</span></div>
+    <div class="srcs" id="srcBuild"></div>
+  </div>
+
   
 </section>
 
@@ -893,12 +878,12 @@ const MARKUP = `<header class="topbar">
     <div class="funnel">
       <span class="label">Use cases in the database</span>
       <div class="figs" style="gap:26px 34px">
-        <div class="fig"><span class="v" style="color:var(--cyan)">1,560</span><span class="l">recorded since April</span></div>
         <div class="fig"><span class="v" style="color:var(--violet)">1,718</span><span class="l">recorded all-time</span></div>
+        <div class="fig"><span class="v" style="color:var(--cyan)">1,560</span><span class="l">recorded since April</span></div>
         <div class="fig"><span class="v" style="color:var(--green)">700</span><span class="l">published after human-in-the-loop review</span></div>
         <div class="fig"><span class="v" style="color:var(--amber)">0</span><span class="l">awaiting review</span></div>
       </div>
-      <p class="fnote">Counted at the source on 15 September 2026. Months are by record creation date, so a case found in June counts to June regardless of when its article was published.</p>
+      <p class="fnote">Counted at the source on 15 September 2026.</p>
     </div>
   </div>
 
@@ -1207,6 +1192,8 @@ const EDGES=[
  /* the quality check is nothing but those two standards, run over stored cases */
  {a:'k2',  as:'t', b:'qc', bs:'b', flow:0, cls:'know'},
  {a:'k3',  as:'l', b:'qc', bs:'r', flow:0, cls:'know'},
+ /* what the check finds wrong in stored cases is what validation learns to catch */
+ {a:'qc',  as:'r', b:'s2', bs:'l', flow:0, cls:'feedback', cp:[505,470,505,300]},
  {a:'atlas', as:'t', b:'qc',     bs:'b', flow:0, cls:'feedback', cy:[623,623]},
  {a:'atlas', as:'b', b:'audit',  bs:'t', flow:0, cls:'feedback'},
  {a:'atlas', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback'},
@@ -1458,16 +1445,19 @@ setTimeout(fit,60);
 const FAMILIES=[
   {k:'Not an article',n:'Wrong kind of page',
    d:'The link never had a chance of being a case study. Category and search pages, pricing and product pages, paper repositories, social posts, and pages whose fetched text turns out to be navigation, cookie banners or raw markup rather than writing.',
+   words:[['Vendor guide','guide · tutorial · how to choose · what is · introduction to · getting started · complete guide'],['Research report','white paper · benchmark report · market report · industry report · survey'],['Self-promotion','our platform · our solution · how [vendor] uses its own product']],
    pts:['Caught as early as possible, since reading these costs time and yields nothing',
         'A page that returns mostly interface furniture is treated the same as an empty page',
         'Academic repositories are excluded outright: a paper is research, not a deployment']},
   {k:'Not a deployment',n:'Announcement, not operation',
    d:'The single largest family. The article is about something a company said, plans, or launched, rather than something it runs. It shares nearly all of its vocabulary with a genuine case study, which is why this judgment cannot be made from a search snippet.',
+   words:[['News announcement','announces · brings · partners with · collaboration with · launches new · joins forces']],
    pts:['Future tense, partnership language, and "will enable" are the tells',
         'A press release with no measured outcome fails even when the deployment is real',
         'Government strategies and initiatives are excluded as a category']},
   {k:'Not specific',n:'No process, no number',
    d:'Something is happening, but the article never says what changed or by how much. This family includes the headcount announcements &mdash; large, well-sourced, and empty of operational content &mdash; along with generic capability descriptions and market commentary.',
+   words:[['Roundup / statistics','benchmark · statistics · top 10 · top 5 · ranking · comparison · vs. · versus · trends 2026'],['Generic study','study shows · research finds · survey finds · report reveals']],
    pts:['"Thousands of employees now use an assistant" describes access, not a workflow',
         'A named process plus a measured result is the minimum bar for specificity',
         'Roundups, statistics posts and trend pieces fail here even when accurate']},
@@ -1488,7 +1478,8 @@ function renderFamily(i){
   [...rexNav.children].forEach((c,j)=>c.setAttribute('aria-selected',String(j===i)));
   rexPanel.innerHTML='<h3 style="font-size:19.5px;margin:0;letter-spacing:-.018em">'+f.n+'</h3>'+
     '<p style="font-size:15.4px;line-height:1.66;color:var(--muted)">'+f.d+'</p>'+
-    '<ul class="list tight">'+f.pts.map(p=>'<li>'+p+'</li>').join('')+'</ul>';
+    '<ul class="list tight">'+f.pts.map(p=>'<li>'+p+'</li>').join('')+'</ul>'+
+    (f.words?'<div class="rexw">'+f.words.map(w=>'<div><span>'+w[0]+'</span><i>'+w[1]+'</i></div>').join('')+'</div>':'');
 }
 FAMILIES.forEach((f,i)=>{
   const b=document.createElement('button');
@@ -1550,7 +1541,22 @@ const SOURCES=[
   d:'One entry per completed day, written only after the report is confirmed delivered. The pipeline’s own evidence base.',
   b:[['Decides','Nothing. It is the measurement layer that makes every other decision reviewable.'],
      ['Why delivery-gated','An entry means a day that finished and was communicated. A run that produced results but failed to report leaves a gap, which is the honest record of what the maintainer experienced.'],
-     ['What it enables','Every claim on this page about survival rates, tool performance and rejection patterns is read from this record.']]}
+     ['What it enables','Every claim on this page about survival rates, tool performance and rejection patterns is read from this record.']]},
+ {g:'build',t:'Product specification',r:'Defines what the product is',
+  d:'The description of the atlas as a product rather than as a pipeline: what it shows, who it is for, and which surfaces exist. Every decision about what to build is measured against it.',
+  b:[['Decides','What the product contains, what each view is for, and what is deliberately out of scope.'],
+     ['Explicitly does not decide','Anything about how a case gets found or judged. It describes the destination, not the route.'],
+     ['Read by','Whoever is building a surface, before they decide what it should do.']]},
+ {g:'build',t:'Codebase notes',r:'Decides what is safe to change',
+  d:'The standing reference for the application side: which tables back which pages, which data functions are cached and which are not, how the routes map, and the failure modes this code has produced that returned valid output and raised nothing.',
+  b:[['Decides','Where to look before changing anything, and which past mistakes not to repeat.'],
+     ['Explicitly does not decide','The data standard. It records how the app reads the data, not what the data must be.'],
+     ['Notable property','It is kept current as a rule: when a read contradicts it, the file is corrected in the same session.']]},
+ {g:'build',t:'Cache runbook',r:'Decides how a change reaches readers',
+  d:'The procedure for purging cached data and the map of which tag covers which surface. Without it a corrected record can stay invisible for a day, or a purge can cost far more than it needed to.',
+  b:[['Decides','Which tag to purge for a given change, and in what order.'],
+     ['Explicitly does not decide','Whether the change itself was right.'],
+     ['Read by','Anyone who has just written to the database and needs the site to agree.']]}
 ];
 function srcCard(s){
   const el=document.createElement('button');
@@ -1561,6 +1567,7 @@ function srcCard(s){
 }
 SOURCES.filter(s=>s.g==='stage').forEach(s=>__el('srcStages').appendChild(srcCard(s)));
 SOURCES.filter(s=>s.g==='shared').forEach(s=>__el('srcShared').appendChild(srcCard(s)));
+SOURCES.filter(s=>s.g==='build').forEach(s=>__el('srcBuild').appendChild(srcCard(s)));
 
 const drawer=__el('drawer'), scrim=__el('scrim');
 function openDrawer(s){

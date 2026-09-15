@@ -225,7 +225,7 @@ export function AtlasSiteFooter({
                 href="/methodology-and-agents"
                 className="font-semibold text-cyan-300 transition-colors hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40"
               >
-                read more here
+                See how it works
               </Link>
             </p>
             <p className="mt-5 text-sm font-semibold text-slate-100">Disclaimer</p>

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -315,7 +315,7 @@ function relatedUseCasesFor(
 }
 
 export function UseCasesTable({
-  rows,
+  rows: rawRows,
   initialState,
   latestDataUpdateCet,
   initialCaseId,
@@ -325,8 +325,36 @@ export function UseCasesTable({
   showPendingOnly = true,
   showStatusFilter = false,
 }: UseCasesTableProps) {
-  const router = useRouter()
   const pathname = usePathname()
+
+  // A status change used to call router.refresh(), which re-rendered
+  // /admin/use-cases on the server - an uncached two-page pull of the whole
+  // table, 617 kB per click. Applying the new status here instead means the
+  // filter, the pending-first sort, the archived row tint and the select
+  // itself all read the corrected value without a round trip, because they
+  // all read `rows` below. The PATCH still revalidates the public caches.
+  const [statusOverrides, setStatusOverrides] = React.useState<Record<string, string>>({})
+
+  const rows = React.useMemo(
+    () =>
+      rawRows.map((row) =>
+        statusOverrides[row.id] ? { ...row, status: statusOverrides[row.id] } : row,
+      ),
+    [rawRows, statusOverrides],
+  )
+
+  const setStatusOverride = React.useCallback((id: string, status: string) => {
+    setStatusOverrides((prev) => ({ ...prev, [id]: status }))
+  }, [])
+
+  const clearStatusOverride = React.useCallback((id: string) => {
+    setStatusOverrides((prev) => {
+      if (!(id in prev)) return prev
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }, [])
 
   React.useEffect(() => {
     const root = document.documentElement
@@ -494,11 +522,12 @@ export function UseCasesTable({
           throw new Error(data.error || `HTTP ${res.status}`)
         }
         toast({ title: "Status updated", description: `Set to “${newStatus}”.` })
-        router.refresh()
+        setStatusOverride(id, newStatus)
       } catch (err) {
         if (current && current.id === id && previousStatus !== undefined) {
           setActiveDetail({ ...current, status: previousStatus })
         }
+        clearStatusOverride(id)
         toast({
           title: "Failed to update status",
           description: err instanceof Error ? err.message : "Unknown error",
@@ -507,7 +536,7 @@ export function UseCasesTable({
         throw err
       }
     },
-    [router, toast],
+    [clearStatusOverride, setStatusOverride, toast],
   )
 
   const [viewportWidth, setViewportWidth] = React.useState(1024)
@@ -698,6 +727,7 @@ export function UseCasesTable({
                 <StatusSelectCell
                   id={row.original.id}
                   value={row.original.status ?? ""}
+                  onChanged={setStatusOverride}
                 />
               ),
             },
@@ -1232,7 +1262,13 @@ export function UseCasesTable({
     const nextUrl = query ? `${pathname}?${query}` : pathname
     const currentQuery = typeof window !== "undefined" ? window.location.search.slice(1) : ""
     if (currentQuery !== query) {
-      router.replace(nextUrl, { scroll: false })
+      // Not router.replace: that is a Next navigation, so every filter, sort,
+      // column or page edit re-rendered this route on the server - on
+      // /admin/use-cases an uncached two-page pull of the whole table, 617 kB
+      // a time. The filter state all lives in this component; the URL exists
+      // only so a reload or a shared link can restore it, which
+      // history.replaceState does without any re-render.
+      window.history.replaceState(null, "", nextUrl)
     }
   }, [
     activeDetailId,
@@ -1246,7 +1282,6 @@ export function UseCasesTable({
     pagination.pageIndex,
     pagination.pageSize,
     pathname,
-    router,
   ])
 
   return (
@@ -1996,8 +2031,15 @@ export function UseCasesTable({
   )
 }
 
-function StatusSelectCell({ id, value }: { id: string; value: string }) {
-  const router = useRouter()
+function StatusSelectCell({
+  id,
+  value,
+  onChanged,
+}: {
+  id: string
+  value: string
+  onChanged: (id: string, status: string) => void
+}) {
   const [currentValue, setCurrentValue] = React.useState(value)
   const [isSaving, setIsSaving] = React.useState(false)
 
@@ -2028,7 +2070,7 @@ function StatusSelectCell({ id, value }: { id: string; value: string }) {
           title: "Status updated",
           description: `Set to “${next}”.`,
         })
-        router.refresh()
+        onChanged(id, next)
       } catch (err) {
         setCurrentValue(previous)
         toast({
@@ -2040,7 +2082,7 @@ function StatusSelectCell({ id, value }: { id: string; value: string }) {
         setIsSaving(false)
       }
     },
-    [currentValue, id, router, toast],
+    [currentValue, id, onChanged, toast],
   )
 
   return (

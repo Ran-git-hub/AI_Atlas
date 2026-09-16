@@ -152,8 +152,14 @@ export function AtlasSiteFooter({
             below, which read as a separate panel while the top row stood half
             empty; as a fourth column it fills that space and the band goes
             away. */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-6">
-          <div className="col-span-2 min-w-0">
+        {/* Not six equal columns. The brand column carries the copyright line,
+            which at 14px needs 397px and had 395px, so it wrapped and stranded
+            the timezone on a line of its own. These proportions give it 419px
+            and shift the two link columns right to pay for it. Equal sevenths
+            would have been simpler but squeeze the link columns to 151px,
+            which is where "Data Quality Dashboard" starts wrapping. */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.65fr)_minmax(0,0.5fr)_minmax(0,1.65fr)]">
+          <div className="col-span-2 min-w-0 md:col-span-1">
             <Link href="/" className="flex items-center gap-2" aria-label="AI Atlas home">
               <AtlasLogoMark className="h-9 w-9" />
               <span className="text-lg font-semibold tracking-tight text-white">
@@ -189,11 +195,15 @@ export function AtlasSiteFooter({
               title={shareTitle ?? DEFAULT_SHARE_TITLE}
               className="mt-5 gap-1.5"
             />
-            {/* The one deliberate step down from the footer's 14px body: a
-                legal line is conventionally set smaller, and the extra space
-                above keeps it from reading as a fifth list item. */}
-            <p className="mt-6 text-xs leading-relaxed text-slate-500">
-              © 2026 AI Atlas · Latest Data Update: {latestDataUpdateCet}
+            {/* Set like the Disclaimer paragraph rather than a step smaller.
+                The extra space above still keeps it from reading as a fifth
+                list item. */}
+            <p className="mt-6 text-sm leading-relaxed text-slate-500">
+              {/* Narrower than the column on md and up (see the grid above), so
+                  it sets on one line there. Where it does have to wrap - below
+                  md - the timestamp stays whole rather than stranding CET. */}
+              © 2026 AI Atlas · Latest Data Update:{" "}
+              <span className="whitespace-nowrap">{latestDataUpdateCet}</span>
             </p>
           </div>
 
@@ -215,7 +225,7 @@ export function AtlasSiteFooter({
           {/* Was an About dialog. A modal hides provenance behind a click,
               which is the wrong default for a site whose case for itself is
               that every record is sourced. */}
-          <div className="col-span-2 min-w-0">
+          <div className="col-span-2 min-w-0 md:col-span-1">
             <p className="text-sm font-semibold text-slate-100">Methodology &amp; Agents</p>
             <p className="mt-3 text-sm leading-relaxed text-slate-400">
               How the atlas is sourced and curated &mdash; by a team of agents,

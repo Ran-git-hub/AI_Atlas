@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useMemo, useCallback } from "react"
 import {
   ChevronLeft,
   ChevronRight,
@@ -31,8 +30,15 @@ import { Toaster } from "@/components/ui/toaster"
 const STATUSES = ["published", "pending", "noise"] as const
 const PAGE_SIZES = [20, 50, 100] as const
 
-function StatusCell({ id, value }: { id: string; value: string }) {
-  const router = useRouter()
+function StatusCell({
+  id,
+  value,
+  onChanged,
+}: {
+  id: string
+  value: string
+  onChanged: (id: string, status: string) => void
+}) {
   const [current, setCurrent] = useState(value)
 
   async function handleChange(next: string) {
@@ -51,7 +57,7 @@ function StatusCell({ id, value }: { id: string; value: string }) {
       }
       if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`)
       toast({ title: "Status updated", description: `Set to "${next}".` })
-      router.refresh()
+      onChanged(id, next)
     } catch (err) {
       setCurrent(prev)
       toast({
@@ -98,7 +104,26 @@ function formatDate(v: string | null | undefined): string {
   return Number.isNaN(d.getTime()) ? v : d.toISOString().slice(0, 10)
 }
 
-export function AdminNewsTable({ items }: { items: NewsItem[] }) {
+export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
+  // A status change used to call router.refresh(), which re-rendered
+  // /admin/news on the server - a 200-row read of the whole table on every
+  // click. Applying the new status here instead means the status filter and
+  // the counts below read the corrected value without a round trip, since
+  // both read `items`.
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, string>>({})
+
+  const items = useMemo(
+    () =>
+      rawItems.map((item) =>
+        statusOverrides[item.id] ? { ...item, status: statusOverrides[item.id] } : item,
+      ),
+    [rawItems, statusOverrides],
+  )
+
+  const setStatusOverride = useCallback((id: string, status: string) => {
+    setStatusOverrides((prev) => ({ ...prev, [id]: status }))
+  }, [])
+
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [search, setSearch] = useState("")
@@ -370,7 +395,11 @@ export function AdminNewsTable({ items }: { items: NewsItem[] }) {
             {displayItems.map((item) => (
               <tr key={item.id} className="hover:bg-white/[0.03]">
                 <td className="px-3 py-2">
-                  <StatusCell id={item.id} value={item.status ?? ""} />
+                  <StatusCell
+                    id={item.id}
+                    value={item.status ?? ""}
+                    onChanged={setStatusOverride}
+                  />
                 </td>
                 <td className="max-w-[300px] px-3 py-2">
                   <a

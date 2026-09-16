@@ -9,6 +9,8 @@ const TABLE = "AI_Atlas_News" as const
   * the noise ratio - see getNewsItems. Raising it past 1000 would need paging,
   * since Supabase's REST responses stop there. */
 const NEWS_LIMIT = 200
+/** How far back /admin/news goes. Recent news is what gets triaged. */
+const ADMIN_NEWS_LIMIT = 200
 
 type NewsRow = {
   id: string
@@ -130,13 +132,26 @@ export async function getNewsSourceHostnames(): Promise<string[]> {
 
 const NEWS_ADMIN_STATUSES = ["published", "pending", "noise"] as const
 
-/** Fetch all news items for admin management — includes status, no noise filter. */
+/**
+ * The newest ADMIN_NEWS_LIMIT news items of any status, for triage.
+ *
+ * It used to ask for the whole table with no limit, which silently stopped at
+ * Supabase's 1000-row cap and showed 1000 of 1206. 200 is the deliberate
+ * replacement: recent news is what gets triaged.
+ *
+ * Note that the counts this page shows are counts of what is loaded. Items
+ * older than the newest 200 are not represented in them - at the time of this
+ * change that meant 56 pending rows, all older, which the page will report as
+ * zero pending.
+ */
 export async function getAdminNewsItems(): Promise<NewsItem[]> {
   const supabase = createServiceRoleClient() ?? (await createClient())
   const { data, error } = await supabase
     .from(TABLE)
     .select(NEWS_SELECT)
     .order("created_at", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true })
+    .limit(ADMIN_NEWS_LIMIT)
 
   if (error) {
     console.error("[news] getAdminNewsItems", error.message)

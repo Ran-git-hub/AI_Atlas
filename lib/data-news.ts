@@ -5,7 +5,10 @@ import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import type { NewsItem } from "@/lib/types-news"
 
 const TABLE = "AI_Atlas_News" as const
-const DEFAULT_NEWS_LIMIT = 500
+/** How many published items /news carries. A chosen number, not a by-product of
+  * the noise ratio - see getNewsItems. Raising it past 1000 would need paging,
+  * since Supabase's REST responses stop there. */
+const NEWS_LIMIT = 200
 
 type NewsRow = {
   id: string
@@ -19,17 +22,10 @@ type NewsRow = {
   tags: string[] | null
   ai_atlas_take?: string | null
   status?: string | null
-  Status?: string | null
 }
 
 const NEWS_SELECT =
-  "id, company_id, title, summary, url, source_name, published_at, created_at, tags" as const
-const NEWS_SELECT_WITH_TAKE =
-  "id, company_id, title, summary, url, source_name, published_at, created_at, tags, ai_atlas_take" as const
-const NEWS_SELECT_WITH_TAKE_AND_STATUS =
   "id, company_id, title, summary, url, source_name, published_at, created_at, tags, ai_atlas_take, status" as const
-const NEWS_SELECT_WITH_TAKE_AND_STATUS_TITLE =
-  'id, company_id, title, summary, url, source_name, published_at, created_at, tags, ai_atlas_take, "Status"' as const
 
 const SOURCE_TAG_KEYS = new Set(["the decoder", "venturebeat"])
 
@@ -67,54 +63,43 @@ function mapNewsRow(row: NewsRow): NewsItem {
   }
 }
 
-function isVisibleNewsRow(row: NewsRow): boolean {
-  const status = (row.status ?? row.Status ?? "").trim().toLowerCase()
-  return status === "published"
-}
-
-export async function getNewsItems(limit = DEFAULT_NEWS_LIMIT): Promise<NewsItem[]> {
+/**
+ * The newest NEWS_LIMIT published news items, newest first.
+ *
+ * The status filter runs in the database, not here. It used to select the
+ * newest 500 rows and keep the published ones in JS, which was wrong twice
+ * over. Half of what crossed the wire was discarded: of the newest 500 rows,
+ * 251 are noise and 31 pending.
+ *
+ * And the cap applied before the filter, so how many items /news showed was a
+ * side effect of how noisy the recent batches happened to be, not a number
+ * anyone had chosen. The published share of a batch swings between 37% and 48%
+ * month to month, which put the feed anywhere from ~184 to ~240 items. Filtering
+ * first makes the limit mean what it says: the newest 200 published items,
+ * always.
+ *
+ * id is the last sort key so the 200th place is decided the same way every
+ * time, rather than arbitrarily, where two rows share a created_at and a
+ * published_at.
+ */
+export async function getNewsItems(): Promise<NewsItem[]> {
   try {
     const supabase = createServiceRoleClient() ?? (await createClient())
-    let result = await supabase
+    const { data, error } = await supabase
       .from(TABLE)
-      .select(NEWS_SELECT_WITH_TAKE_AND_STATUS)
+      .select(NEWS_SELECT)
+      .eq("status", "published")
       .order("created_at", { ascending: false, nullsFirst: false })
       .order("published_at", { ascending: false, nullsFirst: false })
-      .limit(limit)
+      .order("id", { ascending: true })
+      .limit(NEWS_LIMIT)
 
-    if (result.error && result.error.message.includes("status")) {
-      result = await supabase
-        .from(TABLE)
-        .select(NEWS_SELECT_WITH_TAKE_AND_STATUS_TITLE)
-        .order("created_at", { ascending: false, nullsFirst: false })
-        .order("published_at", { ascending: false, nullsFirst: false })
-        .limit(limit)
-    }
-
-    if (result.error && result.error.message.toLowerCase().includes("status")) {
-      result = await supabase
-        .from(TABLE)
-        .select(NEWS_SELECT_WITH_TAKE)
-        .order("created_at", { ascending: false, nullsFirst: false })
-        .order("published_at", { ascending: false, nullsFirst: false })
-        .limit(limit)
-    }
-
-    if (result.error && result.error.message.includes("ai_atlas_take")) {
-      result = await supabase
-        .from(TABLE)
-        .select(NEWS_SELECT)
-        .order("created_at", { ascending: false, nullsFirst: false })
-        .order("published_at", { ascending: false, nullsFirst: false })
-        .limit(limit)
-    }
-
-    if (result.error) {
-      console.error("[news] getNewsItems", result.error.message)
+    if (error) {
+      console.error("[news] getNewsItems", error.message)
       return []
     }
 
-    return ((result.data as NewsRow[] | null) ?? []).filter(isVisibleNewsRow).map(mapNewsRow)
+    return ((data as NewsRow[] | null) ?? []).map(mapNewsRow)
   } catch (e) {
     console.error("[news] getNewsItems", e)
     return []
@@ -150,7 +135,7 @@ export async function getAdminNewsItems(): Promise<NewsItem[]> {
   const supabase = createServiceRoleClient() ?? (await createClient())
   const { data, error } = await supabase
     .from(TABLE)
-    .select(NEWS_SELECT_WITH_TAKE_AND_STATUS)
+    .select(NEWS_SELECT)
     .order("created_at", { ascending: false, nullsFirst: false })
 
   if (error) {

@@ -1,0 +1,13 @@
+-- AI_Atlas_Companies carried two identical UNIQUE constraints on name:
+-- companies_name_key (older, Postgres' default naming from when the table was
+-- called "companies") and unique_company_name (added later). Both are UNIQUE
+-- constraints, not bare indexes, so this drops the constraint rather than the
+-- index. Supabase's performance advisor flags the pair at WARN level.
+--
+-- The newer duplicate goes. Uniqueness on name is unchanged - companies_name_key
+-- still enforces it - and no foreign key targets either one: the only FK into
+-- this table, content_items_company_id_fkey, references companies_pkey.
+--
+-- Reversible: ALTER TABLE "AI_Atlas_Companies"
+--   ADD CONSTRAINT unique_company_name UNIQUE (name);
+alter table "AI_Atlas_Companies" drop constraint if exists unique_company_name;

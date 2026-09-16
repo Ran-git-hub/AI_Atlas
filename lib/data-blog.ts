@@ -1,4 +1,8 @@
+import { unstable_cache } from "next/cache"
+import type { SupabaseClient } from "@supabase/supabase-js"
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import { createClient } from "@/lib/supabase/server"
+import { createServiceRoleClient } from "@/lib/supabase/service-role"
 import { normalizeWeeklyReportContent } from "@/lib/normalize-weekly-report-content"
 import type {
   BlogArticleContent,
@@ -171,17 +175,54 @@ function mapFullRow(row: BlogRow): BlogPost {
   }
 }
 
+/**
+ * The two list reads, given a client, so the cached path can hand them a
+ * service-role one.
+ *
+ * That separation is the whole point. unstable_cache runs outside the request
+ * scope, where the cookie-scoped client from supabase/server throws on
+ * cookies(). Wrapping getBlogPosts directly once emptied the sitemap's blog
+ * section from 25 URLs to 2: the throw was swallowed by the catch below, the
+ * stub fallback left a single post, and the route still returned 200 and valid
+ * XML. So the cached path never constructs a cookie client, and where no
+ * service-role key exists the read simply goes uncached rather than into the
+ * cache scope.
+ *
+ * Both roles see the same 25 rows - checked against the REST endpoint with each
+ * key - so caching the service-role result publishes nothing that anon could
+ * not already read.
+ */
+async function fetchBlogListItems(
+  supabase: SupabaseClient,
+): Promise<BlogPostListItem[]> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select(LIST_SELECT)
+    .order("published_at", { ascending: false })
+
+  if (error) {
+    console.error("[blog] getBlogPosts", error.message)
+    return []
+  }
+  return (data as BlogRow[] | null)?.map(mapListRow) ?? []
+}
+
+const getCachedBlogListItems = unstable_cache(
+  async () => {
+    const supabase = createServiceRoleClient()
+    if (!supabase) throw new Error("service role client unavailable")
+    return fetchBlogListItems(supabase)
+  },
+  ["blog-posts-v1"],
+  { revalidate: 86400, tags: [CACHE_TAGS.blog] },
+)
+
 export async function getBlogPosts(): Promise<BlogPostListItem[]> {
   let remote: BlogPostListItem[] = []
   try {
-    const supabase = await createClient()
-    const { data, error } = await supabase.from(TABLE).select(LIST_SELECT).order("published_at", { ascending: false })
-
-    if (error) {
-      console.error("[blog] getBlogPosts", error.message)
-    } else {
-      remote = (data as BlogRow[] | null)?.map(mapListRow) ?? []
-    }
+    remote = createServiceRoleClient()
+      ? await getCachedBlogListItems()
+      : await fetchBlogListItems(await createClient())
   } catch (e) {
     console.error("[blog] getBlogPosts", e)
   }
@@ -196,20 +237,38 @@ export async function getBlogPosts(): Promise<BlogPostListItem[]> {
   return merged
 }
 
+/** See fetchBlogListItems for why this takes a client rather than making one. */
+async function fetchBlogRelatedItems(
+  supabase: SupabaseClient,
+): Promise<BlogPostRelatedItem[]> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select(RELATED_SELECT)
+    .order("published_at", { ascending: false })
+
+  if (error) {
+    console.error("[blog] getBlogPostsWithRelatedCaseIds", error.message)
+    return []
+  }
+  return (data as BlogRow[] | null)?.map(mapRelatedRow) ?? []
+}
+
+const getCachedBlogRelatedItems = unstable_cache(
+  async () => {
+    const supabase = createServiceRoleClient()
+    if (!supabase) throw new Error("service role client unavailable")
+    return fetchBlogRelatedItems(supabase)
+  },
+  ["blog-posts-related-v1"],
+  { revalidate: 86400, tags: [CACHE_TAGS.blog] },
+)
+
 export async function getBlogPostsWithRelatedCaseIds(): Promise<BlogPostRelatedItem[]> {
   let remote: BlogPostRelatedItem[] = []
   try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select(RELATED_SELECT)
-      .order("published_at", { ascending: false })
-
-    if (error) {
-      console.error("[blog] getBlogPostsWithRelatedCaseIds", error.message)
-    } else {
-      remote = (data as BlogRow[] | null)?.map(mapRelatedRow) ?? []
-    }
+    remote = createServiceRoleClient()
+      ? await getCachedBlogRelatedItems()
+      : await fetchBlogRelatedItems(await createClient())
   } catch (e) {
     console.error("[blog] getBlogPostsWithRelatedCaseIds", e)
   }

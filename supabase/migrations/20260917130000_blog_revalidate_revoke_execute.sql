@@ -1,0 +1,25 @@
+-- Take the revalidate trigger function off the public REST API.
+--
+-- `revoke all ... from public` in 20260917120000 was not enough: Supabase
+-- grants EXECUTE to the `anon` and `authenticated` roles explicitly, so
+-- public.ai_atlas_blog_posts_revalidate() was callable by anyone at
+-- /rest/v1/rpc/ai_atlas_blog_posts_revalidate with the anon key - which ships
+-- in the browser bundle. A stranger could not read the Vault secret that way,
+-- but could make the database fire cache purges on demand, and every purge
+-- forces a regeneration, which is the Supabase egress this caching was added
+-- to avoid in the first place. Caught by the Supabase security advisor
+-- (anon_security_definer_function_executable) minutes after 20260917120000
+-- was applied.
+--
+-- Trigger functions are invoked by the trigger machinery, which does not check
+-- EXECUTE, so removing these grants does not affect the trigger. Verified:
+-- after the revoke, a no-op UPDATE still produced status 200 and
+-- {"ok":true,"revalidated":["blog"]} in net._http_response.
+--
+-- Left alone deliberately: the advisor also reports `pg_net` as an extension in
+-- the public schema. Only its registration sits there - all 12 of its functions
+-- live in schema `net`, nothing of it is exposed through `public`, and
+-- ALTER EXTENSION ... SET SCHEMA would relocate those functions and break the
+-- net.http_post call above.
+
+revoke execute on function public.ai_atlas_blog_posts_revalidate() from anon, authenticated;

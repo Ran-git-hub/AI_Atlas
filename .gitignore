@@ -8,7 +8,9 @@ __v0_jsx-dev-runtime.ts
 next.user-config.*
 
 # Environment variables
-.env*.local
+# .env*.local alone left .env and .env.production committable.
+.env*
+!.env.example
 
 # Common ignores
 node_modules/

@@ -8,12 +8,24 @@ import { pageMetadata } from "@/lib/page-metadata"
 const blogShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
-// Force dynamic rendering: the page calls getBlogPosts() which uses
-// cookies() to read the Supabase session. Without this flag, Next.js
-// tries to statically prerender /blog at build time, the cookies()
-// call throws DYNAMIC_SERVER_USAGE, and Vercel's cloud packaging
-// then drops the sitemap route from out/ because it shares a chunk
-// with /blog. /blog/[slug] already has this flag.
+// ISR: the rendered page is cached for a day so crawlers hit the CDN
+// instead of re-running the Supabase read. This was force-dynamic until
+// getBlogPosts() stopped reaching for cookies() on the cached path - it
+// uses the service-role client now, so prerendering no longer throws
+// DYNAMIC_SERVER_USAGE (see lib/data-blog.ts).
+//
+// Two caches sit in front of this page: the route's own ISR entry, and
+// the list read, tagged `blog` in lib/data-blog.ts. A post written
+// straight into Supabase passes through neither, so nothing here
+// notices it. Expect the staleness to be uneven rather than uniform:
+// the rendered HTML is cached per edge region, so two hostnames on this
+// same deployment can serve two different generations of the list -
+// observed 2026-09-17, with ai-atlas.app a day behind the .vercel.app
+// alias. The post's own /blog/[slug] page is unaffected, since there is
+// no entry for a slug that has never been rendered, which makes the
+// symptom confusing: reachable by URL, present in the sitemap, missing
+// from the index. Purge the `blog` tag via /api/revalidate after
+// writing a post outside the app.
 export const revalidate = 86400
 
 export const metadata = pageMetadata({

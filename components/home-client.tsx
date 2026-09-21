@@ -92,15 +92,12 @@ interface HomeClientProps {
   useCases: UseCaseWithCoords[]
   /** Preformatted in Central European time (Europe/Berlin) on the server */
   latestDataUpdateCet: string
-  /** Open Globe index with this use case’s side panel (`/?useCaseId=…`). */
-  deepLinkUseCaseId?: string
 }
 
 export function HomeClient({
   companies = [],
   useCases = [],
   latestDataUpdateCet,
-  deepLinkUseCaseId,
 }: HomeClientProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -128,18 +125,27 @@ export function HomeClient({
   const safeCompanies = companies || []
   const safeUseCases = useCases || []
 
+  /**
+   * `/?useCaseId=…` opens that case's panel.
+   *
+   * Read here rather than passed down from the page: awaiting searchParams on
+   * the server made the whole route dynamic, and this ran in an effect after
+   * hydration either way, so nothing about the timing changes. handleClosePanel
+   * below already reads window.location.search the same way. Nothing navigates
+   * client-side to a useCaseId URL - the only writer is the router.replace that
+   * strips the parameter - so reading it once on mount is enough.
+   */
   useEffect(() => {
-    const raw = deepLinkUseCaseId?.trim()
+    const raw = new URLSearchParams(window.location.search).get("useCaseId")?.trim()
     if (!raw) return
-    const id = String(raw)
-    const uc = safeUseCases.find((u) => String(u.id) === id)
+    const uc = safeUseCases.find((u) => String(u.id) === raw)
     if (!uc) return
     setSelectedCompany(null)
     setUseCaseReturnCompany(null)
     setSelectedUseCase(uc)
     setFlyTo({ lat: uc.lat, lng: uc.lng })
     setFlyToNonce((n) => n + 1)
-  }, [deepLinkUseCaseId, safeUseCases])
+  }, [safeUseCases])
 
   const industryOptions = useMemo(() => {
     return Array.from(

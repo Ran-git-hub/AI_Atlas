@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { X, ExternalLink, Sparkles, ChevronLeft, SquareArrowOutUpRight } from "lucide-react"
 import { CopyLinkButton } from "@/components/copy-link-button"
@@ -9,6 +9,7 @@ import {
   isUseCasePendingValidation,
   useCaseDisplayName,
   type CompanyWithCoords,
+  type UseCaseFieldEntry,
   type UseCaseWithCoords,
 } from "@/lib/types"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
@@ -43,46 +44,35 @@ export function UseCaseDetailPanel({
   onReturnToCompany,
 }: UseCaseDetailPanelProps) {
   const [imageError, setImageError] = useState(false)
-  const [lazyContent, setLazyContent] = useState<string | null>(null)
-  const [contentLoading, setContentLoading] = useState(false)
+  // The globe payload no longer carries fieldEntries. This panel already hit
+  // the same route on every open, because USE_CASES_ROW_SELECT never selected
+  // `content` and so the content entry was always missing - taking the whole
+  // set from that response instead of just the content entry costs no extra
+  // request, and arrives in buildUseCaseFieldEntries' own order, which already
+  // places content directly after title.
+  const [lazyFieldEntries, setLazyFieldEntries] = useState<UseCaseFieldEntry[] | null>(null)
+  // The whole table is empty until the fetch lands now, not just its content
+  // row, so the panel has to say so rather than showing an empty frame.
+  const [entriesLoading, setEntriesLoading] = useState(false)
 
-  const hasContentField = useCase.fieldEntries.some(
-    (e) => e.key.toLowerCase() === "content",
-  )
+  const displayEntries = useCase.fieldEntries ?? lazyFieldEntries ?? []
 
   useEffect(() => {
-    if (hasContentField) return
-    setLazyContent(null)
-    setContentLoading(true)
+    if (useCase.fieldEntries) return
+    setLazyFieldEntries(null)
+    setEntriesLoading(true)
     let cancelled = false
-    setContentLoading(true)
     fetch(`/api/use-cases/${encodeURIComponent(useCase.id)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: Record<string, unknown> | null) => {
         if (cancelled || !data) return
-        const entries = (data as { fieldEntries?: Array<{ key: string; value: string }> }).fieldEntries
-        const contentEntry = entries?.find((e) => e.key.toLowerCase() === "content")
-        if (contentEntry?.value) setLazyContent(contentEntry.value)
+        const entries = (data as { fieldEntries?: UseCaseFieldEntry[] }).fieldEntries
+        if (entries) setLazyFieldEntries(entries)
       })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setContentLoading(false) })
+      .finally(() => { if (!cancelled) setEntriesLoading(false) })
     return () => { cancelled = true }
-  }, [useCase.id, hasContentField])
-
-  const displayEntries = useMemo(() => {
-    if (!lazyContent || hasContentField) return useCase.fieldEntries
-    const entries = [...useCase.fieldEntries]
-    const idx = entries.findIndex((e) => {
-      const k = e.key.toLowerCase()
-      return k === "title" || k === "description" || k === "summary"
-    })
-    entries.splice(
-      idx >= 0 ? idx + 1 : entries.length,
-      0,
-      { key: "content", label: "Content", value: lazyContent },
-    )
-    return entries
-  }, [useCase.fieldEntries, lazyContent, hasContentField])
+  }, [useCase.id, useCase.fieldEntries])
 
   const title = useCaseDisplayName(useCase)
   const showHeaderImage = Boolean(useCase.image_url?.trim()) && !imageError
@@ -222,6 +212,11 @@ export function UseCaseDetailPanel({
                   </div>
                 )
               })}
+              {displayEntries.length === 0 && entriesLoading ? (
+                <div className="px-4 py-3.5">
+                  <p className="text-sm text-slate-500 italic">Loading…</p>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

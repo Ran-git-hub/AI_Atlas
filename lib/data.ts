@@ -443,7 +443,12 @@ function rowToUseCaseWithCoords(
     city: str(row.city),
     country: str(row.country),
     location: null,
-    company_name: str(row.company_name),
+    // USE_CASES_ROW_SELECT has no company_name column, so this was always null
+    // and the company name reached the globe only as a fieldEntries value,
+    // resolved from company_id. fieldEntries is no longer shipped here, so the
+    // resolution moves onto the field itself - otherwise searching the globe by
+    // company would quietly stop matching.
+    company_name: companyNameById.get(String(row.company_id ?? "")) ?? null,
     website_url: null,
     reference_url: null,
     url: str(row.URL),
@@ -452,7 +457,8 @@ function rowToUseCaseWithCoords(
     updated_at: null,
     lat,
     lng,
-    fieldEntries: buildUseCaseFieldEntries(row, companyNameById),
+    type: str(row.type),
+    continent: str(row.continent),
   }
 }
 
@@ -627,8 +633,11 @@ export async function getUseCasesWithCoords(
 }
 
 export const getCachedUseCasesWithCoords = unstable_cache(
+  // v3 drops fieldEntries from the row shape. The key has to move with the
+  // shape: entries written under v2 are still valid for their full 24h and
+  // would keep serving the old, larger payload after the deploy.
   async () => getUseCasesWithCoords({ publishedOnly: true }),
-  ["use-cases-with-coords-v2"],
+  ["use-cases-with-coords-v3"],
   { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 

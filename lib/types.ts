@@ -53,8 +53,16 @@ export interface UseCase {
 export interface UseCaseWithCoords extends UseCase {
   lat: number
   lng: number
-  /** One entry per DB column (stable order) for the detail panel */
-  fieldEntries: UseCaseFieldEntry[]
+  /** Taxonomy values the globe's search matches on. They are selected from the
+    * table but have no home on UseCase, so they used to reach the search only
+    * as fieldEntries values. Both are short. */
+  type?: string | null
+  continent?: string | null
+  /** Omitted on the globe payload: ~10 {key,label,value} triples per row, and
+    * every value but these two already appears as a field on this object. The
+    * detail panel fetches the full set from GET /api/use-cases/[id] when it
+    * opens, the same way the catalogue list does — see UseCaseCatalogRow. */
+  fieldEntries?: UseCaseFieldEntry[]
 }
 
 export interface UseCaseCatalogRow extends UseCase {

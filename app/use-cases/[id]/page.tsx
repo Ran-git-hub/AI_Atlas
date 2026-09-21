@@ -3,11 +3,13 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import { unstable_cache } from "next/cache"
 import {
   getCachedLatestAtlasDataUpdateCetDisplay,
   getCachedUseCasesCatalogRows,
   getUseCaseCatalogRowById,
 } from "@/lib/data"
+import { CACHE_TAGS } from "@/lib/cache-tags"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { getCachedIndustrySummaries, slugifyTaxonomyValue } from "@/lib/data-industries"
@@ -196,6 +198,39 @@ function relatedUseCasesFor(
     .slice(0, limit)
 }
 
+/**
+ * Scoring the whole catalogue against one row - four string comparisons plus a
+ * regex tokenisation of title, description, sector and industry for each of
+ * ~690 candidates - ran on every request, and the 860 KB catalogue had to be
+ * deserialised out of the data cache first just to feed it. unstable_cache
+ * round-trips through JSON, so that deserialisation was the larger half.
+ *
+ * The result only changes when the catalogue does, so it is cached per id under
+ * the same tag as the catalogue itself - the tag comment in lib/cache-tags.ts
+ * already counts the related-cases list among what an edited use case dirties.
+ *
+ * Six rows per entry, so the entries are small; the point is that a cache hit
+ * skips both the deserialisation and the scan.
+ */
+const getCachedRelatedUseCases = unstable_cache(
+  async (id: string): Promise<RelatedUseCase[]> => {
+    const allRows = await getCachedUseCasesCatalogRows()
+    // Every field the scoring reads - company, industry, country, city, title,
+    // description, sector - is already on the catalogue row, so the base row is
+    // taken from the list rather than queried again. Re-querying here would cost
+    // one extra single-row select per id on every cache miss, and a miss follows
+    // each tag purge for all ~690 ids at once.
+    //
+    // The catalogue is published-only, so a pending case is not in it; that one
+    // case falls back to the single-row query it already needed.
+    const base = allRows.find((candidate) => candidate.id === id)
+      ?? await getUseCaseCatalogRowById(id)
+    return base ? relatedUseCasesFor(base, allRows) : []
+  },
+  ["use-case-related-v1"],
+  { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
+)
+
 function RelatedUseCaseCard({ item }: { item: RelatedUseCase }) {
   const row = item.row
   const title = useCaseDisplayName(row)
@@ -257,9 +292,9 @@ export async function generateMetadata({
 
 export default async function UseCaseDetailPage({ params }: UseCaseDetailPageProps) {
   const { id } = await params
-  const [row, allRows, latestDataUpdateCet, industries, countries] = await Promise.all([
+  const [row, relatedUseCases, latestDataUpdateCet, industries, countries] = await Promise.all([
     getUseCaseCatalogRowById(id),
-    getCachedUseCasesCatalogRows(),
+    getCachedRelatedUseCases(id),
     getCachedLatestAtlasDataUpdateCetDisplay(),
     getCachedIndustrySummaries(),
     getCachedCountrySummaries(),
@@ -269,7 +304,6 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
   const title = useCaseDisplayName(row)
   const subtitle = subtitleForHero(row)
   const ctaUrl = primaryExternalUrl(row)
-  const relatedUseCases = relatedUseCasesFor(row, allRows)
   const isPending = isUseCasePendingValidation(row)
   const isRecent = isRecentUseCase(row)
   const heroImage = row.image_url?.trim()

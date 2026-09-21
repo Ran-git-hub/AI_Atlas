@@ -1,5 +1,5 @@
 import { getCachedUseCasesCatalogRows, getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
-import { UseCasesTable } from "@/components/use-cases/use-cases-table"
+import { UseCasesTableFromUrl } from "@/components/use-cases/use-cases-table-from-url"
 import { pageMetadata } from "@/lib/page-metadata"
 
 // Canonical is the bare path: filter/pagination params would otherwise spawn
@@ -11,53 +11,32 @@ export const metadata = pageMetadata({
   path: "/use-cases",
 })
 
-type SearchParams = Record<string, string | string[] | undefined>
+/**
+ * Prerendered, like / and the hub pages.
+ *
+ * This page used to `await searchParams` to seed the table's filter and
+ * pagination state. That single await opted the whole route out of static
+ * rendering, so every visit re-rendered the 703-row catalogue and cost a
+ * function invocation — measured at 0.71s and `x-vercel-cache: MISS` on every
+ * request. None of that state needs the server: UseCasesTable is a client
+ * component that owns all of it, and UseCasesTableFromUrl now reads the query
+ * string in the browser.
+ *
+ * The timer is a backstop; the pipeline's revalidateTag on CACHE_TAGS.useCases
+ * is what publishes an edit. See lib/cache-tags.ts.
+ */
+export const revalidate = 86400
 
-function getSingleParam(searchParams: SearchParams, key: string): string {
-  const value = searchParams[key]
-  if (Array.isArray(value)) return value[0] ?? ""
-  return value ?? ""
-}
-
-export default async function UseCasesPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>
-}) {
-  const [rows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
+export default async function UseCasesPage() {
+  const [rows, latestDataUpdateCet] = await Promise.all([
     getCachedUseCasesCatalogRows(),
-    searchParams,
     getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
-
-  const cols = getSingleParam(resolvedSearchParams, "cols")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean)
-
-  const page = Number(getSingleParam(resolvedSearchParams, "page"))
-  const pageSize = Number(getSingleParam(resolvedSearchParams, "pageSize"))
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]">
-        <UseCasesTable
-          rows={rows}
-          latestDataUpdateCet={latestDataUpdateCet}
-          initialCaseId={getSingleParam(resolvedSearchParams, "case") || undefined}
-          showPendingOnly={false}
-          initialState={{
-            q: getSingleParam(resolvedSearchParams, "q"),
-            industry: getSingleParam(resolvedSearchParams, "industry"),
-            country: getSingleParam(resolvedSearchParams, "country"),
-            validation: getSingleParam(resolvedSearchParams, "validation"),
-            status: getSingleParam(resolvedSearchParams, "status"),
-            sort: getSingleParam(resolvedSearchParams, "sort"),
-            page: Number.isFinite(page) && page > 0 ? page : 1,
-            pageSize: Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 20,
-            cols,
-          }}
-        />
+        <UseCasesTableFromUrl rows={rows} latestDataUpdateCet={latestDataUpdateCet} />
       </div>
     </main>
   )

@@ -32,7 +32,12 @@ export function useCaseSearchHaystack(u: UseCaseWithCoords): string {
     u.country,
     u.location,
     u.company_name,
-    ...u.fieldEntries.map((e) => e.value),
+    // These replace the fieldEntries values the globe payload used to carry.
+    // Everything else in that list was a duplicate of a field already above it;
+    // the two that were not are type and continent. created_at and the source
+    // URL are no longer searchable, which nobody searches by.
+    u.type,
+    u.continent,
   ]
   return parts.map(norm).filter(Boolean).join(" ")
 }

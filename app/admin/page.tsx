@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Layers3, LogOut, Megaphone, Newspaper } from "lucide-react"
+import { Activity, Layers3, LogOut, Megaphone, Newspaper } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -19,6 +19,13 @@ const tiles = [
     icon: Newspaper,
     color: "#60a5fa",
     href: "/admin/news",
+  },
+  {
+    label: "Weekly Ops",
+    description: "Pipeline health, search strategy, data quality and next steps, week by week",
+    icon: Activity,
+    color: "#22d3ee",
+    href: "/admin/weekly",
   },
   {
     label: "Announcement",

@@ -325,7 +325,13 @@ function makeRule(
   }
 }
 
-async function fetchAll(table: string): Promise<Row[]> {
+/** An inclusive created_at window, used to score one week with the same rules. */
+export interface QualityWindow {
+  from: string
+  to: string
+}
+
+async function fetchAll(table: string, window?: QualityWindow): Promise<Row[]> {
   // Not createClient() on its own: this now runs inside unstable_cache, where
   // the cookie API is unavailable and a cookie-scoped client throws. Verified
   // that anon and service-role see identical row counts on both tables
@@ -336,10 +342,13 @@ async function fetchAll(table: string): Promise<Row[]> {
   const rows: Row[] = []
 
   for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabase
-      .from(table)
-      .select("*")
-      .range(from, from + pageSize - 1)
+    let query = supabase.from(table).select("*")
+    if (window) {
+      query = query
+        .gte("created_at", `${window.from}T00:00:00`)
+        .lte("created_at", `${window.to}T23:59:59.999`)
+    }
+    const { data, error } = await query.range(from, from + pageSize - 1)
 
     if (error) throw error
     rows.push(...((data ?? []) as Row[]))
@@ -349,12 +358,23 @@ async function fetchAll(table: string): Promise<Row[]> {
   return rows
 }
 
-async function buildQualityReport() {
+/**
+ * The whole report. With a `window`, the same rules score only the records
+ * created in it — that is how a week gets a quality number from this engine
+ * instead of each caller re-deriving one of its own.
+ *
+ * Companies are always fetched in full even for a windowed run: the
+ * company-reference rule has to know whether a use case points at a company
+ * that exists, and that company is usually older than the week.
+ */
+export async function buildQualityReport(window?: QualityWindow) {
   const started = performance.now()
-  const [allUseCases, allCompanies] = await Promise.all([
-    fetchAll("AI_Atlas_Use_Cases"),
-    fetchAll("AI_Atlas_Companies"),
+  const [allUseCases, allCompaniesInWindow, companyUniverse] = await Promise.all([
+    fetchAll("AI_Atlas_Use_Cases", window),
+    fetchAll("AI_Atlas_Companies", window),
+    window ? fetchAll("AI_Atlas_Companies") : Promise.resolve(null),
   ])
+  const allCompanies = allCompaniesInWindow
   const useCaseStatuses = countStatuses(allUseCases)
   const companyStatuses = countStatuses(allCompanies)
   const useCases = allUseCases.filter((row) => isPublishedStatus(row.status))
@@ -362,8 +382,13 @@ async function buildQualityReport() {
     ? allCompanies.filter((row) => isPublishedStatus(row.status))
     : allCompanies
 
-  const companyIds = new Set(companies.map((row) => String(row.id)).filter(Boolean))
-  const companyById = new Map(companies.map((row) => [String(row.id), row]))
+  // Reference checks resolve against every company that exists, not only the
+  // ones created inside the window.
+  const referenceCompanies = companyUniverse
+    ? companyUniverse.filter((row) => !hasStatusValues(companyUniverse) || isPublishedStatus(row.status))
+    : companies
+  const companyIds = new Set(referenceCompanies.map((row) => String(row.id)).filter(Boolean))
+  const companyById = new Map(referenceCompanies.map((row) => [String(row.id), row]))
 
   const rules: RuleResult[] = []
 
@@ -652,6 +677,7 @@ async function buildQualityReport() {
 
   const response = {
     generatedAt: new Date().toISOString(),
+    window: window ?? null,
     elapsedMs: Math.round(performance.now() - started),
     score,
     scores: {

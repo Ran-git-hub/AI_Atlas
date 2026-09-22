@@ -60,7 +60,7 @@ export interface AtlasSiteFooterProps {
 }
 
 const linkClass =
-  "text-sm text-slate-400 transition-colors hover:text-[#43cc93] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#43cc93]/40"
+  "text-[15px] text-slate-400 transition-colors hover:text-[#43cc93] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#43cc93]/40"
 
 export function AtlasSiteFooter({
   latestDataUpdateCet,
@@ -78,7 +78,7 @@ export function AtlasSiteFooter({
           className={cn(
             layout === "inline"
               ? cn(linkClass, "text-left")
-              : "px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm",
+              : "px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-[15px]",
           )}
         >
           About
@@ -91,7 +91,7 @@ export function AtlasSiteFooter({
             Data transparency and attribution.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 text-sm text-slate-200">
+        <div className="space-y-3 text-[15px] text-slate-200">
           <p>
             <span className="font-medium text-slate-100">Data sources:</span>{" "}
             Organization websites, public announcements, and curated AI use-case records.
@@ -168,10 +168,10 @@ export function AtlasSiteFooter({
             </Link>
             {/* The site's own tagline, shared with the header, rather than a
                 second description that could drift from it. */}
-            <p className="mt-3 text-pretty text-sm leading-relaxed text-slate-400">
+            <p className="mt-3 text-pretty text-[15px] leading-relaxed text-slate-400">
               {ATLAS_SITE_TAGLINE}
             </p>
-            <p className="mt-4 text-sm leading-relaxed text-slate-400">
+            <p className="mt-4 text-[15px] leading-relaxed text-slate-400">
               Maintained by Ran
               {" · "}
               <a href="mailto:allenheran@gmail.com" className={linkClass}>
@@ -198,7 +198,7 @@ export function AtlasSiteFooter({
             {/* Set like the Disclaimer paragraph rather than a step smaller.
                 The extra space above still keeps it from reading as a fifth
                 list item. */}
-            <p className="mt-6 text-sm leading-relaxed text-slate-500">
+            <p className="mt-6 text-[15px] leading-relaxed text-slate-500">
               {/* Narrower than the column on md and up (see the grid above), so
                   it sets on one line there. Where it does have to wrap - below
                   md - the timestamp stays whole rather than stranding CET. */}
@@ -209,7 +209,7 @@ export function AtlasSiteFooter({
 
           {FOOTER_COLUMNS.map((column) => (
             <nav key={column.title} aria-label={column.title} className="flex flex-col">
-              <p className="text-sm font-semibold text-slate-100">{column.title}</p>
+              <p className="text-[15px] font-semibold text-slate-100">{column.title}</p>
               <ul className="mt-3 space-y-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
@@ -226,8 +226,8 @@ export function AtlasSiteFooter({
               which is the wrong default for a site whose case for itself is
               that every record is sourced. */}
           <div className="col-span-2 min-w-0 md:col-span-1">
-            <p className="text-sm font-semibold text-slate-100">Methodology &amp; Agents</p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-400">
+            <p className="text-[15px] font-semibold text-slate-100">Methodology &amp; Agents</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-slate-400">
               How the atlas is sourced and curated &mdash; by a team of agents,
               against written rules, with a human review before anything is
               published.{" "}
@@ -238,8 +238,8 @@ export function AtlasSiteFooter({
                 See how cases are selected
               </Link>
             </p>
-            <p className="mt-5 text-sm font-semibold text-slate-100">Disclaimer</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">
+            <p className="mt-5 text-[15px] font-semibold text-slate-100">Disclaimer</p>
+            <p className="mt-2 text-[15px] leading-relaxed text-slate-400">
               Information is provided for reference only and does not constitute
               professional advice. Data may be incomplete, delayed, or inaccurate;
               please verify with official sources. Organization names, logos, and
@@ -254,7 +254,7 @@ export function AtlasSiteFooter({
 
   return (
     <div className="pointer-events-auto fixed bottom-0 left-1/2 z-20 w-full -translate-x-1/2 px-2">
-      <div className="mx-auto flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:text-sm">
+      <div className="mx-auto flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-2 py-2 text-xs text-slate-300 sm:max-w-none sm:text-[15px]">
         <span className="whitespace-nowrap text-center">
           Latest Data Update: {latestDataUpdateCet}
         </span>
@@ -265,14 +265,14 @@ export function AtlasSiteFooter({
           <span className="hidden text-slate-600 sm:inline">|</span>
           <Link
             href="/quality"
-            className="whitespace-nowrap px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
+            className="whitespace-nowrap px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-[15px]"
           >
             Data Quality Dashboard
           </Link>
           <span className="hidden text-slate-600 sm:inline">|</span>
           <Link
             href="/methodology-and-agents"
-            className="whitespace-nowrap px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-sm"
+            className="whitespace-nowrap px-1 py-0.5 text-xs text-slate-200 transition-colors hover:text-cyan-300 sm:px-2 sm:py-1 sm:text-[15px]"
           >
             Methodology &amp; Agents
           </Link>

@@ -302,11 +302,11 @@ function RuleCard({ rule }: { rule: RuleResult }) {
         <div className="w-full shrink-0 lg:w-56">
           <div className="mb-2 grid gap-1.5 text-xs lg:grid-cols-2">
             <div className="rounded-md border border-slate-700 bg-slate-950/45 px-2 py-1">
-              <div className="text-[10px] uppercase tracking-wide text-slate-500">Status</div>
+              <div className="text-[11px] uppercase tracking-wide text-slate-500">Status</div>
               <div className={cn("mt-0.5 font-semibold", tone.icon)}>{tone.label}</div>
             </div>
             <div className="rounded-md border border-slate-700 bg-slate-950/45 px-2 py-1">
-              <div className="text-[10px] uppercase tracking-wide text-slate-500">Severity</div>
+              <div className="text-[11px] uppercase tracking-wide text-slate-500">Severity</div>
               <div
                 className={cn(
                   "mt-0.5 capitalize text-slate-200",
@@ -627,7 +627,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
                               {item.weights}
                             </span>
                           ) : null}
-                          {"colors" in item ? (
+                          {"colors" in item && item.colors ? (
                             <span className="ml-2 inline-flex flex-wrap gap-1 align-middle">
                               <span className="rounded-md border border-emerald-400/25 bg-emerald-400/10 px-1.5 py-0.5 text-xs font-medium text-emerald-300">
                                 {item.colors[0]}

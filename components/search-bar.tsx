@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 import { getGoogleFaviconUrl } from "@/lib/company-logo"
+import { StatusBadge } from "@/components/status-badge"
 
 export type UnifiedSearchHit =
   | { type: "company"; item: CompanyWithCoords }
@@ -351,7 +352,7 @@ export function SearchBar({
                                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                                     <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                                       <span
-                                        className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                                        className="shrink-0 rounded px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
                                         style={{
                                           color: isCo ? CYAN : GREEN,
                                           backgroundColor: isCo
@@ -363,14 +364,10 @@ export function SearchBar({
                                         {isCo ? "Organization" : "Use case"}
                                       </span>
                                       {!isCo && isRecent ? (
-                                        <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
-                                          New
-                                        </span>
+                                        <StatusBadge kind="new" className="px-1.5" />
                                       ) : null}
                                       {isPending ? (
-                                        <span className="shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 py-0.5 text-[10px] font-semibold text-sky-100">
-                                          To be validated
-                                        </span>
+                                        <StatusBadge kind="pending" className="px-1.5" />
                                       ) : null}
                                     </div>
                                     <span
@@ -452,7 +449,7 @@ export function SearchBar({
                                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                                   <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                                     <span
-                                      className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                                      className="shrink-0 rounded px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
                                       style={{
                                         color: isCo ? CYAN : GREEN,
                                         backgroundColor: isCo
@@ -464,14 +461,10 @@ export function SearchBar({
                                       {isCo ? "Organization" : "Use case"}
                                     </span>
                                     {!isCo && isRecent ? (
-                                      <span className="shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
-                                        New
-                                      </span>
+                                      <StatusBadge kind="new" className="px-1.5" />
                                     ) : null}
                                     {isPending ? (
-                                      <span className="shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 py-0.5 text-[10px] font-semibold text-sky-100">
-                                        To be validated
-                                      </span>
+                                      <StatusBadge kind="pending" className="px-1.5" />
                                     ) : null}
                                   </div>
                                   <span

@@ -26,11 +26,11 @@ export function WeeklyReportHighlightCard({ highlight }: { highlight: WeeklyRepo
               textDecorationColor: "rgba(67, 204, 147, 0.35)",
               textUnderlineOffset: "3px",
             }}
-            className="block w-full min-w-0 cursor-pointer overflow-hidden text-left text-base font-medium leading-snug [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#43cc93]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+            className="block w-full min-w-0 cursor-pointer overflow-hidden text-left text-lg font-medium leading-snug [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] hover:opacity-90 focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#43cc93]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
           />
         ) : (
           <h4
-            className="line-clamp-2 text-base font-medium leading-snug underline"
+            className="line-clamp-2 text-lg font-medium leading-snug underline"
             style={{
               color: INDEX_GREEN,
               textDecorationColor: "rgba(67, 204, 147, 0.35)",
@@ -42,7 +42,7 @@ export function WeeklyReportHighlightCard({ highlight }: { highlight: WeeklyRepo
         )}
       </div>
 
-      <p className="mb-2.5 line-clamp-2 text-sm leading-relaxed" style={{ color: INDEX_MUTED }}>
+      <p className="mb-2.5 line-clamp-2 text-base leading-relaxed" style={{ color: INDEX_MUTED }}>
         {highlight.description}
       </p>
 

@@ -191,8 +191,8 @@ export function WeeklyReportContentRenderer({
           <div className="space-y-1.5">
             {content.trends.map((t, i) => (
               <div key={i} className="rounded-lg border border-slate-800 bg-[#1a1a1a] px-3 py-2">
-                <h4 className="mb-1 text-base font-medium text-cyan-400">{t.title}</h4>
-                <p className="text-sm text-slate-300">{t.description}</p>
+                <h4 className="mb-1 text-lg font-medium text-cyan-400">{t.title}</h4>
+                <p className="text-base leading-relaxed text-slate-300">{t.description}</p>
               </div>
             ))}
           </div>
@@ -328,7 +328,7 @@ export function WeeklyReportContentRenderer({
                         {i + 1}
                       </span>
                       {step.priority ? (
-                        <span className="rounded bg-slate-700/80 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
+                        <span className="rounded bg-slate-700/80 px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-300">
                           {step.priority}
                         </span>
                       ) : null}

@@ -599,7 +599,7 @@ export function GlobeView({
       </div>
       ${
         isPending
-          ? `<div style="display: inline-block; margin-left: 6px; max-width: 100%; border: 1px solid rgba(125,211,252,0.45); border-radius: 9999px; padding: 2px 7px; font-size: 10px; font-weight: 700; color: #e0f2fe; background: rgba(125,211,252,0.12);">To be validated</div>`
+          ? `<div style="display: inline-block; margin-left: 6px; max-width: 100%; border: 1px solid rgba(125,211,252,0.45); border-radius: 9999px; padding: 2px 7px; font-size: 12px; font-weight: 700; color: #e0f2fe; background: rgba(125,211,252,0.12);">To be validated</div>`
           : ""
       }
     `

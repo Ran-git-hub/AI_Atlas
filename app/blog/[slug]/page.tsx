@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { getAdjacentBlogPosts, getBlogPostBySlug } from "@/lib/data-blog"
-import { isWeeklyBlogPost } from "@/lib/types-blog"
+import { isWeeklyBlogPost, type BlogArticleContent } from "@/lib/types-blog"
 import { WeeklyReportContentRenderer } from "@/components/weekly-report/weekly-report-content"
 import { BlogArticleBody } from "@/components/blog/blog-article-body"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
@@ -121,7 +121,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         {isWeekly ? (
           <WeeklyReportContentRenderer content={post.content} relatedCaseIds={post.relatedCaseIds} />
         ) : (
-          <BlogArticleBody content={post.content} />
+          <BlogArticleBody content={post.content as BlogArticleContent} />
         )}
 
         <div className="mt-10 flex items-center justify-between border-t border-slate-800 pt-6">

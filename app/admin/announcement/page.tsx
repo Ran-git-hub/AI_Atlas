@@ -1,14 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { BackToAdminPanel } from "@/components/admin/back-to-admin"
 
 export default function AdminAnnouncementPage() {
-  const router = useRouter()
   const [content, setContent] = useState("")
   const [saving, setSaving] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -59,14 +57,7 @@ export default function AdminAnnouncementPage() {
       style={{ colorScheme: "dark" }}
     >
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <button
-          type="button"
-          onClick={() => router.push("/admin")}
-          className="mb-6 inline-flex items-center gap-2 text-sm text-[#8a8a8a] hover:text-[#f5f5f5]"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to dashboard
-        </button>
+        <BackToAdminPanel className="mb-6" />
 
         <h1 className="mb-2 text-2xl font-bold text-[#f5f5f5]">
           Site Announcement

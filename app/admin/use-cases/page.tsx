@@ -1,5 +1,6 @@
 import { getLatestAtlasDataUpdateCetDisplay, getUseCasesCatalogRows } from "@/lib/data"
 import { UseCasesTable } from "@/components/use-cases/use-cases-table"
+import { BackToAdminPanel } from "@/components/admin/back-to-admin"
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -38,9 +39,12 @@ export default async function AdminUseCasesPage({
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
       <div className="mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]">
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-amber-300/80">
-          Admin · includes archived use cases
-        </p>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-amber-300/80">
+            Admin · includes archived use cases
+          </p>
+          <BackToAdminPanel />
+        </div>
         <UseCasesTable
           rows={rows}
           latestDataUpdateCet={latestDataUpdateCet}

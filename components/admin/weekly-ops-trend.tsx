@@ -84,16 +84,16 @@ function TrendTile({
   return (
     <div className="rounded-lg border px-3 py-2.5" style={{ borderColor: BORDER, background: SURFACE }}>
       <div className="mb-1.5 flex items-baseline gap-2">
-        <span className="text-lg font-semibold tabular-nums" style={{ color: latest === null ? MUTED : "#f5f5f5" }}>
+        <span className="text-xl font-semibold tabular-nums" style={{ color: latest === null ? MUTED : "#f5f5f5" }}>
           {latest === null ? "—" : latest}
         </span>
         {change !== null && change !== 0 && (
-          <span className="text-[11px] tabular-nums" style={{ color: MUTED }}>
+          <span className="text-[13px] tabular-nums" style={{ color: MUTED }}>
             {change > 0 ? "+" : ""}
             {change}
           </span>
         )}
-        <span className="ml-auto text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+        <span className="ml-auto text-xs uppercase tracking-wider" style={{ color: MUTED }}>
           {label}
         </span>
       </div>
@@ -141,13 +141,13 @@ export function HealthBand({
   return (
     <section className="space-y-1.5">
       <div className="flex items-baseline gap-2">
-        <span className="text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+        <span className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>
           Health
         </span>
-        <span className="text-[10px]" style={{ color: MUTED }}>
+        <span className="text-xs" style={{ color: MUTED }}>
           — pick a week to open it
         </span>
-        <span className="ml-auto text-[10px] tabular-nums" style={{ color: MUTED }}>
+        <span className="ml-auto text-xs tabular-nums" style={{ color: MUTED }}>
           {trend.length} weeks
         </span>
       </div>
@@ -169,7 +169,7 @@ export function HealthBand({
                 // Tailwind v4 gives buttons `cursor: default`, so a control that
                 // is meant to look clickable has to say so.
                 "group relative flex min-w-[6px] flex-1 cursor-pointer items-center justify-center " +
-                "rounded-md text-[9px] font-semibold tabular-nums transition-all " +
+                "rounded-md text-[11px] font-semibold tabular-nums transition-all " +
                 "hover:-translate-y-0.5 hover:brightness-110 " +
                 (labelsFit ? "h-6" : "h-4")
               }
@@ -198,7 +198,7 @@ export function HealthBand({
                   <span
                     className={
                       (isEnd ? "block" : "hidden sm:block") +
-                      " whitespace-nowrap text-[9px] tabular-nums " +
+                      " whitespace-nowrap text-[11px] tabular-nums " +
                       (i === trend.length - 1 ? "text-right" : i === 0 ? "text-left" : "text-center")
                     }
                     style={{ color: label(p) === selected ? "#f5f5f5" : MUTED }}
@@ -297,8 +297,8 @@ export function WeekNav({
       >
         <ChevronLeft className="h-3.5 w-3.5" />
       </button>
-      <span className="text-xs font-semibold text-[#f5f5f5]">{label(current)}</span>
-      <span className="text-[11px]" style={{ color: MUTED }}>
+      <span className="text-sm font-semibold text-[#f5f5f5]">{label(current)}</span>
+      <span className="text-[13px]" style={{ color: MUTED }}>
         {formatRange(current.weekStart)}
       </span>
       <button
@@ -311,7 +311,7 @@ export function WeekNav({
       >
         <ChevronRight className="h-3.5 w-3.5" />
       </button>
-      <span className="ml-auto text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+      <span className="ml-auto text-xs uppercase tracking-wider" style={{ color: MUTED }}>
         This view only
       </span>
     </div>

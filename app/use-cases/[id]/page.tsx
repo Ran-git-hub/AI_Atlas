@@ -28,6 +28,7 @@ import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
 
 import { formatAtlasDate } from "@/lib/format-date"
+import { StatusBadge } from "@/components/status-badge"
 
 const ACCENT = USE_CASE_PANEL_ACCENT
 
@@ -253,9 +254,7 @@ function RelatedUseCaseCard({ item }: { item: RelatedUseCase }) {
         {title}
       </h3>
       {isPending ? (
-        <span className="mt-2 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
-          To be validated
-        </span>
+        <StatusBadge kind="pending" className="mt-2" />
       ) : null}
       {meta.length > 0 ? (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-400">
@@ -394,14 +393,10 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
                 AI Use Case
               </p>
               {isRecent ? (
-                <span className="inline-flex rounded-full border border-yellow-300/55 bg-yellow-200/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
-                  New
-                </span>
+                <StatusBadge kind="new" />
               ) : null}
               {isPending ? (
-                <span className="inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
-                  To be validated
-                </span>
+                <StatusBadge kind="pending" />
               ) : null}
             </div>
             <h1 className="mt-3 max-w-4xl text-balance text-3xl font-bold leading-tight text-[#f5f5f5] md:text-4xl">

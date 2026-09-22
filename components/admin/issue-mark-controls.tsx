@@ -70,7 +70,7 @@ export function IssueMarkControls({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+        <span className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>
           Mark as
         </span>
         {(["acked", "done", "ignored"] as const).map((s) => {
@@ -81,7 +81,7 @@ export function IssueMarkControls({
               type="button"
               disabled={pending}
               onClick={() => save(active ? null : s, note)}
-              className="rounded border px-2 py-1 text-[11px] font-medium transition-colors disabled:opacity-50"
+              className="rounded border px-2 py-1 text-[13px] font-medium transition-colors disabled:opacity-50"
               style={{
                 borderColor: active ? `${STATUS_COLOR[s]}66` : BORDER,
                 background: active ? `${STATUS_COLOR[s]}1a` : "transparent",
@@ -97,19 +97,19 @@ export function IssueMarkControls({
             type="button"
             disabled={pending}
             onClick={() => save(null, "")}
-            className="text-[11px] transition-colors hover:text-[#f5f5f5] disabled:opacity-50"
+            className="text-[13px] transition-colors hover:text-[#f5f5f5] disabled:opacity-50"
             style={{ color: MUTED }}
           >
             clear
           </button>
         )}
         {pending && (
-          <span className="text-[11px]" style={{ color: MUTED }}>
+          <span className="text-[13px]" style={{ color: MUTED }}>
             saving…
           </span>
         )}
         {error && (
-          <span className="text-[11px]" style={{ color: RED }}>
+          <span className="text-[13px]" style={{ color: RED }}>
             {error}
           </span>
         )}
@@ -124,7 +124,7 @@ export function IssueMarkControls({
           }}
           placeholder={issue.adminStatus ? "Note — why, or what you did" : "Pick a status first, then add a note"}
           rows={2}
-          className="mt-2 w-full rounded border bg-transparent px-2 py-1.5 text-[11px] leading-relaxed text-[#d4d4d4] outline-none placeholder:text-[#5a5a5a] focus:border-[#43cc9366]"
+          className="mt-2 w-full rounded border bg-transparent px-2 py-1.5 text-[13px] leading-relaxed text-[#d4d4d4] outline-none placeholder:text-[#5a5a5a] focus:border-[#43cc9366]"
           style={{ borderColor: BORDER }}
         />
       )}

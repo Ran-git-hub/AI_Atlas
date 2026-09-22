@@ -3,6 +3,7 @@ import type { UseCaseCatalogRow } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
 
 import { formatAtlasDate } from "@/lib/format-date"
+import { StatusBadge } from "@/components/status-badge"
 function formatDate(value: string | null | undefined): string {
   if (!value) return "Unknown date"
   const date = new Date(value)
@@ -30,9 +31,7 @@ export function IndustryUseCaseCard({ useCase }: { useCase: UseCaseCatalogRow })
             {title}
           </h3>
           {isPending ? (
-            <span className="shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
-              To be validated
-            </span>
+            <StatusBadge kind="pending" />
           ) : null}
         </div>
         {useCase.description ? (

@@ -37,7 +37,7 @@ const CARRY_COLOR: Record<string, string> = { resolved: GREEN, carried: AMBER, n
 function Chip({ label, color }: { label: string; color: string }) {
   return (
     <span
-      className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+      className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider"
       style={{ color, background: `${color}1a`, border: `1px solid ${color}33` }}
     >
       {label}
@@ -60,9 +60,9 @@ function Panel({
     <section className="rounded-xl border p-4" style={{ borderColor: BORDER, background: SURFACE }}>
       <div className="mb-3 flex items-center gap-2">
         <span style={{ color: MUTED }}>{icon}</span>
-        <h2 className="text-sm font-semibold tracking-tight text-[#f5f5f5]">{title}</h2>
+        <h2 className="text-base font-semibold tracking-tight text-[#f5f5f5]">{title}</h2>
         {count !== undefined && (
-          <span className="ml-auto text-xs tabular-nums" style={{ color: MUTED }}>
+          <span className="ml-auto text-sm tabular-nums" style={{ color: MUTED }}>
             {count}
           </span>
         )}
@@ -75,7 +75,7 @@ function Panel({
 /** A null column means the weekly writer never wrote the field — not the same as an empty one. */
 function NotWritten() {
   return (
-    <p className="rounded border border-dashed px-3 py-2 text-xs" style={{ borderColor: BORDER, color: MUTED }}>
+    <p className="rounded border border-dashed px-3 py-2 text-sm" style={{ borderColor: BORDER, color: MUTED }}>
       Not written by the weekly writer.
     </p>
   )
@@ -83,7 +83,7 @@ function NotWritten() {
 
 function Empty({ what }: { what: string }) {
   return (
-    <p className="text-xs" style={{ color: MUTED }}>
+    <p className="text-sm" style={{ color: MUTED }}>
       No {what} this week.
     </p>
   )
@@ -92,10 +92,10 @@ function Empty({ what }: { what: string }) {
 function Metric({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <div className="rounded-lg border px-3 py-2.5" style={{ borderColor: BORDER, background: SURFACE }}>
-      <div className="text-lg font-semibold tabular-nums" style={{ color: color ?? "#f5f5f5" }}>
+      <div className="text-xl font-semibold tabular-nums" style={{ color: color ?? "#f5f5f5" }}>
         {value}
       </div>
-      <div className="mt-0.5 text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+      <div className="mt-0.5 text-xs uppercase tracking-wider" style={{ color: MUTED }}>
         {label}
       </div>
     </div>
@@ -117,7 +117,7 @@ function CardVerdict({
         <div className="mb-2 flex items-center gap-2">
           <Chip label={STATUS_LABEL[issue.adminStatus]} color={STATUS_COLOR[issue.adminStatus]} />
           {issue.adminNote && (
-            <span className="text-[11px] italic" style={{ color: MUTED }}>
+            <span className="text-[13px] italic" style={{ color: MUTED }}>
               {issue.adminNote}
             </span>
           )}
@@ -142,9 +142,9 @@ function formatRange(startIso: string, endIso: string): string {
 function SectionHeading({ title, count }: { title: string; count?: number }) {
   return (
     <div className="mb-2.5 flex items-baseline gap-2">
-      <h2 className="text-sm font-semibold tracking-tight text-[#f5f5f5]">{title}</h2>
+      <h2 className="text-base font-semibold tracking-tight text-[#f5f5f5]">{title}</h2>
       {count !== undefined && (
-        <span className="text-xs tabular-nums" style={{ color: MUTED }}>
+        <span className="text-sm tabular-nums" style={{ color: MUTED }}>
           {count}
         </span>
       )}
@@ -204,7 +204,7 @@ export function WeeklyOpsPanel({
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl border p-6 text-sm" style={{ borderColor: BORDER, background: SURFACE, color: MUTED }}>
+      <p className="rounded-xl border p-6 text-base" style={{ borderColor: BORDER, background: SURFACE, color: MUTED }}>
         No weekly operations records yet. The weekly writer upserts one row per ISO week.
       </p>
     )
@@ -222,21 +222,21 @@ export function WeeklyOpsPanel({
           <button
             type="button"
             onClick={() => go(null)}
-            className="inline-flex items-center gap-1.5 text-xs transition-colors hover:text-[#f5f5f5]"
+            className="inline-flex items-center gap-1.5 text-sm transition-colors hover:text-[#f5f5f5]"
             style={{ color: MUTED }}
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             All weeks
           </button>
-          <h1 className="text-base font-semibold text-[#f5f5f5]">{weekOf(row)}</h1>
-          <span className="text-xs" style={{ color: MUTED }}>
+          <h1 className="text-lg font-semibold text-[#f5f5f5]">{weekOf(row)}</h1>
+          <span className="text-sm" style={{ color: MUTED }}>
             {formatRange(row.weekStart, row.weekEnd)}
           </span>
         </div>
       ) : (
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="text-base font-semibold text-[#f5f5f5]">All weeks</h1>
-          <span className="text-xs" style={{ color: MUTED }}>
+          <h1 className="text-lg font-semibold text-[#f5f5f5]">All weeks</h1>
+          <span className="text-sm" style={{ color: MUTED }}>
             {rows.length} on record · {openCount} needing attention
           </span>
         </div>
@@ -270,15 +270,15 @@ export function WeeklyOpsPanel({
         style={{ borderColor: `${statusColor}40`, background: `${statusColor}0f` }}
       >
         <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: statusColor }} />
-        <span className="text-sm font-semibold" style={{ color: statusColor }}>
+        <span className="text-base font-semibold" style={{ color: statusColor }}>
           {health ? health.label : "System health not written"}
         </span>
-        <span className="text-xs" style={{ color: MUTED }}>
+        <span className="text-sm" style={{ color: MUTED }}>
           {formatRange(row.weekStart, row.weekEnd)}
           {row.slug ? ` · ${row.slug}` : ""}
           {row.blogPostId ? "" : " · no public post"}
         </span>
-        <span className="ml-auto text-[11px]" style={{ color: MUTED }}>
+        <span className="ml-auto text-[13px]" style={{ color: MUTED }}>
           updated {new Date(row.updatedAt).toLocaleString("en-GB", { timeZone: "Europe/Prague" })}
         </span>
       </div>
@@ -355,12 +355,12 @@ export function WeeklyOpsPanel({
                 <li key={i} className="rounded-lg border p-3" style={{ borderColor: BORDER }}>
                   <div className="mb-1.5 flex flex-wrap items-center gap-2">
                     <Chip label={w.severity} color={c} />
-                    <code className="text-[11px] break-all" style={{ color: MUTED }}>
+                    <code className="text-[13px] break-all" style={{ color: MUTED }}>
                       {w.location}
                     </code>
                   </div>
-                  <p className="text-xs leading-relaxed text-[#d4d4d4]">{w.issue}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: MUTED }}>
+                  <p className="text-sm leading-relaxed text-[#d4d4d4]">{w.issue}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed" style={{ color: MUTED }}>
                     → {w.recommendation}
                   </p>
                   <CardVerdict
@@ -414,12 +414,12 @@ export function WeeklyOpsPanel({
                 <li key={i} className="rounded-lg border p-3" style={{ borderColor: BORDER }}>
                   <div className="mb-1.5 flex flex-wrap items-center gap-2">
                     <Chip label={s.priority} color={PRIORITY_COLOR[s.priority] ?? MUTED} />
-                    <code className="text-[11px] break-all" style={{ color: MUTED }}>
+                    <code className="text-[13px] break-all" style={{ color: MUTED }}>
                       {s.file}
                     </code>
                   </div>
-                  <p className="text-xs leading-relaxed text-[#d4d4d4]">{s.issue}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: MUTED }}>
+                  <p className="text-sm leading-relaxed text-[#d4d4d4]">{s.issue}</p>
+                  <p className="mt-1.5 text-sm leading-relaxed" style={{ color: MUTED }}>
                     → {s.action}
                   </p>
                   <CardVerdict
@@ -484,9 +484,9 @@ export function WeeklyOpsPanel({
                     <li key={i} className="rounded-lg border p-2.5" style={{ borderColor: BORDER }}>
                       <div className="flex items-start gap-2">
                         <Chip label={q.hitRate} color={HIT_RATE_COLOR[q.hitRate] ?? MUTED} />
-                        <span className="text-xs leading-relaxed text-[#d4d4d4]">{q.query}</span>
+                        <span className="text-sm leading-relaxed text-[#d4d4d4]">{q.query}</span>
                       </div>
-                      <p className="mt-1.5 text-[11px] leading-relaxed" style={{ color: MUTED }}>
+                      <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: MUTED }}>
                         {q.notes}
                       </p>
                     </li>
@@ -495,12 +495,12 @@ export function WeeklyOpsPanel({
               )}
               {row.searchStrategy.newQueriesAdded.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+                  <p className="mb-1.5 text-xs uppercase tracking-wider" style={{ color: MUTED }}>
                     New queries added
                   </p>
                   <ul className="space-y-1">
                     {row.searchStrategy.newQueriesAdded.map((q, i) => (
-                      <li key={i} className="text-[11px] leading-relaxed" style={{ color: MUTED }}>
+                      <li key={i} className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
                         + {q}
                       </li>
                     ))}
@@ -547,16 +547,16 @@ export function WeeklyOpsPanel({
               {row.dataQuality.score !== undefined && (
                 <div className="flex items-baseline gap-2">
                   <span
-                    className="text-2xl font-semibold tabular-nums"
+                    className="text-3xl font-semibold tabular-nums"
                     style={{ color: row.dataQuality.score >= 95 ? GREEN : AMBER }}
                   >
                     {row.dataQuality.score}
                   </span>
-                  <span className="text-[11px] uppercase tracking-wider" style={{ color: MUTED }}>
+                  <span className="text-[13px] uppercase tracking-wider" style={{ color: MUTED }}>
                     {row.dataQuality.source === "quality-engine" ? "engine score" : "score"}
                   </span>
                   {row.dataQuality.totals && (
-                    <span className="ml-auto text-[11px]" style={{ color: MUTED }}>
+                    <span className="ml-auto text-[13px]" style={{ color: MUTED }}>
                       {row.dataQuality.totals.useCases} use cases · {row.dataQuality.totals.companies} orgs
                     </span>
                   )}
@@ -576,9 +576,9 @@ export function WeeklyOpsPanel({
                       >
                         <span className="flex min-w-0 items-baseline gap-2">
                           <Chip label={r.severity} color={SEVERITY_COLOR[r.severity] ?? MUTED} />
-                          <span className="text-xs text-[#d4d4d4]">{r.name}</span>
+                          <span className="text-sm text-[#d4d4d4]">{r.name}</span>
                         </span>
-                        <span className="shrink-0 text-xs font-semibold tabular-nums" style={{ color: AMBER }}>
+                        <span className="shrink-0 text-sm font-semibold tabular-nums" style={{ color: AMBER }}>
                           {r.failed}
                           <span style={{ color: MUTED }}>/{r.total}</span>
                         </span>
@@ -596,15 +596,15 @@ export function WeeklyOpsPanel({
                       className="flex items-baseline justify-between gap-3 border-b pb-1.5 last:border-0"
                       style={{ borderColor: BORDER }}
                     >
-                      <span className="text-xs text-[#d4d4d4]">{d.issue}</span>
+                      <span className="text-sm text-[#d4d4d4]">{d.issue}</span>
                       <span className="flex shrink-0 items-baseline gap-2">
                         <span
-                          className="text-xs font-semibold tabular-nums"
+                          className="text-sm font-semibold tabular-nums"
                           style={{ color: d.count > 0 ? AMBER : MUTED }}
                         >
                           {d.count}
                         </span>
-                        <span className="text-[10px]" style={{ color: MUTED }}>
+                        <span className="text-xs" style={{ color: MUTED }}>
                           {d.handling}
                         </span>
                       </span>
@@ -665,21 +665,21 @@ export function WeeklyOpsPanel({
               <div className="grid grid-cols-3 gap-2 text-center">
                 {(["runCount", "totalSearches", "totalCandidates"] as const).map((k) => (
                   <div key={k} className="rounded-lg border px-2 py-2" style={{ borderColor: BORDER }}>
-                    <div className="text-sm font-semibold tabular-nums text-[#f5f5f5]">
+                    <div className="text-base font-semibold tabular-nums text-[#f5f5f5]">
                       {row.searchToolUsage!["thisWeek"][k]}
                     </div>
-                    <div className="text-[10px]" style={{ color: MUTED }}>
+                    <div className="text-xs" style={{ color: MUTED }}>
                       vs {row.searchToolUsage!["lastWeek"][k]} last wk
                     </div>
                   </div>
                 ))}
               </div>
-              <table className="w-full text-xs">
+              <table className="w-full text-sm">
                 <thead>
                   <tr style={{ color: MUTED }}>
-                    <th className="pb-1 text-left text-[10px] font-medium uppercase tracking-wider">Tool</th>
-                    <th className="pb-1 text-right text-[10px] font-medium uppercase tracking-wider">Searches</th>
-                    <th className="pb-1 text-right text-[10px] font-medium uppercase tracking-wider">Cands</th>
+                    <th className="pb-1 text-left text-xs font-medium uppercase tracking-wider">Tool</th>
+                    <th className="pb-1 text-right text-xs font-medium uppercase tracking-wider">Searches</th>
+                    <th className="pb-1 text-right text-xs font-medium uppercase tracking-wider">Cands</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -696,7 +696,7 @@ export function WeeklyOpsPanel({
                   ))}
                 </tbody>
               </table>
-              <p className="text-[11px] leading-relaxed" style={{ color: MUTED }}>
+              <p className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
                 <span style={{ color: delta(row.searchToolUsage.change.searches).color }}>
                   {delta(row.searchToolUsage.change.searches).text} searches
                 </span>
@@ -746,11 +746,11 @@ export function WeeklyOpsPanel({
                 <li key={i} className="rounded-lg border p-2.5" style={{ borderColor: BORDER }}>
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <Chip label={c.status} color={CARRY_COLOR[c.status] ?? MUTED} />
-                    <span className="text-[11px]" style={{ color: MUTED }}>
+                    <span className="text-[13px]" style={{ color: MUTED }}>
                       from {c.fromWeek}
                     </span>
                   </div>
-                  <p className="text-xs leading-relaxed text-[#d4d4d4]">{c.step.issue}</p>
+                  <p className="text-sm leading-relaxed text-[#d4d4d4]">{c.step.issue}</p>
                   <CardVerdict
                     issue={occurrences.get(occurrenceKey(row.year, row.isoWeek, "next-step", c.step.issue))}
                     newestWeek={newestWeek}

@@ -9,6 +9,7 @@ import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
 import { cn } from "@/lib/utils"
 
 import { formatAtlasDate } from "@/lib/format-date"
+import { StatusBadge } from "@/components/status-badge"
 function normalizeOrgName(v: string | null | undefined): string {
   return (v ?? "").trim().toLowerCase().replace(/\s+/g, " ")
 }
@@ -180,9 +181,7 @@ export function CompanyDetailPanel({
                         {useCaseDisplayName(uc)}
                       </span>
                       {isUseCasePendingValidation(uc) ? (
-                        <span className="mt-1.5 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
-                          To be validated
-                        </span>
+                        <StatusBadge kind="pending" className="mt-1.5" />
                       ) : null}
                       <span className="mt-1.5 block text-sm leading-relaxed text-slate-400">
                         {useCaseSummaryText(uc)}

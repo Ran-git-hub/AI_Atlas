@@ -129,7 +129,7 @@ export function InteractionTips() {
 
         <div className="mt-4 space-y-4 text-sm text-slate-200">
           <section className="space-y-2">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
               Markers
             </h3>
             <div className="flex flex-col gap-2">
@@ -151,7 +151,7 @@ export function InteractionTips() {
           </section>
 
           <section className="space-y-2.5">
-            <h3 className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+            <h3 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
               Controls
             </h3>
             <div className="flex min-w-0 items-start gap-2.5 sm:items-center">

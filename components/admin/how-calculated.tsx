@@ -13,7 +13,7 @@ const MUTED = "#8a8a8a"
 export function HowCalculated({ children }: { children: React.ReactNode }) {
   return (
     <details className="mt-3 rounded-lg border" style={{ borderColor: BORDER }}>
-      <summary className="cursor-pointer px-3 py-2 text-[11px] font-medium text-[#8a8a8a] transition-colors marker:text-[#5a5a5a] hover:text-[#d4d4d4]">
+      <summary className="cursor-pointer px-3 py-2 text-[13px] font-medium text-[#8a8a8a] transition-colors marker:text-[#5a5a5a] hover:text-[#d4d4d4]">
         How this is calculated
       </summary>
       <div className="space-y-3 border-t px-3 py-3" style={{ borderColor: BORDER }}>
@@ -26,7 +26,7 @@ export function HowCalculated({ children }: { children: React.ReactNode }) {
 export function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+      <p className="mb-2 text-xs uppercase tracking-wider" style={{ color: MUTED }}>
         {title}
       </p>
       <dl className="space-y-2">{children}</dl>
@@ -37,8 +37,8 @@ export function Group({ title, children }: { title: string; children: React.Reac
 export function Term({ term, children }: { term: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-x-3 gap-y-0.5 sm:grid-cols-[9rem_1fr]">
-      <dt className="text-[11px] font-medium text-[#d4d4d4]">{term}</dt>
-      <dd className="text-[11px] leading-relaxed" style={{ color: MUTED }}>
+      <dt className="text-[13px] font-medium text-[#d4d4d4]">{term}</dt>
+      <dd className="text-[13px] leading-relaxed" style={{ color: MUTED }}>
         {children}
       </dd>
     </div>
@@ -52,12 +52,12 @@ export function Steps({ children }: { children: React.ReactNode }) {
 export function Step({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-2.5">
-      <span className="mt-0.5 shrink-0 text-[10px] tabular-nums" style={{ color: MUTED }}>
+      <span className="mt-0.5 shrink-0 text-xs tabular-nums" style={{ color: MUTED }}>
         {n}
       </span>
       <span className="min-w-0">
-        <span className="block text-[11px] font-medium text-[#d4d4d4]">{title}</span>
-        <span className="block text-[11px] leading-relaxed" style={{ color: MUTED }}>
+        <span className="block text-[13px] font-medium text-[#d4d4d4]">{title}</span>
+        <span className="block text-[13px] leading-relaxed" style={{ color: MUTED }}>
           {children}
         </span>
       </span>

@@ -26,7 +26,7 @@ export function AtlasSiteBrandStrip({ className }: { className?: string }) {
           AI Atlas
         </span>
       </Link>
-      <p className="w-[8.25rem] shrink-0 text-[9px] font-medium leading-tight tracking-wide text-cyan-200/85 antialiased sm:w-[9rem] sm:text-[10px] atlas-header:hidden">
+      <p className="w-[11rem] shrink-0 text-xs font-medium leading-tight tracking-wide text-cyan-200/85 antialiased atlas-header:hidden">
         <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[0]}</span>
         {ATLAS_TAGLINE_MOBILE_LINES[1] ? (
           <span className="block">{ATLAS_TAGLINE_MOBILE_LINES[1]}</span>

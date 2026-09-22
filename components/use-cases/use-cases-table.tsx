@@ -62,6 +62,7 @@ import { toast } from "@/hooks/use-toast"
 import { UseCaseIndexDetailModalPortal } from "@/components/use-cases/use-case-index-detail-modal"
 
 import { formatAtlasDate } from "@/lib/format-date"
+import { StatusBadge } from "@/components/status-badge"
 type InitialState = {
   q: string
   industry: string
@@ -644,24 +645,10 @@ export function UseCasesTable({
                   {useCaseDisplayName(row.original)}
                 </button>
                 {isNew ? (
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full border border-yellow-300/55 bg-yellow-200/15 px-1.5 font-semibold uppercase tracking-wide text-yellow-200",
-                      tableDensity === "compact" ? "py-0 text-[9px]" : "py-0.5 text-[10px]"
-                    )}
-                  >
-                    New
-                  </span>
+                  <StatusBadge kind="new" compact={tableDensity === "compact"} className="px-1.5" />
                 ) : null}
                 {isPending ? (
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 font-semibold tracking-wide text-sky-100",
-                      tableDensity === "compact" ? "py-0 text-[9px]" : "py-0.5 text-[10px]"
-                    )}
-                  >
-                    To be validated
-                  </span>
+                  <StatusBadge kind="pending" compact={tableDensity === "compact"} className="px-1.5 tracking-wide" />
                 ) : null}
               </div>
               <div
@@ -1391,7 +1378,7 @@ export function UseCasesTable({
                   <span className="flex min-w-0 flex-1 items-center justify-between gap-2 pr-1">
                     <span className="min-w-0 truncate">{industry}</span>
                     {recentIndustryPicks.includes(industry) ? (
-                      <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-cyan-300/90">
+                      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-cyan-300/90">
                         Recent
                       </span>
                     ) : null}
@@ -1458,7 +1445,7 @@ export function UseCasesTable({
                   <span className="flex min-w-0 flex-1 items-center justify-between gap-2 pr-1">
                     <span className="min-w-0 truncate">{country}</span>
                     {recentCountryPicks.includes(country) ? (
-                      <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-cyan-300/90">
+                      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-cyan-300/90">
                         Recent
                       </span>
                     ) : null}
@@ -1535,7 +1522,7 @@ export function UseCasesTable({
               <span className="min-w-0 truncate">Other Filters</span>
             </span>
             {advancedFilterCount > 0 ? (
-              <span className="absolute right-2.5 top-1/2 inline-flex h-4 min-w-4 -translate-y-1/2 items-center justify-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-slate-950">
+              <span className="absolute right-2.5 top-1/2 inline-flex h-[18px] min-w-[18px] -translate-y-1/2 items-center justify-center rounded-full bg-cyan-400 px-1 text-xs font-bold text-slate-950">
                 {advancedFilterCount}
               </span>
             ) : null}

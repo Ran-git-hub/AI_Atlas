@@ -34,14 +34,14 @@ export function WeeklyReportCard({ report }: { report: WeeklyReportListItem }) {
             {/* Tags + stats row */}
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {report.tags && report.tags.slice(0, 4).map((tag) => (
-                <span key={tag} className="rounded bg-cyan-500/10 px-1.5 py-0.5 text-[10px] text-cyan-400">
+                <span key={tag} className="rounded bg-cyan-500/10 px-1.5 py-0.5 text-xs text-cyan-400">
                   {tag}
                 </span>
               ))}
               {report.tags && report.tags.length > 4 && (
-                <span className="text-[10px] text-slate-500">+{report.tags.length - 4}</span>
+                <span className="text-xs text-slate-500">+{report.tags.length - 4}</span>
               )}
-              <span className="ml-auto text-[10px] text-slate-500">
+              <span className="ml-auto text-xs text-slate-500">
                 <span className="text-cyan-400">{report.newUseCasesCount}</span> cases
               </span>
             </div>

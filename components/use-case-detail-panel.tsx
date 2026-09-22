@@ -13,6 +13,7 @@ import {
   type UseCaseWithCoords,
 } from "@/lib/types"
 import { USE_CASE_PANEL_ACCENT } from "@/lib/use-case-panel-accent"
+import { StatusBadge } from "@/components/status-badge"
 
 interface UseCaseDetailPanelProps {
   useCase: UseCaseWithCoords
@@ -111,14 +112,10 @@ export function UseCaseDetailPanel({
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h2 className="text-lg font-semibold text-white">Use case</h2>
               {isRecent ? (
-                <span className="inline-flex rounded-full border border-yellow-300/55 bg-yellow-200/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-yellow-200">
-                  New
-                </span>
+                <StatusBadge kind="new" />
               ) : null}
               {isPending ? (
-                <span className="inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[10px] font-semibold text-sky-100">
-                  To be validated
-                </span>
+                <StatusBadge kind="pending" />
               ) : null}
             </div>
             <button

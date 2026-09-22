@@ -61,7 +61,7 @@ export function WeeklyOpsSearch({ rows }: { rows: WeeklyAdminRow[] }) {
   if (weeks.length === 0 || tools.length === 0) {
     return (
       <p
-        className="rounded-lg border p-4 text-sm"
+        className="rounded-lg border p-4 text-base"
         style={{ borderColor: BORDER, background: SURFACE, color: MUTED }}
       >
         No search tool usage recorded in any week on record.
@@ -74,8 +74,8 @@ export function WeeklyOpsSearch({ rows }: { rows: WeeklyAdminRow[] }) {
       {/* Searches per week */}
       <section className="rounded-lg border p-4" style={{ borderColor: BORDER, background: SURFACE }}>
         <div className="mb-3 flex items-baseline gap-2">
-          <span className="text-lg font-semibold tabular-nums text-[#f5f5f5]">{grandTotal}</span>
-          <span className="text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+          <span className="text-xl font-semibold tabular-nums text-[#f5f5f5]">{grandTotal}</span>
+          <span className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>
             searches across {weeks.length} weeks
           </span>
         </div>
@@ -97,15 +97,15 @@ export function WeeklyOpsSearch({ rows }: { rows: WeeklyAdminRow[] }) {
 
       {/* Per tool */}
       <section className="rounded-lg border p-4" style={{ borderColor: BORDER, background: SURFACE }}>
-        <table className="w-full text-xs">
+        <table className="w-full text-sm">
           <thead>
             <tr style={{ color: MUTED }}>
-              <th className="pb-2 text-left text-[10px] font-medium uppercase tracking-wider">Tool</th>
-              <th className="pb-2 text-left text-[10px] font-medium uppercase tracking-wider">
+              <th className="pb-2 text-left text-xs font-medium uppercase tracking-wider">Tool</th>
+              <th className="pb-2 text-left text-xs font-medium uppercase tracking-wider">
                 By week — oldest to newest
               </th>
-              <th className="pb-2 text-right text-[10px] font-medium uppercase tracking-wider">Total</th>
-              <th className="pb-2 text-right text-[10px] font-medium uppercase tracking-wider">Silent</th>
+              <th className="pb-2 text-right text-xs font-medium uppercase tracking-wider">Total</th>
+              <th className="pb-2 text-right text-xs font-medium uppercase tracking-wider">Silent</th>
             </tr>
           </thead>
           <tbody>

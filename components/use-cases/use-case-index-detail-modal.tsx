@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { formatAtlasDate } from "@/lib/format-date"
+import { StatusBadge } from "@/components/status-badge"
 
 function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
@@ -183,38 +184,10 @@ export function UseCaseIndexDetailModal({
                 {useCaseDisplayName(detail)}
               </h3>
               {isUseCaseCatalogRowRecent24h(detail) ? (
-                <span
-                  style={{
-                    flexShrink: 0,
-                    borderRadius: 9999,
-                    border: "1px solid rgba(253,224,71,0.55)",
-                    backgroundColor: "rgba(254,240,138,0.15)",
-                    padding: "2px 8px",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "#fef9c3",
-                  }}
-                >
-                  New
-                </span>
+                <StatusBadge kind="new" />
               ) : null}
               {isUseCasePendingValidation(detail) ? (
-                <span
-                  style={{
-                    flexShrink: 0,
-                    borderRadius: 9999,
-                    border: "1px solid rgba(125,211,252,0.45)",
-                    backgroundColor: "rgba(125,211,252,0.12)",
-                    padding: "2px 8px",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "#e0f2fe",
-                  }}
-                >
-                  To be validated
-                </span>
+                <StatusBadge kind="pending" />
               ) : null}
             </div>
             {onStatusChange ? (

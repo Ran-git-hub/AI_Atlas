@@ -117,7 +117,7 @@ function AtlasTake({
 }) {
   if (item.aiAtlasTake.trim()) {
     return (
-      <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">
+      <p className="whitespace-pre-wrap text-base leading-relaxed text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong>{" "}
         <LinkedDbTake take={item.aiAtlasTake.trim()} links={render?.links ?? []} onUseCaseClick={onUseCaseClick} />
       </p>
@@ -131,7 +131,7 @@ function AtlasTake({
 
   if (relatedUseCases.length > 0 && relatedNews.length > 0) {
     return (
-      <p className="text-sm leading-6 text-slate-300">
+      <p className="text-base leading-relaxed text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> This looks like a {topic} signal
         that already has deployment echoes in the atlas, especially{" "}
         <UseCaseTextLink id={relatedUseCases[0].id} label={relatedUseCases[0].label} onUseCaseClick={onUseCaseClick} />
@@ -150,7 +150,7 @@ function AtlasTake({
   if (relatedUseCases.length > 0) {
     const primary = relatedUseCases[0]
     return (
-      <p className="text-sm leading-6 text-slate-300">
+      <p className="text-base leading-relaxed text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> The closest published use-case match
         is <UseCaseTextLink id={primary.id} label={primary.label} onUseCaseClick={onUseCaseClick} /> in {primary.industry}. That makes this news worth tracking as a
         deployment signal, not just a company announcement, because it may affect how similar organizations budget,
@@ -161,7 +161,7 @@ function AtlasTake({
 
   if (relatedNews.length > 0) {
     return (
-      <p className="text-sm leading-6 text-slate-300">
+      <p className="text-base leading-relaxed text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> No close published use-case match
         stands out yet, but this connects to recent news such as "{truncatePhrase(relatedNews[0], 90)}". For AI
         Atlas, the next test is whether this {topic} signal starts appearing in customer deployments rather than
@@ -171,7 +171,7 @@ function AtlasTake({
   }
 
   return (
-    <p className="text-sm leading-6 text-slate-300">
+    <p className="text-base leading-relaxed text-slate-300">
       <strong className="font-semibold text-slate-100">AI Atlas take:</strong> This is an early {topic} signal without
       a strong match in the current published use-case set. Keep it on watch until a concrete deployment, buyer
       pattern, or repeated news signal shows whether it belongs in the atlas as more than a one-off update.
@@ -201,11 +201,11 @@ export function NewsListCard({
         <span>{formatNewsDate(item)}</span>
       </div>
 
-      <h3 className="mb-2 text-pretty text-lg font-semibold leading-snug text-[#f5f5f5] transition-colors group-hover:text-cyan-400">
+      <h3 className="mb-2 text-pretty text-xl font-semibold leading-snug text-[#f5f5f5] transition-colors group-hover:text-cyan-400">
         {item.title}
       </h3>
 
-      <p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">{sourceSummary}</p>
+      <p className="whitespace-pre-wrap text-base leading-relaxed text-slate-300">{sourceSummary}</p>
     </div>
   )
   const tagsContent =

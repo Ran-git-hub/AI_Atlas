@@ -12,24 +12,24 @@ function articleMarkdownSource(content: BlogArticleContent): string {
 const mdComponents: Components = {
   h1: ({ className, ...props }) => (
     <h1
-      className={cn("mb-3 mt-8 text-xl font-bold tracking-tight text-[#f5f5f5] first:mt-0", className)}
+      className={cn("mb-3 mt-8 text-2xl font-bold tracking-tight text-[#f5f5f5] first:mt-0", className)}
       {...props}
     />
   ),
   h2: ({ className, ...props }) => (
     <h2
-      className={cn("mb-2 mt-6 border-b border-slate-800 pb-1.5 text-lg font-semibold text-[#f5f5f5]", className)}
+      className={cn("mb-2 mt-6 border-b border-slate-800 pb-1.5 text-xl font-semibold text-[#f5f5f5]", className)}
       {...props}
     />
   ),
   h3: ({ className, ...props }) => (
-    <h3 className={cn("mb-2 mt-5 text-base font-semibold text-slate-100", className)} {...props} />
+    <h3 className={cn("mb-2 mt-5 text-lg font-semibold text-slate-100", className)} {...props} />
   ),
   h4: ({ className, ...props }) => (
-    <h4 className={cn("mb-2 mt-4 text-sm font-semibold text-slate-200", className)} {...props} />
+    <h4 className={cn("mb-2 mt-4 text-base font-semibold text-slate-200", className)} {...props} />
   ),
   p: ({ className, ...props }) => (
-    <p className={cn("mb-3 text-sm leading-relaxed text-slate-300 last:mb-0", className)} {...props} />
+    <p className={cn("mb-3 text-base leading-relaxed text-slate-300 last:mb-0", className)} {...props} />
   ),
   a: ({ className, href, ...props }) => {
     const external = Boolean(href && /^https?:\/\//i.test(href))
@@ -44,15 +44,15 @@ const mdComponents: Components = {
     )
   },
   ul: ({ className, ...props }) => (
-    <ul className={cn("mb-3 list-disc space-y-1 pl-5 text-sm text-slate-300", className)} {...props} />
+    <ul className={cn("mb-3 list-disc space-y-1 pl-5 text-base text-slate-300", className)} {...props} />
   ),
   ol: ({ className, ...props }) => (
-    <ol className={cn("mb-3 list-decimal space-y-1 pl-5 text-sm text-slate-300", className)} {...props} />
+    <ol className={cn("mb-3 list-decimal space-y-1 pl-5 text-base text-slate-300", className)} {...props} />
   ),
   li: ({ className, ...props }) => <li className={cn("leading-relaxed", className)} {...props} />,
   blockquote: ({ className, ...props }) => (
     <blockquote
-      className={cn("mb-3 border-l-2 border-cyan-500/35 pl-3 text-sm italic text-slate-400", className)}
+      className={cn("mb-3 border-l-2 border-cyan-500/35 pl-3 text-base italic text-slate-400", className)}
       {...props}
     />
   ),

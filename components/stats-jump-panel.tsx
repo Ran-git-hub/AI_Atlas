@@ -4,6 +4,7 @@ import { CheckCheck } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
+import { StatusBadge } from "@/components/status-badge"
 
 export type StatsJumpKind = "companies" | "countries" | "industries" | "useCases"
 
@@ -112,9 +113,7 @@ export function StatsJumpPanel({
                   <span className="min-w-0">
                     <span>{useCaseDisplayName(useCase)}</span>
                     {isUseCasePendingValidation(useCase) ? (
-                      <span className="ml-2 inline-flex rounded-full border border-sky-300/45 bg-sky-300/12 px-1.5 py-0.5 text-[10px] font-semibold text-sky-100">
-                        To be validated
-                      </span>
+                      <StatusBadge kind="pending" className="ml-2 px-1.5" />
                     ) : null}
                   </span>
                   <span className="text-xs text-slate-400">
@@ -140,7 +139,7 @@ export function StatsJumpPanel({
                   <CheckCheck className={`h-4 w-4 ${isAllCountriesSelected ? "text-cyan-300" : "text-slate-400"}`} />
                   <span>Select All</span>
                   {isAllCountriesSelected ? (
-                    <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-cyan-200">
+                    <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-[11px] uppercase tracking-wide text-cyan-200">
                       Default
                     </span>
                   ) : null}
@@ -180,7 +179,7 @@ export function StatsJumpPanel({
                   <CheckCheck className={`h-4 w-4 ${isAllSelected ? "text-cyan-300" : "text-slate-400"}`} />
                   <span>Select All</span>
                   {isAllSelected ? (
-                    <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-cyan-200">
+                    <span className="rounded-full border border-cyan-300/35 bg-cyan-300/10 px-2 py-0.5 text-[11px] uppercase tracking-wide text-cyan-200">
                       Default
                     </span>
                   ) : null}

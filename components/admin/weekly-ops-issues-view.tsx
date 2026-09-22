@@ -26,7 +26,7 @@ const GRADE_COLOR: Record<string, string> = {
 function Chip({ label, color }: { label: string; color: string }) {
   return (
     <span
-      className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+      className="inline-flex shrink-0 items-center rounded px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider"
       style={{ color, background: `${color}1a`, border: `1px solid ${color}33` }}
     >
       {label}
@@ -76,25 +76,25 @@ function IssueCard({
             {issue.adminStatus && (
               <Chip label={STATUS_LABEL[issue.adminStatus]} color={STATUS_COLOR[issue.adminStatus]} />
             )}
-            <code className="text-[11px] break-all" style={{ color: MUTED }}>
+            <code className="text-[13px] break-all" style={{ color: MUTED }}>
               {issue.location}
             </code>
           </span>
-          <span className="block text-xs leading-relaxed text-[#d4d4d4]">{issue.latest.text}</span>
-          <span className="mt-1.5 block text-[11px]" style={{ color: MUTED }}>
+          <span className="block text-sm leading-relaxed text-[#d4d4d4]">{issue.latest.text}</span>
+          <span className="mt-1.5 block text-[13px]" style={{ color: MUTED }}>
             first seen {issue.firstSeen.year}-W{issue.firstSeen.isoWeek}
             {issue.weeks > 1 ? ` · seen in ${issue.weeks} weeks` : ""}
             {issue.resolvedIn ? ` · resolved ${issue.resolvedIn.year}-W${issue.resolvedIn.isoWeek}` : ""}
           </span>
           {issue.reopened && issue.adminStatusWeek && (
-            <span className="mt-1.5 flex items-center gap-1.5 text-[11px]" style={{ color: RED }}>
+            <span className="mt-1.5 flex items-center gap-1.5 text-[13px]" style={{ color: RED }}>
               <RotateCcw className="h-3 w-3 shrink-0" />
               You closed this in {issue.adminStatusWeek.year}-W{issue.adminStatusWeek.isoWeek} and{" "}
               {issue.latest.year}-W{issue.latest.isoWeek} raised it again.
             </span>
           )}
           {issue.adminNote && (
-            <span className="mt-1.5 block border-l-2 pl-2 text-[11px] italic" style={{ borderColor: BORDER, color: MUTED }}>
+            <span className="mt-1.5 block border-l-2 pl-2 text-[13px] italic" style={{ borderColor: BORDER, color: MUTED }}>
               {issue.adminNote}
             </span>
           )}
@@ -110,14 +110,14 @@ function IssueCard({
           </div>
 
           <div className="border-t px-3 py-2.5" style={{ borderColor: BORDER }}>
-            <p className="mb-2 text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+            <p className="mb-2 text-xs uppercase tracking-wider" style={{ color: MUTED }}>
               Week by week
             </p>
             <ol className="space-y-2.5">
               {issue.occurrences.map((o, i) => (
                 <li key={i} className="border-l-2 pl-3" style={{ borderColor: BORDER }}>
                   <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] font-semibold text-[#d4d4d4]">
+                    <span className="text-[13px] font-semibold text-[#d4d4d4]">
                       {o.year}-W{o.isoWeek}
                     </span>
                     {o.via === "carry-over" && (
@@ -127,8 +127,8 @@ function IssueCard({
                       />
                     )}
                   </div>
-                  <p className="text-[11px] leading-relaxed text-[#d4d4d4]">{o.text}</p>
-                  <p className="mt-1 text-[11px] leading-relaxed" style={{ color: MUTED }}>
+                  <p className="text-[13px] leading-relaxed text-[#d4d4d4]">{o.text}</p>
+                  <p className="mt-1 text-[13px] leading-relaxed" style={{ color: MUTED }}>
                     → {o.detail}
                   </p>
                 </li>
@@ -144,10 +144,10 @@ function IssueCard({
 function DiffCount({ label, n, color }: { label: string; n: number; color: string }) {
   return (
     <span className="inline-flex items-baseline gap-1.5">
-      <span className="text-sm font-semibold tabular-nums" style={{ color: n > 0 ? color : MUTED }}>
+      <span className="text-base font-semibold tabular-nums" style={{ color: n > 0 ? color : MUTED }}>
         {n}
       </span>
-      <span className="text-[11px]" style={{ color: MUTED }}>
+      <span className="text-[13px]" style={{ color: MUTED }}>
         {label}
       </span>
     </span>
@@ -177,7 +177,7 @@ export function WeeklyOpsIssuesView({
       >
         {diff ? (
           <>
-            <span className="text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+            <span className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>
               vs previous week
             </span>
             <DiffCount label="appeared" n={diff.appeared.length} color={RED} />
@@ -185,7 +185,7 @@ export function WeeklyOpsIssuesView({
             <DiffCount label="cleared" n={diff.resolved.length} color={GREEN} />
           </>
         ) : (
-          <span className="text-[10px] uppercase tracking-wider" style={{ color: MUTED }}>
+          <span className="text-xs uppercase tracking-wider" style={{ color: MUTED }}>
             one week on record
           </span>
         )}
@@ -193,7 +193,7 @@ export function WeeklyOpsIssuesView({
         <button
           type="button"
           onClick={() => setShowAll((v) => !v)}
-          className="ml-auto text-[11px] transition-colors hover:text-[#f5f5f5]"
+          className="ml-auto text-[13px] transition-colors hover:text-[#f5f5f5]"
           style={{ color: MUTED }}
         >
           {showAll ? "Hide" : "Show"} {rest} handled and closed
@@ -248,7 +248,7 @@ export function WeeklyOpsIssuesView({
 
       {shown.length === 0 ? (
         <p
-          className="rounded-lg border p-4 text-sm"
+          className="rounded-lg border p-4 text-base"
           style={{ borderColor: BORDER, background: SURFACE, color: MUTED }}
         >
           Nothing needs attention across the weeks on record.

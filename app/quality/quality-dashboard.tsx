@@ -627,7 +627,7 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
                               {item.weights}
                             </span>
                           ) : null}
-                          {"colors" in item ? (
+                          {"colors" in item && item.colors ? (
                             <span className="ml-2 inline-flex flex-wrap gap-1 align-middle">
                               <span className="rounded-md border border-emerald-400/25 bg-emerald-400/10 px-1.5 py-0.5 text-xs font-medium text-emerald-300">
                                 {item.colors[0]}

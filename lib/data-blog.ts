@@ -71,11 +71,19 @@ function weeklySlugToWeekStart(slug: string): string | null {
 }
 
 /**
- * When Supabase has no row for `weekly-YYYY-MM-DD`, serve an in-memory stub.
- * On by default so local / mis-synced env (e.g. `vercel env pull` setting `VERCEL=1`) never yields a blind 404.
- * Strict 404 on missing weeklies: set `BLOG_DISABLE_WEEKLY_STUB=true`.
+ * When Supabase has no row for `weekly-YYYY-MM-DD`, serve an in-memory stub -
+ * in `next dev` only, so a local or mis-synced env never yields a blind 404.
+ * Keyed to NODE_ENV rather than VERCEL because `vercel env pull` sets VERCEL=1
+ * locally. `BLOG_DISABLE_WEEKLY_STUB=true` turns it off in dev too.
+ *
+ * It used to be on everywhere unless disabled, and production never disabled
+ * it: every nonexistent weekly-YYYY-MM-DD slug returned 200 with a fabricated
+ * report telling the reader to "save a weekly post to Supabase", each such
+ * slug a fresh ISR write; and a failed list read showed one fake post instead
+ * of an empty list, masking the failure.
  */
 function allowStubWeeklyWhenMissing(): boolean {
+  if (process.env.NODE_ENV === "production") return false
   const off = process.env.BLOG_DISABLE_WEEKLY_STUB
   return off !== "1" && off !== "true"
 }

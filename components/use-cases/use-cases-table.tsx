@@ -133,9 +133,9 @@ function formatDate(value: string | null | undefined): string {
 }
 
 /** Same 24h window as globe search / detail panel for use cases. */
-function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
+function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow, nowMs: number): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
-  return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
+  return Number.isFinite(ts) && nowMs - ts <= 24 * 60 * 60 * 1000
 }
 
 function firstNonEmpty(...values: Array<string | null | undefined>): string {
@@ -592,6 +592,16 @@ export function UseCasesTable({
     })
   }, [industryFilter, countryFilter, cityFilter, orgFilter])
 
+  // The NEW badge is decided in the browser after mount, never during render.
+  // /use-cases is prerendered and kept for a day, so a Date.now() at render time
+  // ran when the page was generated: a case updated 20h before generation kept
+  // its badge for up to 48h, and a visitor whose clock had crossed the 24h line
+  // hydrated a different badge from the one in the HTML, which React reports as
+  // a mismatch and re-renders. Null until mounted, so server and first client
+  // render agree on "no badge".
+  const [nowMs, setNowMs] = React.useState<number | null>(null)
+  React.useEffect(() => setNowMs(Date.now()), [])
+
   const columns = React.useMemo<ColumnDef<UseCaseCatalogRow>[]>(
     () => [
       {
@@ -611,7 +621,7 @@ export function UseCasesTable({
           </Button>
         ),
         cell: ({ row }) => {
-          const isNew = isUseCaseCatalogRowRecent24h(row.original)
+          const isNew = nowMs !== null && isUseCaseCatalogRowRecent24h(row.original, nowMs)
           const isPending = isUseCasePendingValidation(row.original)
           return (
             <div
@@ -869,7 +879,7 @@ export function UseCasesTable({
         },
       },
     ],
-    [openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
+    [nowMs, openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
   )
 
   const statusFilteredRows = React.useMemo(() => {

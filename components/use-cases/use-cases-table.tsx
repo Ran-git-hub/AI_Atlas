@@ -1228,6 +1228,18 @@ export function UseCasesTable({
     notifyAction(`Country/Region insight applied: ${country}.`)
   }, [notifyAction])
 
+  // The URL is written only once the state has moved away from what it was on
+  // mount. On mount the state was just derived from the URL (or from defaults
+  // while a parent is still about to read it), so writing it back adds nothing
+  // - and on the prerendered /use-cases it did harm: this effect runs before
+  // the parent UseCasesTableFromUrl's own effect, so it replaced an incoming
+  // ?q=/?industry=/?case= link with the defaults before the parent could read
+  // it, and every filtered link opened unfiltered. Comparing against the mount
+  // query rather than skipping the first run also survives Strict Mode, which
+  // runs mount effects twice.
+  const mountQueryRef = React.useRef<string | null>(null)
+  const urlSyncActiveRef = React.useRef(false)
+
   React.useEffect(() => {
     const params = new URLSearchParams()
     // Rebuilt from scratch on every change, so `case` has to be written here or
@@ -1246,6 +1258,11 @@ export function UseCasesTable({
     const visibleCols = ALL_COLUMN_IDS.filter((id) => columnVisibility[id] !== false)
     params.set("cols", visibleCols.join(","))
     const query = params.toString()
+    if (!urlSyncActiveRef.current) {
+      if (mountQueryRef.current === null) mountQueryRef.current = query
+      if (query === mountQueryRef.current) return
+      urlSyncActiveRef.current = true
+    }
     const nextUrl = query ? `${pathname}?${query}` : pathname
     const currentQuery = typeof window !== "undefined" ? window.location.search.slice(1) : ""
     if (currentQuery !== query) {

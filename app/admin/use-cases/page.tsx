@@ -1,6 +1,7 @@
 import { getLatestAtlasDataUpdateCetDisplay, getUseCasesCatalogRows } from "@/lib/data"
 import { UseCasesTable } from "@/components/use-cases/use-cases-table"
 import { BackToAdminPanel } from "@/components/admin/back-to-admin"
+import { requireAdminPage } from "@/lib/admin-session"
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -15,6 +16,7 @@ export default async function AdminUseCasesPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
+  await requireAdminPage()
   const [rawRows, resolvedSearchParams, latestDataUpdateCet] = await Promise.all([
     getUseCasesCatalogRows({ includeArchived: true }),
     searchParams,

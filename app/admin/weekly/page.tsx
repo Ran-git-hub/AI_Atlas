@@ -3,6 +3,7 @@ import { applyIssueStates, deriveOpsIssues, deriveWeekDiff, deriveWeekTrend } fr
 import { getIssueStates } from "@/lib/data-weekly-ops-state"
 import { WeeklyOpsPanel } from "@/components/admin/weekly-ops-panel"
 import { BackToAdminPanel } from "@/components/admin/back-to-admin"
+import { requireAdminPage } from "@/lib/admin-session"
 
 export const dynamic = "force-dynamic"
 
@@ -13,6 +14,7 @@ export default async function AdminWeeklyOpsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
+  await requireAdminPage()
   const params = await searchParams
   const [rows, states] = await Promise.all([getWeeklyAdminRows(), getIssueStates()])
   const issues = applyIssueStates(deriveOpsIssues(rows), states)

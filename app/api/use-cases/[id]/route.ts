@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
-import { hasAdminSession } from "@/lib/admin-session"
+import { hasAdminSession, requireAdminApi } from "@/lib/admin-session"
 import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
 import { getCachedUseCasesCatalogRows, getUseCaseCatalogRowById, updateUseCaseStatus } from "@/lib/data"
 import { relatedUseCasesFor } from "@/lib/related-use-cases"
@@ -45,6 +45,8 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   const { id: rawId } = await context.params
   const id = decodeURIComponent(rawId ?? "").trim()
   if (!id) {

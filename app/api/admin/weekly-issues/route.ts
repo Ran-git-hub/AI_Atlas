@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server"
 import { clearIssueState, isIssueStatus, setIssueState } from "@/lib/data-weekly-ops-state"
+import { requireAdminApi } from "@/lib/admin-session"
 
 /** Protected by `middleware.ts`, which requires a valid `admin_session` on /api/admin/*. */
 export async function PATCH(request: Request) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   let body: Record<string, unknown>
   try {
     body = (await request.json()) as Record<string, unknown>

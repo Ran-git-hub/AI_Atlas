@@ -2,11 +2,14 @@ import { revalidateTag } from "next/cache"
 import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
 import { NextResponse } from "next/server"
 import { updateNewsStatus } from "@/lib/data-news"
+import { requireAdminApi } from "@/lib/admin-session"
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   const { id } = await params
   if (!id) {
     return NextResponse.json({ ok: false, error: "Missing id" }, { status: 400 })

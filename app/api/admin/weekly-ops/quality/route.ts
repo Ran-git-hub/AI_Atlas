@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { buildQualityReport } from "@/app/api/quality/route"
+import { requireAdminApi } from "@/lib/admin-session"
 
 export const dynamic = "force-dynamic"
 
@@ -17,6 +18,8 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
  * Protected by `middleware.ts` as part of `/api/admin/*`.
  */
 export async function GET(request: Request) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   const { searchParams } = new URL(request.url)
   const from = searchParams.get("week_start") ?? ""
   const to = searchParams.get("week_end") ?? ""

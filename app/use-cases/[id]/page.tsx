@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, ExternalLink } from "lucide-react"
+import { cache } from "react"
 import { unstable_cache } from "next/cache"
 import {
   getCachedLatestAtlasDataUpdateCetDisplay,
@@ -12,7 +13,8 @@ import {
 } from "@/lib/data"
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import type { UseCaseCatalogRow } from "@/lib/types"
-import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
+import { isUseCasePendingValidation, isUseCasePublished, useCaseDisplayName } from "@/lib/types"
+import { hasAdminSession } from "@/lib/admin-session"
 import { getCachedIndustrySummaries, slugifyTaxonomyValue } from "@/lib/data-industries"
 import { getCachedCountrySummaries } from "@/lib/data-countries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
@@ -313,11 +315,24 @@ function RelatedUseCaseCard({ card: row }: { card: RelatedCard }) {
   )
 }
 
+/**
+ * The row this viewer may see. An unpublished case has not been through human
+ * review, so it exists for an admin session only; everyone else gets the same
+ * 404 as for an id that does not exist. Memoised per request so the metadata
+ * and the page share one lookup, as getUseCaseCatalogRowById does.
+ */
+const getViewableRow = cache(async (id: string) => {
+  const row = await getUseCaseCatalogRowById(id)
+  if (!row) return null
+  if (isUseCasePublished(row)) return row
+  return (await hasAdminSession()) ? row : null
+})
+
 export async function generateMetadata({
   params,
 }: UseCaseDetailPageProps): Promise<Metadata> {
   const { id } = await params
-  const row = await getUseCaseCatalogRowById(id)
+  const row = await getViewableRow(id)
   if (!row) return { title: "Use case" }
   const title = useCaseDisplayName(row)
   const desc = row.description?.trim()
@@ -327,19 +342,22 @@ export async function generateMetadata({
   // so every use case page reports itself as a duplicate of the homepage and
   // shares as a generic "AI Atlas" card. The image comes from this route's
   // opengraph-image.tsx unless the record carries its own.
-  return pageMetadata({
+  const metadata = pageMetadata({
     title: `${title} · AI Atlas`,
     description,
     path: `/use-cases/${encodeURIComponent(row.id)}`,
     image: row.image_url,
     type: "article",
   })
+  // Only an admin reaches an unpublished case, but keep it out of any index
+  // regardless of how its URL travels.
+  return isUseCasePublished(row) ? metadata : { ...metadata, robots: { index: false, follow: false } }
 }
 
 export default async function UseCaseDetailPage({ params }: UseCaseDetailPageProps) {
   const { id } = await params
   const [row, relatedIndex, latestDataUpdateCet, industries, countries] = await Promise.all([
-    getUseCaseCatalogRowById(id),
+    getViewableRow(id),
     getCachedRelatedIndex(),
     getCachedLatestAtlasDataUpdateCetDisplay(),
     getCachedIndustrySummaries(),

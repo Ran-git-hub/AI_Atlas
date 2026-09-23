@@ -771,6 +771,10 @@ export async function getUseCaseOgSummary(id: string): Promise<{
     .from("AI_Atlas_Use_Cases")
     .select("title,company_id,industry,city,country")
     .eq("id", id)
+    // Published only: this image is public and cached for a day, and an
+    // unpublished case's title should not reach a share card or a crawler.
+    // An unpublished id gets the generic card, as a missing one does.
+    .eq("status", "published")
     .maybeSingle()
 
   if (error || !data) return null

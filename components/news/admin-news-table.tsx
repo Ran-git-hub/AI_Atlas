@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react"
 import type { NewsItem } from "@/lib/types-news"
+import { httpUrlOrNull } from "@/lib/safe-url"
 import {
   Select,
   SelectContent,
@@ -95,6 +96,22 @@ function StatusCell({
         ))}
       </SelectContent>
     </Select>
+  )
+}
+
+/** The title links out only when the stored URL is a real http(s) address. */
+function NewsTitleLink({ url, title }: { url: string | null; title: string }) {
+  const href = httpUrlOrNull(url)
+  if (!href) return <span className="line-clamp-2 text-[#f5f5f5]">{title}</span>
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="line-clamp-2 text-[#f5f5f5] hover:text-cyan-300"
+    >
+      {title}
+    </a>
   )
 }
 
@@ -402,14 +419,7 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
                   />
                 </td>
                 <td className="max-w-[300px] px-3 py-2">
-                  <a
-                    href={item.url ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="line-clamp-2 text-[#f5f5f5] hover:text-cyan-300"
-                  >
-                    {item.title}
-                  </a>
+                  <NewsTitleLink url={item.url} title={item.title} />
                 </td>
                 <td className="hidden px-3 py-2 text-[#8a8a8a] md:table-cell">
                   {item.sourceName}

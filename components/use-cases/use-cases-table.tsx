@@ -62,6 +62,7 @@ import { toast } from "@/hooks/use-toast"
 import { UseCaseIndexDetailModalPortal } from "@/components/use-cases/use-case-index-detail-modal"
 
 import { formatAtlasDate } from "@/lib/format-date"
+import { httpUrlOrNull } from "@/lib/safe-url"
 import { StatusBadge } from "@/components/status-badge"
 type InitialState = {
   q: string
@@ -849,12 +850,13 @@ export function UseCasesTable({
         minSize: 100,
         header: "Source",
         cell: ({ row }) => {
-          const href = firstNonEmpty(
-            row.original.reference_url,
-            row.original.url,
-            row.original.website_url
-          )
-          if (href === "—") return <span style={{ color: "#8a8a8a" }}>—</span>
+          // The first field that is a real http(s) URL, as the case page's
+          // own "View source" button picks it.
+          const href =
+            httpUrlOrNull(row.original.reference_url) ??
+            httpUrlOrNull(row.original.url) ??
+            httpUrlOrNull(row.original.website_url)
+          if (!href) return <span style={{ color: "#8a8a8a" }}>—</span>
           return (
             <a
               href={href}

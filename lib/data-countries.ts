@@ -1,6 +1,6 @@
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
-import { getCachedUseCasesCatalogRows } from "@/lib/data"
+import { getCachedUseCasesCatalogRows, getUseCasesCatalogRows } from "@/lib/data"
 import { slugifyTaxonomyValue } from "@/lib/data-industries"
 import type { UseCaseCatalogRow } from "@/lib/types"
 
@@ -167,7 +167,8 @@ function buildCountrySummaryText({
 }
 
 export async function getCountrySummaries(): Promise<CountrySummary[]> {
-  const rows = await getCachedUseCasesCatalogRows()
+  // Uncached on purpose - see getIndustrySummaries in lib/data-industries.ts.
+  const rows = await getUseCasesCatalogRows({ publishedOnly: true })
 
   return buildCountryBuckets(rows)
     .map(bucketToSummary)

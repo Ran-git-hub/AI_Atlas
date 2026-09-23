@@ -2,7 +2,7 @@ import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import { getBlogPostsWithRelatedCaseIds } from "@/lib/data-blog"
 import { getIndustryMetadata, type IndustryMetadata } from "@/lib/industry-metadata"
-import { getCachedUseCasesCatalogRows } from "@/lib/data"
+import { getCachedUseCasesCatalogRows, getUseCasesCatalogRows } from "@/lib/data"
 import type { BlogPostRelatedItem } from "@/lib/types-blog"
 import type { UseCaseCatalogRow } from "@/lib/types"
 
@@ -217,7 +217,10 @@ function findRelatedReports({
 }
 
 export async function getIndustrySummaries(): Promise<IndustrySummary[]> {
-  const rows = await getCachedUseCasesCatalogRows()
+  // Uncached on purpose: this only runs inside getCachedIndustrySummaries, and
+  // unstable_cache ignores the cache when nested inside another one, so the
+  // cached reader would have queried Supabase anyway while appearing not to.
+  const rows = await getUseCasesCatalogRows({ publishedOnly: true })
 
   return buildIndustryBuckets(rows)
     .map(bucketToSummary)

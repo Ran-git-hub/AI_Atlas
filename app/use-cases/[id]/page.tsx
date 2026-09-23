@@ -8,6 +8,7 @@ import {
   getCachedLatestAtlasDataUpdateCetDisplay,
   getCachedUseCasesCatalogRows,
   getUseCaseCatalogRowById,
+  getUseCasesCatalogRows,
 } from "@/lib/data"
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import type { UseCaseCatalogRow } from "@/lib/types"
@@ -202,38 +203,84 @@ function relatedUseCasesFor(
 /**
  * Scoring the whole catalogue against one row - four string comparisons plus a
  * regex tokenisation of title, description, sector and industry for each of
- * ~690 candidates - ran on every request, and the 860 KB catalogue had to be
- * deserialised out of the data cache first just to feed it. unstable_cache
- * round-trips through JSON, so that deserialisation was the larger half.
- *
- * The result only changes when the catalogue does, so it is cached per id under
- * the same tag as the catalogue itself - the tag comment in lib/cache-tags.ts
- * already counts the related-cases list among what an edited use case dirties.
- *
- * Six rows per entry, so the entries are small; the point is that a cache hit
- * skips both the deserialisation and the scan.
+ * ~690 candidates - used to run on every request, after deserialising the
+ * 860 KB catalogue out of the data cache just to feed it. The result only
+ * changes when the catalogue does, so it is computed once for every case and
+ * cached under the catalogue's own tag; see getCachedRelatedIndex.
  */
-const getCachedRelatedUseCases = unstable_cache(
-  async (id: string): Promise<RelatedUseCase[]> => {
-    const allRows = await getCachedUseCasesCatalogRows()
-    // Every field the scoring reads - company, industry, country, city, title,
-    // description, sector - is already on the catalogue row, so the base row is
-    // taken from the list rather than queried again. Re-querying here would cost
-    // one extra single-row select per id on every cache miss, and a miss follows
-    // each tag purge for all ~690 ids at once.
-    //
-    // The catalogue is published-only, so a pending case is not in it; that one
-    // case falls back to the single-row query it already needed.
-    const base = allRows.find((candidate) => candidate.id === id)
-      ?? await getUseCaseCatalogRowById(id)
-    return base ? relatedUseCasesFor(base, allRows) : []
+
+/** Exactly what a related-case card renders, so the index below stays small. */
+type RelatedCard = Pick<
+  UseCaseCatalogRow,
+  "id" | "title" | "name" | "status" | "company_name" | "industry" | "country" | "created_at" | "updated_at"
+>
+
+function toRelatedCard(row: UseCaseCatalogRow): RelatedCard {
+  return {
+    id: row.id,
+    title: row.title,
+    name: row.name,
+    status: row.status,
+    company_name: row.company_name,
+    industry: row.industry,
+    country: row.country,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  }
+}
+
+type RelatedIndex = {
+  /** Related ids per published case, best first. */
+  byId: Record<string, string[]>
+  /** One card per case that appears in any list, shared rather than repeated. */
+  cards: Record<string, RelatedCard>
+}
+
+/**
+ * The related lists for every published case at once, under a single key.
+ *
+ * This replaced a per-id cache, and the reason is a Next behaviour that is easy
+ * to miss: unstable_cache does not read the cache when it is called inside
+ * another unstable_cache's callback (node_modules/next/dist/server/web/
+ * spec-extension/unstable-cache.js, "when we are nested inside of other
+ * unstable_cache's we should bypass cache"). The per-id version called
+ * getCachedUseCasesCatalogRows inside its callback, so every per-id miss was a
+ * full catalogue pull from Supabase - ~306 kB, and with crawlers walking ~700
+ * case pages a day, about 150 MB a day of egress against a 5 GB monthly cap.
+ *
+ * Here the catalogue is fetched uncached, deliberately and visibly, once per
+ * revalidation, and scored for every case in one pass. A page reads the index
+ * and looks itself up; the scan never runs per request.
+ */
+const getCachedRelatedIndex = unstable_cache(
+  async (): Promise<RelatedIndex> => {
+    const rows = await getUseCasesCatalogRows({ publishedOnly: true })
+    const byId: Record<string, string[]> = {}
+    const cards: Record<string, RelatedCard> = {}
+    for (const row of rows) {
+      const related = relatedUseCasesFor(row, rows)
+      byId[row.id] = related.map((item) => item.row.id)
+      for (const item of related) cards[item.row.id] ??= toRelatedCard(item.row)
+    }
+    return { byId, cards }
   },
-  ["use-case-related-v1"],
+  ["use-case-related-index-v1"],
   { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
-function RelatedUseCaseCard({ item }: { item: RelatedUseCase }) {
-  const row = item.row
+/**
+ * A published case is looked up in the index. A pending one is not in the
+ * published catalogue, so it is scored on the spot - rare, and it reads the
+ * catalogue at the top level, where the cache does apply.
+ */
+async function relatedCardsFor(row: UseCaseCatalogRow, index: RelatedIndex): Promise<RelatedCard[]> {
+  const ids = index.byId[row.id]
+  if (ids) return ids.map((id) => index.cards[id]).filter(Boolean)
+  const rows = await getCachedUseCasesCatalogRows()
+  return relatedUseCasesFor(row, rows).map((item) => toRelatedCard(item.row))
+}
+
+function RelatedUseCaseCard({ card: row }: { card: RelatedCard }) {
   const title = useCaseDisplayName(row)
   const isPending = isUseCasePendingValidation(row)
   const meta = [
@@ -291,14 +338,15 @@ export async function generateMetadata({
 
 export default async function UseCaseDetailPage({ params }: UseCaseDetailPageProps) {
   const { id } = await params
-  const [row, relatedUseCases, latestDataUpdateCet, industries, countries] = await Promise.all([
+  const [row, relatedIndex, latestDataUpdateCet, industries, countries] = await Promise.all([
     getUseCaseCatalogRowById(id),
-    getCachedRelatedUseCases(id),
+    getCachedRelatedIndex(),
     getCachedLatestAtlasDataUpdateCetDisplay(),
     getCachedIndustrySummaries(),
     getCachedCountrySummaries(),
   ])
   if (!row) notFound()
+  const relatedUseCases = await relatedCardsFor(row, relatedIndex)
 
   const title = useCaseDisplayName(row)
   const subtitle = subtitleForHero(row)
@@ -525,8 +573,8 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
 
               {relatedUseCases.length > 0 ? (
                 <div className="mt-4 space-y-2.5">
-                  {relatedUseCases.map((item) => (
-                    <RelatedUseCaseCard key={item.row.id} item={item} />
+                  {relatedUseCases.map((card) => (
+                    <RelatedUseCaseCard key={card.id} card={card} />
                   ))}
                 </div>
               ) : (

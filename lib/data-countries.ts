@@ -1,5 +1,6 @@
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import { getCachedUseCasesCatalogRows, getUseCasesCatalogRows } from "@/lib/data"
 import { slugifyTaxonomyValue } from "@/lib/data-industries"
 import type { UseCaseCatalogRow } from "@/lib/types"
@@ -181,7 +182,7 @@ export const getCachedCountrySummaries = unstable_cache(
   { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
-export async function getCountryDetail(slug: string): Promise<CountryDetail | null> {
+async function loadCountryDetail(slug: string): Promise<CountryDetail | null> {
   const rows = await getCachedUseCasesCatalogRows()
   const bucket = buildCountryBuckets(rows).find((item) => item.slug === slug)
 
@@ -207,3 +208,6 @@ export async function getCountryDetail(slug: string): Promise<CountryDetail | nu
     relatedIndustries,
   }
 }
+
+/** generateMetadata and the page both call this in one request; cache() makes it one computation. */
+export const getCountryDetail = cache(loadCountryDetail)

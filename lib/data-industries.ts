@@ -1,5 +1,6 @@
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import { getBlogPostsWithRelatedCaseIds } from "@/lib/data-blog"
 import { getIndustryMetadata, type IndustryMetadata } from "@/lib/industry-metadata"
 import { getCachedUseCasesCatalogRows, getUseCasesCatalogRows } from "@/lib/data"
@@ -233,7 +234,7 @@ export const getCachedIndustrySummaries = unstable_cache(
   { revalidate: 86400, tags: [CACHE_TAGS.useCases] },
 )
 
-export async function getIndustryDetail(slug: string): Promise<IndustryDetail | null> {
+async function loadIndustryDetail(slug: string): Promise<IndustryDetail | null> {
   const [rows, reports] = await Promise.all([
     getCachedUseCasesCatalogRows(),
     getBlogPostsWithRelatedCaseIds(),
@@ -271,3 +272,6 @@ export async function getIndustryDetail(slug: string): Promise<IndustryDetail | 
     relatedReports,
   }
 }
+
+/** generateMetadata and the page both call this in one request; cache() makes it one computation. */
+export const getIndustryDetail = cache(loadIndustryDetail)

@@ -1199,6 +1199,16 @@ export function UseCasesTable({
   const totalPages = Math.max(table.getPageCount(), 1)
   const currentPage = table.getState().pagination.pageIndex + 1
 
+  // A page past the end is pulled back to the last one. autoResetPageIndex is
+  // off, so nothing else does it: a shared ?page=9 on a filter that now has 4
+  // pages, or the last admin page emptied by triage, rendered "No use cases
+  // found - try broadening filters" beside a header counting 64 results.
+  React.useEffect(() => {
+    if (pagination.pageIndex > totalPages - 1) {
+      setPagination((prev) => ({ ...prev, pageIndex: totalPages - 1 }))
+    }
+  }, [pagination.pageIndex, totalPages])
+
   React.useEffect(() => {
     setPageJumpInput(String(currentPage))
   }, [currentPage])

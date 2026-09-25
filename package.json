@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
+    "prebuild": "node scripts/check-guardrails.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
-    "sync-gics": "node scripts/sync-gics.mjs"
+    "sync-gics": "node scripts/sync-gics.mjs",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

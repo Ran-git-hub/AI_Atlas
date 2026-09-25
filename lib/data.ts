@@ -535,10 +535,7 @@ async function fetchAllRows<T>(
     for (const column of opts.orderBy) query = query.order(column)
     if (opts.eq) query = query.eq(opts.eq[0], opts.eq[1])
     const { data, error } = await query.range(from, from + SUPABASE_PAGE_SIZE - 1)
-    if (error) {
-      console.error(`Error fetching ${table}:`, error)
-      break
-    }
+    if (error) throw error
     rows.push(...((data ?? []) as T[]))
     if ((data?.length ?? 0) < SUPABASE_PAGE_SIZE) break
   }

@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache"
+import { cache } from "react"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { CACHE_TAGS } from "@/lib/cache-tags"
 import { createClient } from "@/lib/supabase/server"
@@ -71,11 +72,19 @@ function weeklySlugToWeekStart(slug: string): string | null {
 }
 
 /**
- * When Supabase has no row for `weekly-YYYY-MM-DD`, serve an in-memory stub.
- * On by default so local / mis-synced env (e.g. `vercel env pull` setting `VERCEL=1`) never yields a blind 404.
- * Strict 404 on missing weeklies: set `BLOG_DISABLE_WEEKLY_STUB=true`.
+ * When Supabase has no row for `weekly-YYYY-MM-DD`, serve an in-memory stub -
+ * in `next dev` only, so a local or mis-synced env never yields a blind 404.
+ * Keyed to NODE_ENV rather than VERCEL because `vercel env pull` sets VERCEL=1
+ * locally. `BLOG_DISABLE_WEEKLY_STUB=true` turns it off in dev too.
+ *
+ * It used to be on everywhere unless disabled, and production never disabled
+ * it: every nonexistent weekly-YYYY-MM-DD slug returned 200 with a fabricated
+ * report telling the reader to "save a weekly post to Supabase", each such
+ * slug a fresh ISR write; and a failed list read showed one fake post instead
+ * of an empty list, masking the failure.
  */
 function allowStubWeeklyWhenMissing(): boolean {
+  if (process.env.NODE_ENV === "production") return false
   const off = process.env.BLOG_DISABLE_WEEKLY_STUB
   return off !== "1" && off !== "true"
 }
@@ -276,7 +285,7 @@ export async function getBlogPostsWithRelatedCaseIds(): Promise<BlogPostRelatedI
   return [...remote].sort((a, b) => blogListSortKeyMs(b) - blogListSortKeyMs(a))
 }
 
-export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+async function loadBlogPostBySlug(slug: string): Promise<BlogPost | null> {
   const slugNorm = normalizeBlogSlugParam(slug)
   let post: BlogPost | null = null
   try {
@@ -298,6 +307,9 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
   return post
 }
 
+/** generateMetadata and the page both read the post in one request; cache() makes that one query, not two full-content selects. */
+export const getBlogPostBySlug = cache(loadBlogPostBySlug)
+
 export async function getAdjacentBlogPosts(post: BlogPost): Promise<{
   prev: BlogPostListItem | null
   next: BlogPostListItem | null
@@ -309,23 +321,24 @@ export async function getAdjacentBlogPosts(post: BlogPost): Promise<{
       return { prev: null, next: null }
     }
 
-    const { data: prevRow } = await supabase
-      .from(TABLE)
-      .select(LIST_SELECT)
-      .eq("post_kind", "weekly_report")
-      .lt("week_start", post.weekStart)
-      .order("week_start", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    const { data: nextRow } = await supabase
-      .from(TABLE)
-      .select(LIST_SELECT)
-      .eq("post_kind", "weekly_report")
-      .gt("week_start", post.weekStart)
-      .order("week_start", { ascending: true })
-      .limit(1)
-      .maybeSingle()
+    const [{ data: prevRow }, { data: nextRow }] = await Promise.all([
+      supabase
+        .from(TABLE)
+        .select(LIST_SELECT)
+        .eq("post_kind", "weekly_report")
+        .lt("week_start", post.weekStart)
+        .order("week_start", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from(TABLE)
+        .select(LIST_SELECT)
+        .eq("post_kind", "weekly_report")
+        .gt("week_start", post.weekStart)
+        .order("week_start", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
+    ])
 
     return {
       prev: prevRow ? mapListRow(prevRow as BlogRow) : null,
@@ -333,23 +346,24 @@ export async function getAdjacentBlogPosts(post: BlogPost): Promise<{
     }
   }
 
-  const { data: prevArticle } = await supabase
-    .from(TABLE)
-    .select(LIST_SELECT)
-    .eq("post_kind", "article")
-    .lt("published_at", post.publishedAt)
-    .order("published_at", { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const { data: nextArticle } = await supabase
-    .from(TABLE)
-    .select(LIST_SELECT)
-    .eq("post_kind", "article")
-    .gt("published_at", post.publishedAt)
-    .order("published_at", { ascending: true })
-    .limit(1)
-    .maybeSingle()
+  const [{ data: prevArticle }, { data: nextArticle }] = await Promise.all([
+    supabase
+      .from(TABLE)
+      .select(LIST_SELECT)
+      .eq("post_kind", "article")
+      .lt("published_at", post.publishedAt)
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from(TABLE)
+      .select(LIST_SELECT)
+      .eq("post_kind", "article")
+      .gt("published_at", post.publishedAt)
+      .order("published_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ])
 
   return {
     prev: prevArticle ? mapListRow(prevArticle as BlogRow) : null,

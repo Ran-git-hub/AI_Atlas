@@ -2,8 +2,11 @@ import { NextResponse } from "next/server"
 import { revalidateTag } from "next/cache"
 import { updateAnnouncementContent } from "@/lib/data-announcement"
 import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
+import { requireAdminApi } from "@/lib/admin-session"
 
 export async function PATCH(request: Request) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   let body: Record<string, unknown>
   try {
     body = (await request.json()) as Record<string, unknown>

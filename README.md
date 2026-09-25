@@ -160,7 +160,7 @@ http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Public anon key used by the app |
 | `SUPABASE_SERVICE_ROLE_KEY` | Recommended | Server-only key for privileged reads and maintenance scripts |
 | `NEXT_DEV_LAN_ORIGINS` | Optional | Comma-separated dev origins for testing from another device on the LAN |
-| `BLOG_DISABLE_WEEKLY_STUB` | Optional | Set to `true` or `1` to disable fallback weekly report stubs |
+| `BLOG_DISABLE_WEEKLY_STUB` | Optional | Weekly report stubs are served in `next dev` only, never in production; set to `true` or `1` to disable them in dev too |
 
 ## Available Scripts
 

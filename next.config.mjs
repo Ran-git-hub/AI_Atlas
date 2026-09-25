@@ -8,9 +8,6 @@ const nextConfig = {
   turbopack: {
     root: projectRoot,
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     unoptimized: true,
   },
@@ -44,6 +41,34 @@ const nextConfig = {
    */
   async rewrites() {
     return [{ source: "/sitemap.xml", destination: "/api/sitemap" }]
+  },
+
+  /**
+   * Baseline security headers on every response.
+   *
+   * - X-Frame-Options: DENY - no other site may embed these pages, which is
+   *   what keeps /admin from being framed and clicked through (clickjacking).
+   * - X-Content-Type-Options: nosniff - the browser uses the declared type
+   *   rather than guessing one from the bytes.
+   * - Referrer-Policy - an outbound click sends the origin, not the full path
+   *   with its query string.
+   *
+   * No Content-Security-Policy yet. The methodology page starts its behaviour
+   * with `new Function`, so a CSP would need 'unsafe-eval' and lose most of its
+   * value, and the globe, Vercel Analytics and inline styles each need their
+   * own allowances - worth its own change, verified page by page.
+   */
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ]
   },
 }
 

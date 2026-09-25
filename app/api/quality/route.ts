@@ -348,7 +348,12 @@ async function fetchAll(table: string, window?: QualityWindow): Promise<Row[]> {
         .gte("created_at", `${window.from}T00:00:00`)
         .lte("created_at", `${window.to}T23:59:59.999`)
     }
-    const { data, error } = await query.range(from, from + pageSize - 1)
+    // Ordered by id so the pages are disjoint. Without an ORDER BY each page is
+    // a separate query with no guaranteed row order, and the offset-0 and
+    // offset-1000 reads can overlap - some rows counted twice, others never -
+    // which skews the score silently. fetchAllCompanies in lib/data.ts carries
+    // the same tiebreaker for the same reason.
+    const { data, error } = await query.order("id", { ascending: true }).range(from, from + pageSize - 1)
 
     if (error) throw error
     rows.push(...((data ?? []) as Row[]))

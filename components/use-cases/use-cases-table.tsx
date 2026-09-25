@@ -62,6 +62,7 @@ import { toast } from "@/hooks/use-toast"
 import { UseCaseIndexDetailModalPortal } from "@/components/use-cases/use-case-index-detail-modal"
 
 import { formatAtlasDate } from "@/lib/format-date"
+import { httpUrlOrNull } from "@/lib/safe-url"
 import { StatusBadge } from "@/components/status-badge"
 type InitialState = {
   q: string
@@ -133,9 +134,9 @@ function formatDate(value: string | null | undefined): string {
 }
 
 /** Same 24h window as globe search / detail panel for use cases. */
-function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow): boolean {
+function isUseCaseCatalogRowRecent24h(row: UseCaseCatalogRow, nowMs: number): boolean {
   const ts = Date.parse(row.updated_at ?? row.created_at ?? "")
-  return Number.isFinite(ts) && Date.now() - ts <= 24 * 60 * 60 * 1000
+  return Number.isFinite(ts) && nowMs - ts <= 24 * 60 * 60 * 1000
 }
 
 function firstNonEmpty(...values: Array<string | null | undefined>): string {
@@ -592,6 +593,16 @@ export function UseCasesTable({
     })
   }, [industryFilter, countryFilter, cityFilter, orgFilter])
 
+  // The NEW badge is decided in the browser after mount, never during render.
+  // /use-cases is prerendered and kept for a day, so a Date.now() at render time
+  // ran when the page was generated: a case updated 20h before generation kept
+  // its badge for up to 48h, and a visitor whose clock had crossed the 24h line
+  // hydrated a different badge from the one in the HTML, which React reports as
+  // a mismatch and re-renders. Null until mounted, so server and first client
+  // render agree on "no badge".
+  const [nowMs, setNowMs] = React.useState<number | null>(null)
+  React.useEffect(() => setNowMs(Date.now()), [])
+
   const columns = React.useMemo<ColumnDef<UseCaseCatalogRow>[]>(
     () => [
       {
@@ -611,7 +622,7 @@ export function UseCasesTable({
           </Button>
         ),
         cell: ({ row }) => {
-          const isNew = isUseCaseCatalogRowRecent24h(row.original)
+          const isNew = nowMs !== null && isUseCaseCatalogRowRecent24h(row.original, nowMs)
           const isPending = isUseCasePendingValidation(row.original)
           return (
             <div
@@ -839,12 +850,13 @@ export function UseCasesTable({
         minSize: 100,
         header: "Source",
         cell: ({ row }) => {
-          const href = firstNonEmpty(
-            row.original.reference_url,
-            row.original.url,
-            row.original.website_url
-          )
-          if (href === "—") return <span style={{ color: "#8a8a8a" }}>—</span>
+          // The first field that is a real http(s) URL, as the case page's
+          // own "View source" button picks it.
+          const href =
+            httpUrlOrNull(row.original.reference_url) ??
+            httpUrlOrNull(row.original.url) ??
+            httpUrlOrNull(row.original.website_url)
+          if (!href) return <span style={{ color: "#8a8a8a" }}>—</span>
           return (
             <a
               href={href}
@@ -869,7 +881,7 @@ export function UseCasesTable({
         },
       },
     ],
-    [openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
+    [nowMs, openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
   )
 
   const statusFilteredRows = React.useMemo(() => {
@@ -1186,6 +1198,16 @@ export function UseCasesTable({
 
   const totalPages = Math.max(table.getPageCount(), 1)
   const currentPage = table.getState().pagination.pageIndex + 1
+
+  // A page past the end is pulled back to the last one. autoResetPageIndex is
+  // off, so nothing else does it: a shared ?page=9 on a filter that now has 4
+  // pages, or the last admin page emptied by triage, rendered "No use cases
+  // found - try broadening filters" beside a header counting 64 results.
+  React.useEffect(() => {
+    if (pagination.pageIndex > totalPages - 1) {
+      setPagination((prev) => ({ ...prev, pageIndex: totalPages - 1 }))
+    }
+  }, [pagination.pageIndex, totalPages])
 
   React.useEffect(() => {
     setPageJumpInput(String(currentPage))

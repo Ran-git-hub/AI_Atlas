@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowUp, Search, X } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import type { UseCaseCatalogRow } from "@/lib/types"
 import type { RelatedUseCase } from "@/lib/related-use-cases"
 import type { NewsItem, NewsTakeRender } from "@/lib/types-news"
@@ -78,14 +78,24 @@ export function NewsFeed({
   // The catalog no longer travels with the page, so both the case and its
   // related list come from the API. It answers with fieldEntries too, which the
   // modal used to fetch separately - one round trip either way.
+  // Each detail request takes a number, and only the latest may apply its
+  // result; closing the modal or stepping back retires whatever is in flight.
+  // Without this a slow response landed regardless: a case closed before it
+  // arrived reopened itself, and of two related cases clicked in quick
+  // succession, whichever answered last won - and pushed a history entry.
+  const detailRequestRef = useRef(0)
+
   const loadUseCaseDetail = async (id: string): Promise<boolean> => {
+    const request = ++detailRequestRef.current
     try {
       const response = await fetch(`/api/use-cases/${encodeURIComponent(id)}?related=1`)
+      if (request !== detailRequestRef.current) return false
       if (!response.ok) {
         console.error("[news] use case fetch", response.status, id)
         return false
       }
       const payload = (await response.json()) as { row: UseCaseCatalogRow; related: RelatedUseCase[] }
+      if (request !== detailRequestRef.current) return false
       setActiveDetail(payload.row)
       setActiveRelated(payload.related ?? [])
       return true
@@ -110,6 +120,7 @@ export function NewsFeed({
   }
 
   const goBackInDetail = () => {
+    detailRequestRef.current++
     setDetailHistory((history) => {
       const previous = history.at(-1)
       if (!previous) return history
@@ -120,6 +131,7 @@ export function NewsFeed({
   }
 
   const closeDetail = () => {
+    detailRequestRef.current++
     setDetailHistory([])
     setActiveDetail(null)
     setActiveRelated([])

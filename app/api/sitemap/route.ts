@@ -7,12 +7,9 @@
 // bumping a build tag all failed to hold. A plain route handler plus a
 // rewrite takes Next's metadata route resolution out of the path entirely.
 import { getCachedUseCasesCatalogRows } from "@/lib/data"
-// Deliberately uncached, unlike the other three queries here. getBlogPosts
-// builds a cookie-scoped Supabase client and leans on RLS to hide unpublished
-// posts; inside unstable_cache the cookie API is unavailable, the client throws,
-// the catch swallows it and the sitemap silently lost 23 of its 25 blog URLs.
-// Reaching for the service-role client instead would bypass the RLS that does
-// the hiding, so a per-request query is the honest cost here.
+// getBlogPosts is cached like the other three, but through a service-role
+// client: a cookie-scoped client inside unstable_cache throws, and that once
+// silently cut the sitemap's blog URLs from 25 to 2. See fetchBlogListItems.
 import { getBlogPosts } from "@/lib/data-blog"
 import { getCachedIndustrySummaries } from "@/lib/data-industries"
 import { getCachedCountrySummaries } from "@/lib/data-countries"
@@ -25,7 +22,7 @@ import type { CountrySummary } from "@/lib/data-countries"
 // force-dynamic and revalidate contradict each other - force-dynamic wins and
 // the route is never cached, so the revalidate line was dead. Staying dynamic
 // is the right call for a sitemap: it costs no ISR writes, and every query
-// behind it is served from a one-hour data cache rather than the database.
+// behind it is served from a 24-hour data cache rather than the database.
 export const dynamic = "force-dynamic"
 
 function url(path: string): string {

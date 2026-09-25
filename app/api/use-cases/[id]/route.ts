@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
 import { revalidatePath, revalidateTag } from "next/cache"
-import { verifyAdminToken } from "@/lib/admin-auth"
+import { hasAdminSession, requireAdminApi } from "@/lib/admin-session"
 import { CACHE_TAGS, CACHE_TAG_LIFE } from "@/lib/cache-tags"
 import { getCachedUseCasesCatalogRows, getUseCaseCatalogRowById, updateUseCaseStatus } from "@/lib/data"
 import { relatedUseCasesFor } from "@/lib/related-use-cases"
+import { isUseCasePublished } from "@/lib/types"
 
 export async function GET(
   request: Request,
@@ -19,11 +19,12 @@ export async function GET(
   // The admin detail modal loads its field entries from here. Archived rows
   // are hidden from the public catalog, so without this an archived case
   // opened in /admin/use-cases got a 404 and rendered an empty panel.
-  const token = (await cookies()).get("admin_session")?.value
-  const isAdmin = token ? Boolean(await verifyAdminToken(token)) : false
+  const isAdmin = await hasAdminSession()
 
   const row = await getUseCaseCatalogRowById(id, { includeArchived: isAdmin })
-  if (!row) {
+  // Unpublished cases have not been through human review, so the public gets a
+  // 404 for them exactly as for an id that does not exist.
+  if (!row || (!isAdmin && !isUseCasePublished(row))) {
     return NextResponse.json({ error: "not_found" }, { status: 404 })
   }
 
@@ -44,6 +45,8 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   const { id: rawId } = await context.params
   const id = decodeURIComponent(rawId ?? "").trim()
   if (!id) {

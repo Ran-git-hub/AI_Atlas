@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getWeeklyAdminRows } from "@/lib/data-weekly-admin"
 import { getIssueStates } from "@/lib/data-weekly-ops-state"
 import { applyIssueStates, deriveOpsIssues, matchDrafts, type DraftIssue } from "@/lib/weekly-ops-issues"
+import { requireAdminApi } from "@/lib/admin-session"
 
 /**
  * The weekly ops writer posts the issues it is about to raise; this answers
@@ -10,6 +11,8 @@ import { applyIssueStates, deriveOpsIssues, matchDrafts, type DraftIssue } from 
  * Protected by `middleware.ts` as part of `/api/admin/*`.
  */
 export async function POST(request: Request) {
+  const denied = await requireAdminApi(request)
+  if (denied) return denied
   let body: Record<string, unknown>
   try {
     body = (await request.json()) as Record<string, unknown>

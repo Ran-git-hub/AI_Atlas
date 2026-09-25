@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
+    "prebuild": "node scripts/check-guardrails.mjs",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
-    "sync-gics": "node scripts/sync-gics.mjs"
+    "sync-gics": "node scripts/sync-gics.mjs",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -54,7 +56,7 @@
     "embla-carousel-react": "8.6.0",
     "input-otp": "1.4.2",
     "lucide-react": "^0.564.0",
-    "next": "16.2.0",
+    "next": "16.3.6",
     "next-themes": "^0.4.6",
     "react": "19.2.4",
     "react-day-picker": "9.13.2",

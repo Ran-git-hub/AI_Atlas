@@ -210,7 +210,18 @@ export function SearchBar({
 
         <div className="mt-2.5 flex justify-center">
           <div className="flex w-full max-w-2xl items-center gap-3">
-          <div className="relative min-w-0 flex-1">
+          <div
+            className="relative min-w-0 flex-1"
+            // Focus leaving the input for one of its own options - Tab onto a
+            // recent hit - is not leaving the search. Hiding the recent list on
+            // the input's blur unmounted it before focus landed, so a keyboard
+            // could never reach it; it now closes when focus leaves the whole
+            // box instead.
+            onBlur={(e) => {
+              if (e.currentTarget.contains(e.relatedTarget as Node | null)) return
+              setInputFocused(false)
+            }}
+          >
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
                 <Search className="h-4 w-4 text-slate-500" />
@@ -246,7 +257,6 @@ export function SearchBar({
                 )}
                 aria-autocomplete="list"
                 aria-expanded={showList || showRecentList}
-                onBlur={() => setInputFocused(false)}
               />
               {trimmed ? (
                 <button

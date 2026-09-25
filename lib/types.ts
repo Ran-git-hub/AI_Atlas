@@ -85,6 +85,11 @@ export function isUseCasePendingValidation(u: UseCase): boolean {
   return u.status?.trim().toLowerCase() === "pending"
 }
 
+/** Only published cases are public; everything else needs an admin session. */
+export function isUseCasePublished(u: UseCase): boolean {
+  return u.status?.trim().toLowerCase() === "published"
+}
+
 // City coordinates mapping
 export const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   // USA

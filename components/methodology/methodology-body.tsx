@@ -1139,9 +1139,9 @@ const NODES=[
                ['Zero-data weeks are checked first','A week where the pipeline was offline gets a report that says so, rather than a normal-looking one full of zeros.']]}},
 
  {id:'deep', x:530, y:990, w:206, h:86, kind:'job', title:'Industry deep dive', own:'pm',
-  role:'Every week', line:'One industry, in depth',
-  panel:{lead:'The public half of the weekly report. Each week it takes one industry and publishes a piece on how AI is actually deployed in it, written from the cases in the atlas.',
-         secs:[['Why industry','The data has no topic dimension, but every case carries a standard industry. Around twenty industries hold enough published cases to support a piece of their own, which is about twenty weeks of runway.'],
+  role:'No fixed schedule', line:'One industry, in depth',
+  panel:{lead:'The public half of what used to be the weekly report. Each piece takes one industry and sets out how AI is actually deployed in it, written from the cases in the atlas. It does not yet run on a fixed schedule.',
+         secs:[['Why industry','The data has no topic dimension, but every case carries a standard industry. Around twenty industries hold enough published cases to support a piece of their own.'],
                ['What it may cite','Only published cases, and only from the industry it is about. A piece that cites an unpublished case, a case from another industry, or an industry outside the standard list is refused rather than published.'],
                ['Why cases, not news','News linked to the companies in an industry is too thin to carry a piece; the recorded cases are the evidence base.']]}},
 

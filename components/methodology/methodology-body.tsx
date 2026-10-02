@@ -1117,7 +1117,7 @@ const NODES=[
                ['It feeds the deduplication','Archived cases are part of what the recording stage treats as already seen. Without that, a source a reviewer rejected would be found again, judged again, and written again \u2014 and the reviewer would have to make the same decision every week.'],
                ['Where it is visible','Nowhere on the public site. It is excluded from every frontend surface, and its URL is blocked from re-entering.']]}},
 
- {id:'atlas', x:1090, y:689, w:206, h:86, kind:'sink', title:'The atlas', own:'pm',
+ {id:'atlas', x:1090, y:689, w:206, h:86, kind:'core', logo:'/ai-atlas-logo.png', title:'The atlas', own:'pm',
   role:'The dataset behind the site', line:'Every recorded use case',
   panel:{lead:'What the whole pipeline exists to fill: a map of where AI is actually deployed, and to do what.',
          secs:[['What arrives unreviewed','New cases are visible in the product but labelled as not yet validated \u2014 a deliberate trade. Showing them is more useful than hiding them, as long as nobody can mistake them for verified.'],
@@ -1342,7 +1342,10 @@ NODES.forEach(n=>{
     g.appendChild(mk('text',{x:n.x+16,y:n.y+26,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
     g.appendChild(mk('text',{x:n.x+16,y:n.y+45,fill:'#7d93b1','font-family':'Geist, sans-serif','font-size':13.5},n.line));
   } else {
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
+    /* the app's own mark sits beside the title, so the dataset reads as the product */
+    const tx=n.logo?n.x+46:n.x+16;
+    if(n.logo)g.appendChild(mk('image',{href:n.logo,x:n.x+16,y:n.y+12,width:24,height:24}));
+    g.appendChild(mk('text',{x:tx,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
     g.appendChild(mk('text',{x:n.x+16,y:n.y+50,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':14},n.role||''));
     g.appendChild(mk('text',{x:n.x+16,y:n.y+67,fill:'#5f748f','font-family':'Geist, sans-serif','font-size':13.5},n.line||''));
   }

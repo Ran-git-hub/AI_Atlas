@@ -398,6 +398,10 @@ body:has(.mth){overflow-x:clip}
 /* the one box on the canvas that is a person, not an agent */
 .mth g.node.human .box{fill:#1a1408;stroke:#e8a33d;stroke-width:1.6}
 .mth g.node.human:hover .box,.mth g.node.human.sel .box{stroke:#f5bf63;fill:#231a09}
+/* the dataset everything exists to fill, framed in the same blue as the ring around
+   the app logo in the header (Tailwind cyan-500) */
+.mth g.node.core .box{fill:#0f1d33;stroke:#00b8db;stroke-opacity:.6;stroke-width:1.7;filter:drop-shadow(0 0 10px rgba(0,184,219,.25))}
+.mth g.node.core:hover .box,.mth g.node.core.sel .box{stroke:#00b8db;stroke-opacity:1;fill:#13243f}
 
 /* ---- the four principles read as four, not three plus one ---- */
 .mth .cols4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 40px}

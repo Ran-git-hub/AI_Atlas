@@ -1117,7 +1117,7 @@ const NODES=[
                ['It feeds the deduplication','Archived cases are part of what the recording stage treats as already seen. Without that, a source a reviewer rejected would be found again, judged again, and written again \u2014 and the reviewer would have to make the same decision every week.'],
                ['Where it is visible','Nowhere on the public site. It is excluded from every frontend surface, and its URL is blocked from re-entering.']]}},
 
- {id:'atlas', x:1090, y:689, w:206, h:86, kind:'sink', title:'The atlas', own:'pm',
+ {id:'atlas', x:1090, y:689, w:206, h:86, kind:'core', logo:'/ai-atlas-logo.png', title:'AI Atlas', own:'pm',
   role:'The dataset behind the site', line:'Every recorded use case',
   panel:{lead:'What the whole pipeline exists to fill: a map of where AI is actually deployed, and to do what.',
          secs:[['What arrives unreviewed','New cases are visible in the product but labelled as not yet validated \u2014 a deliberate trade. Showing them is more useful than hiding them, as long as nobody can mistake them for verified.'],
@@ -1131,18 +1131,33 @@ const NODES=[
                ['Three dimensions, all required','A specific model or tool; a specific line, process or task; and numbers anchored to that scenario. Few anchored figures beat many floating ones.'],
                ['Disposition','An advertorial is archived, never deleted \u2014 the history stays auditable and the URL stays permanently blocked from re-entering.']]}},
 
- {id:'weekly', x:530, y:860, w:206, h:86, kind:'job', title:'Weekly report', own:'pm',
+ {id:'weekly', x:530, y:860, w:206, h:86, kind:'job', title:'Weekly ops report', own:'pm',
   role:'Every Monday', line:'Is the system working?',
-  panel:{lead:'The daily message answers what was found. This answers whether the system is working \u2014 and it publishes rather than notifies.',
+  panel:{lead:'The daily message answers what was found. This answers whether the system is working \u2014 and it is kept for the people running it rather than published. The public half of the old weekly report is now the industry deep dive.',
          secs:[['Computes','Funnel conversion, which industries are accumulating, the status breakdown, tool usage against last week, query performance, outstanding quality issues, a system-health call, and next steps.'],
                ['Its start time is set by the job before it','It waits for Sunday\u2019s pipeline, which routinely crosses midnight. The gap between them is a deliberate buffer rather than a round number.'],
                ['Zero-data weeks are checked first','A week where the pipeline was offline gets a report that says so, rather than a normal-looking one full of zeros.']]}},
 
- {id:'backup', x:810, y:860, w:206, h:86, kind:'job', title:'Weekly backup', own:'pm',
+ {id:'deep', x:810, y:860, w:206, h:86, kind:'job', title:'Industry deep dive', own:'pm',
+  role:'Writes up one industry', line:'From its published cases',
+  panel:{lead:'The public half of what used to be the weekly report. Each piece takes one industry and sets out how AI is actually deployed in it, written from the cases in the atlas. It does not yet run on a fixed schedule.',
+         secs:[['Why industry','The data has no topic dimension, but every case carries a standard industry. Around twenty industries hold enough published cases to support a piece of their own.'],
+               ['What it may cite','Only published cases, and only from the industry it is about. A piece that cites an unpublished case, a case from another industry, or an industry outside the standard list is refused rather than published.'],
+               ['Why cases, not news','News linked to the companies in an industry is too thin to carry a piece; the recorded cases are the evidence base.']]}},
+
+ {id:'backup', x:1090, y:860, w:206, h:86, kind:'job', title:'Weekly backup', own:'pm',
   role:'Every Sunday', line:'Four tables, dated files',
   panel:{lead:'The plainest job in the system, and the only thing between an operator mistake and permanent loss.',
          secs:[['What it taught','A database was damaged days after the newest backup was taken, and the missing ingest was recovered instead from the pipeline\u2019s own intermediate handoff files \u2014 which nobody had thought of as a backup. They are now treated as part of the recovery surface.'],
                ['Open issue','It requests every row in one call with no pagination, and the database returns only the first page. Nothing errors \u2014 the files are valid and have been growing weekly, while quietly holding less than the whole.']]}},
+
+ /* a reference card, like the quality bar and the data standard beside it */
+ {id:'kb', x:810, y:700, w:206, h:64, kind:'know', title:'Knowledge base', own:'pm',
+  role:'Standing reference', line:'Runbooks, lessons, specs',
+  panel:{lead:'The standing record of what this system is and what it has already got wrong \u2014 kept outside the code, so that a lesson survives the session that learned it.',
+         secs:[['What it holds','A map of the codebase, runbooks for the operations that are easy to get wrong, postmortems with the rule each one produced, the data quality reports, and the product spec.'],
+               ['Who reads it','The coding agents, before touching anything. Which files to read before which kind of change is itself written down, so the reading is not left to judgement.'],
+               ['Why it is not memory','An agent\u2019s memory ends with its session. A finding that cost a day to reach is worth more than that, so it is written to a file that the next session is told to open.']]}},
 
  {id:'ccx', x:1380, y:860, w:206, h:86, kind:'io', title:'Claude Code \u00b7 Codex',
   role:'Coding & deployment', line:'Builds and ships the product',
@@ -1171,11 +1186,21 @@ const EDGES=[
     returns to the atlas rather than ending at two loose outcomes */
  {a:'pub', as:'l', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1280,470,1330,732]},
  {a:'arc', as:'b', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1483,706,1392,748], label:'status synced'},
+ /* the other way to be already known: the case is simply on record */
+ {a:'atlas', as:'t', b:'dup', bs:'b', flow:0, cls:'feedback', cp:[1193,600,913,620], label:'already on record'},
+ /* the audit's only outcome: an advertorial is archived, never deleted. No label —
+    labels sit at the anchor midpoint, which for this route is nowhere near the line.
+    Routed underneath everything and up the outer right edge, so it shares no
+    corridor with another edge */
+ {a:'audit', as:'b', b:'arc', bs:'r', flow:0, cls:'feedback',
+  d:'M353 946 C 353 985, 400 985, 480 985 L 1560 985 C 1604 985, 1604 960, 1604 900 L 1604 640 C 1604 605, 1600 593, 1586 593'},
  /* what is already on record is also kept out of the judging, not only of the writing */
  {a:'dup', as:'l', b:'s2', bs:'b', flow:0, cls:'feedback', cp:[790,400,700,330], label:'excluded at validation'},
  /* what has been discarded is kept out of what gets asked for next */
  {a:'rej', as:'l', b:'s1', bs:'b', flow:0, cls:'feedback', back:true, label:'excluded from later searches'},
  {a:'k1',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
+ /* queries the learnings record shows at zero survival are retired by name */
+ {a:'k1',  as:'r', b:'k4', bs:'l', flow:0, cls:'know'},
  /* the learnings record is the memory of the whole run, not of one stage */
  {a:'k4',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
  {a:'k4',  as:'b', b:'s2', bs:'t', flow:0, cls:'know'},
@@ -1184,8 +1209,18 @@ const EDGES=[
  /* the standard reaches up into the pipeline through the gaps between stages */
  {a:'k2',  as:'r', b:'s2', bs:'l', flow:0, cls:'know'},
  {a:'k3',  as:'r', b:'s3', bs:'l', flow:0, cls:'know'},
+ /* the validator reads the data standard first, as well as the quality bar; routed
+    up the gap between Discarded and Already known */
+ {a:'k3',  as:'t', b:'s2', bs:'b', flow:0, cls:'know',
+  d:'M700 700 C 700 650, 773 640, 773 590 L 773 410 C 773 360, 712 350, 700 320'},
  /* the dashboard measures the stored data against the standard that defines it */
- {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard'},
+ /* passes over the knowledge base, which now sits between the two */
+ {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard', lx:960, ly:676,
+  d:'M736 716 C 770 690, 790 682, 830 682 L 1050 682 C 1075 682, 1085 695, 1090 712'},
+ /* the deep dive is written from the atlas's published cases */
+ {a:'atlas', as:'b', b:'deep', bs:'t', flow:0, cls:'feedback'},
+ /* the weekly report scores the week's published cases against the same standard */
+ {a:'k3',  as:'b', b:'weekly', bs:'t', flow:0, cls:'know'},
  /* the audit judges stored records against both standards, so it reads from each */
  {a:'k2',  as:'b', b:'audit', bs:'t', flow:0, cls:'know'},
  {a:'k3',  as:'b', b:'audit', bs:'r', flow:0, cls:'know', cp:[600,800,500,890]},
@@ -1198,7 +1233,20 @@ const EDGES=[
  {a:'atlas', as:'b', b:'audit',  bs:'t', flow:0, cls:'feedback'},
  {a:'atlas', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback'},
  {a:'atlas', as:'b', b:'backup', bs:'t', flow:0, cls:'feedback'},
- {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'context & knowledge'}
+ /* the weekly report answers whether the system is working, which is a question
+    about the funnel — it reads the rejection rate and the top rejection reason */
+ {a:'rej', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback', cp:[440,620,440,800]},
+ /* what the human finds at the gate is what the pipeline learns to catch */
+ {a:'ran', as:'t', b:'k4', bs:'r', flow:0, cls:'feedback', cp:[1483,150,1000,112]},
+ /* the dataset's own state and its failures are written up rather than remembered */
+ {a:'atlas', as:'l', b:'kb',  bs:'r', flow:0, cls:'know'},
+ /* the pipeline's own memory is reviewed and written up at the atlas level */
+ {a:'k4', as:'r', b:'kb', bs:'t', flow:0, cls:'know',
+  d:'M876 112 C 1053 112, 1053 140, 1053 200 L 1053 640 C 1053 680, 913 676, 913 700'},
+ /* no label: the gap is 84px and the node's own subtitle already says it */
+ {a:'kb',    as:'b', b:'ccx', bs:'l', flow:0, cls:'know',
+  d:'M960 764 C 960 810, 1000 840, 1060 840 L 1320 840 C 1350 840, 1360 903, 1380 903'},
+ {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'what the product renders'}
 ];
 const byId={}; NODES.forEach(n=>byId[n.id]=n);
 function anchor(n,s){
@@ -1210,6 +1258,9 @@ function anchor(n,s){
 function pathFor(e){
   const A=byId[e.a],B=byId[e.b];
   const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
+  /* a written-out path, for the one edge that has to turn a corner: a single
+     cubic cannot both clear the stage row and stay in the 84px corridor */
+  if(e.d)return e.d;
   if(e.back){
     /* leaves leftward and climbs back into the stage it feeds */
     return 'M'+x1+' '+y1+' C '+(x1-70)+' '+(y1-30)+', '+x2+' '+(y2+60)+', '+x2+' '+y2;
@@ -1277,7 +1328,7 @@ EDGES.forEach((e,i)=>{
     const A=byId[e.a],B=byId[e.b];
     const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
     const g=mk('g',{class:'elabel'});
-    const mx=(x1+x2)/2, my=(y1+y2)/2 - (e.as==='r'?11:0);
+    const mx=e.lx??(x1+x2)/2, my=e.ly??(y1+y2)/2 - (e.as==='r'?11:0);
     const t=mk('text',{x:mx,y:my,fill:'#7d93b1','font-family':'Geist Mono, monospace','font-size':12.5,'text-anchor':'middle','letter-spacing':'.06em'},e.label);
     g.appendChild(t); g.dataset.a=e.a; g.dataset.b=e.b;
     gLabels.appendChild(g);
@@ -1310,7 +1361,10 @@ NODES.forEach(n=>{
     g.appendChild(mk('text',{x:n.x+16,y:n.y+26,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
     g.appendChild(mk('text',{x:n.x+16,y:n.y+45,fill:'#7d93b1','font-family':'Geist, sans-serif','font-size':13.5},n.line));
   } else {
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
+    /* the app's own mark sits beside the title, so the dataset reads as the product */
+    const tx=n.logo?n.x+46:n.x+16;
+    if(n.logo)g.appendChild(mk('image',{href:n.logo,x:n.x+16,y:n.y+12,width:24,height:24}));
+    g.appendChild(mk('text',{x:tx,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
     g.appendChild(mk('text',{x:n.x+16,y:n.y+50,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':14},n.role||''));
     g.appendChild(mk('text',{x:n.x+16,y:n.y+67,fill:'#5f748f','font-family':'Geist, sans-serif','font-size':13.5},n.line||''));
   }

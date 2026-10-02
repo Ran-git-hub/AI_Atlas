@@ -993,7 +993,7 @@ onScroll();
 /* ================= interactive pipeline canvas ================= */
 (function(){
 const NS='http://www.w3.org/2000/svg';
-const WORLD={w:1620,h:1040};
+const WORLD={w:1620,h:1150};
 const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const OWNERS={
@@ -1007,7 +1007,7 @@ const OWNERS={
    inputs, outcomes, or the human in the loop. */
 const LANES=[
  {own:'hermes', x:224, y:40,  w:1100, h:560, label:'AI-ATLAS OPS \u00b7 HERMES AGENT',  sub:'runs the daily pipeline'},
- {own:'pm',     x:224, y:650, w:1100, h:350, label:'AI-ATLAS PM \u00b7 OPENCLAW AGENT', sub:'sets the standard, owns the dataset and the jobs around it'}
+ {own:'pm',     x:224, y:650, w:1100, h:460, label:'AI-ATLAS PM \u00b7 OPENCLAW AGENT', sub:'sets the standard, owns the dataset and the jobs around it'}
 ];
 
 const NODES=[
@@ -1131,12 +1131,19 @@ const NODES=[
                ['Three dimensions, all required','A specific model or tool; a specific line, process or task; and numbers anchored to that scenario. Few anchored figures beat many floating ones.'],
                ['Disposition','An advertorial is archived, never deleted \u2014 the history stays auditable and the URL stays permanently blocked from re-entering.']]}},
 
- {id:'weekly', x:530, y:860, w:206, h:86, kind:'job', title:'Weekly report', own:'pm',
+ {id:'weekly', x:530, y:860, w:206, h:86, kind:'job', title:'Weekly ops report', own:'pm',
   role:'Every Monday', line:'Is the system working?',
-  panel:{lead:'The daily message answers what was found. This answers whether the system is working \u2014 and it publishes rather than notifies.',
+  panel:{lead:'The daily message answers what was found. This answers whether the system is working \u2014 and it is kept for the people running it rather than published. The public half of the old weekly report is now the industry deep dive.',
          secs:[['Computes','Funnel conversion, which industries are accumulating, the status breakdown, tool usage against last week, query performance, outstanding quality issues, a system-health call, and next steps.'],
                ['Its start time is set by the job before it','It waits for Sunday\u2019s pipeline, which routinely crosses midnight. The gap between them is a deliberate buffer rather than a round number.'],
                ['Zero-data weeks are checked first','A week where the pipeline was offline gets a report that says so, rather than a normal-looking one full of zeros.']]}},
+
+ {id:'deep', x:530, y:990, w:206, h:86, kind:'job', title:'Industry deep dive', own:'pm',
+  role:'Every week', line:'One industry, in depth',
+  panel:{lead:'The public half of the weekly report. Each week it takes one industry and publishes a piece on how AI is actually deployed in it, written from the cases in the atlas.',
+         secs:[['Why industry','The data has no topic dimension, but every case carries a standard industry. Around twenty industries hold enough published cases to support a piece of their own, which is about twenty weeks of runway.'],
+               ['What it may cite','Only published cases, and only from the industry it is about. A piece that cites an unpublished case, a case from another industry, or an industry outside the standard list is refused rather than published.'],
+               ['Why cases, not news','News linked to the companies in an industry is too thin to carry a piece; the recorded cases are the evidence base.']]}},
 
  {id:'backup', x:810, y:860, w:206, h:86, kind:'job', title:'Weekly backup', own:'pm',
   role:'Every Sunday', line:'Four tables, dated files',
@@ -1187,7 +1194,7 @@ const EDGES=[
     Routed underneath everything and up the outer right edge, so it shares no
     corridor with another edge */
  {a:'audit', as:'b', b:'arc', bs:'r', flow:0, cls:'feedback',
-  d:'M353 946 C 353 985, 400 985, 480 985 L 1560 985 C 1604 985, 1604 960, 1604 900 L 1604 640 C 1604 605, 1600 593, 1586 593'},
+  d:'M353 946 C 353 1095, 400 1095, 480 1095 L 1560 1095 C 1604 1095, 1604 1070, 1604 1010 L 1604 640 C 1604 605, 1600 593, 1586 593'},
  /* what is already on record is also kept out of the judging, not only of the writing */
  {a:'dup', as:'l', b:'s2', bs:'b', flow:0, cls:'feedback', cp:[790,400,700,330], label:'excluded at validation'},
  /* what has been discarded is kept out of what gets asked for next */
@@ -1203,8 +1210,15 @@ const EDGES=[
  /* the standard reaches up into the pipeline through the gaps between stages */
  {a:'k2',  as:'r', b:'s2', bs:'l', flow:0, cls:'know'},
  {a:'k3',  as:'r', b:'s3', bs:'l', flow:0, cls:'know'},
+ /* the validator reads the data standard first, as well as the quality bar; routed
+    up the gap between Discarded and Already known */
+ {a:'k3',  as:'t', b:'s2', bs:'b', flow:0, cls:'know',
+  d:'M700 700 C 700 650, 773 640, 773 590 L 773 410 C 773 360, 712 350, 700 320'},
  /* the dashboard measures the stored data against the standard that defines it */
  {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard'},
+ /* the deep dive is written from the atlas's published cases */
+ {a:'atlas', as:'b', b:'deep', bs:'r', flow:0, cls:'feedback',
+  d:'M1193 775 C 1193 805, 1050 815, 900 818 C 800 820, 773 825, 773 850 L 773 1005 C 773 1026, 760 1033, 736 1033'},
  /* the weekly report scores the week's published cases against the same standard */
  {a:'k3',  as:'b', b:'weekly', bs:'t', flow:0, cls:'know'},
  /* the audit judges stored records against both standards, so it reads from each */

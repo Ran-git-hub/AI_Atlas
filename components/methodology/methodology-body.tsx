@@ -1193,6 +1193,8 @@ const EDGES=[
  /* what has been discarded is kept out of what gets asked for next */
  {a:'rej', as:'l', b:'s1', bs:'b', flow:0, cls:'feedback', back:true, label:'excluded from later searches'},
  {a:'k1',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
+ /* queries the learnings record shows at zero survival are retired by name */
+ {a:'k1',  as:'r', b:'k4', bs:'l', flow:0, cls:'know'},
  /* the learnings record is the memory of the whole run, not of one stage */
  {a:'k4',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
  {a:'k4',  as:'b', b:'s2', bs:'t', flow:0, cls:'know'},

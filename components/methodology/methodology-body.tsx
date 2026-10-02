@@ -993,7 +993,7 @@ onScroll();
 /* ================= interactive pipeline canvas ================= */
 (function(){
 const NS='http://www.w3.org/2000/svg';
-const WORLD={w:1620,h:1150};
+const WORLD={w:1620,h:1040};
 const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const OWNERS={
@@ -1007,7 +1007,7 @@ const OWNERS={
    inputs, outcomes, or the human in the loop. */
 const LANES=[
  {own:'hermes', x:224, y:40,  w:1100, h:560, label:'AI-ATLAS OPS \u00b7 HERMES AGENT',  sub:'runs the daily pipeline'},
- {own:'pm',     x:224, y:650, w:1100, h:460, label:'AI-ATLAS PM \u00b7 OPENCLAW AGENT', sub:'sets the standard, owns the dataset and the jobs around it'}
+ {own:'pm',     x:224, y:650, w:1100, h:350, label:'AI-ATLAS PM \u00b7 OPENCLAW AGENT', sub:'sets the standard, owns the dataset and the jobs around it'}
 ];
 
 const NODES=[
@@ -1138,14 +1138,14 @@ const NODES=[
                ['Its start time is set by the job before it','It waits for Sunday\u2019s pipeline, which routinely crosses midnight. The gap between them is a deliberate buffer rather than a round number.'],
                ['Zero-data weeks are checked first','A week where the pipeline was offline gets a report that says so, rather than a normal-looking one full of zeros.']]}},
 
- {id:'deep', x:530, y:990, w:206, h:86, kind:'job', title:'Industry deep dive', own:'pm',
-  role:'No fixed schedule', line:'One industry, in depth',
+ {id:'deep', x:810, y:860, w:206, h:86, kind:'job', title:'Industry deep dive', own:'pm',
+  role:'Writes up one industry', line:'From its published cases',
   panel:{lead:'The public half of what used to be the weekly report. Each piece takes one industry and sets out how AI is actually deployed in it, written from the cases in the atlas. It does not yet run on a fixed schedule.',
          secs:[['Why industry','The data has no topic dimension, but every case carries a standard industry. Around twenty industries hold enough published cases to support a piece of their own.'],
                ['What it may cite','Only published cases, and only from the industry it is about. A piece that cites an unpublished case, a case from another industry, or an industry outside the standard list is refused rather than published.'],
                ['Why cases, not news','News linked to the companies in an industry is too thin to carry a piece; the recorded cases are the evidence base.']]}},
 
- {id:'backup', x:810, y:860, w:206, h:86, kind:'job', title:'Weekly backup', own:'pm',
+ {id:'backup', x:1090, y:860, w:206, h:86, kind:'job', title:'Weekly backup', own:'pm',
   role:'Every Sunday', line:'Four tables, dated files',
   panel:{lead:'The plainest job in the system, and the only thing between an operator mistake and permanent loss.',
          secs:[['What it taught','A database was damaged days after the newest backup was taken, and the missing ingest was recovered instead from the pipeline\u2019s own intermediate handoff files \u2014 which nobody had thought of as a backup. They are now treated as part of the recovery surface.'],
@@ -1153,7 +1153,7 @@ const NODES=[
 
  /* drawn as a job, not a know card: solid border and the three-line layout the
     other standing work in this band uses */
- {id:'kb', x:1090, y:860, w:206, h:86, kind:'job', title:'Knowledge base', own:'pm',
+ {id:'kb', x:810, y:689, w:206, h:86, kind:'job', title:'Knowledge base', own:'pm',
   role:'Standing reference', line:'Runbooks, lessons, specs',
   panel:{lead:'The standing record of what this system is and what it has already got wrong \u2014 kept outside the code, so that a lesson survives the session that learned it.',
          secs:[['What it holds','A map of the codebase, runbooks for the operations that are easy to get wrong, postmortems with the rule each one produced, the data quality reports, and the product spec.'],
@@ -1194,7 +1194,7 @@ const EDGES=[
     Routed underneath everything and up the outer right edge, so it shares no
     corridor with another edge */
  {a:'audit', as:'b', b:'arc', bs:'r', flow:0, cls:'feedback',
-  d:'M353 946 C 353 1095, 400 1095, 480 1095 L 1560 1095 C 1604 1095, 1604 1070, 1604 1010 L 1604 640 C 1604 605, 1600 593, 1586 593'},
+  d:'M353 946 C 353 985, 400 985, 480 985 L 1560 985 C 1604 985, 1604 960, 1604 900 L 1604 640 C 1604 605, 1600 593, 1586 593'},
  /* what is already on record is also kept out of the judging, not only of the writing */
  {a:'dup', as:'l', b:'s2', bs:'b', flow:0, cls:'feedback', cp:[790,400,700,330], label:'excluded at validation'},
  /* what has been discarded is kept out of what gets asked for next */
@@ -1215,10 +1215,11 @@ const EDGES=[
  {a:'k3',  as:'t', b:'s2', bs:'b', flow:0, cls:'know',
   d:'M700 700 C 700 650, 773 640, 773 590 L 773 410 C 773 360, 712 350, 700 320'},
  /* the dashboard measures the stored data against the standard that defines it */
- {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard'},
+ /* passes over the knowledge base, which now sits between the two */
+ {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard', lx:960, ly:676,
+  d:'M736 716 C 770 690, 790 682, 830 682 L 1050 682 C 1075 682, 1085 695, 1090 712'},
  /* the deep dive is written from the atlas's published cases */
- {a:'atlas', as:'b', b:'deep', bs:'r', flow:0, cls:'feedback',
-  d:'M1193 775 C 1193 805, 1050 815, 900 818 C 800 820, 773 825, 773 850 L 773 1005 C 773 1026, 760 1033, 736 1033'},
+ {a:'atlas', as:'b', b:'deep', bs:'t', flow:0, cls:'feedback'},
  /* the weekly report scores the week's published cases against the same standard */
  {a:'k3',  as:'b', b:'weekly', bs:'t', flow:0, cls:'know'},
  /* the audit judges stored records against both standards, so it reads from each */
@@ -1239,12 +1240,13 @@ const EDGES=[
  /* what the human finds at the gate is what the pipeline learns to catch */
  {a:'ran', as:'t', b:'k4', bs:'r', flow:0, cls:'feedback', cp:[1483,150,1000,112]},
  /* the dataset's own state and its failures are written up rather than remembered */
- {a:'atlas', as:'b', b:'kb',  bs:'t', flow:0, cls:'know'},
+ {a:'atlas', as:'l', b:'kb',  bs:'r', flow:0, cls:'know'},
  /* the pipeline's own memory is reviewed and written up at the atlas level */
- {a:'k4', as:'r', b:'kb', bs:'r', flow:0, cls:'know',
-  d:'M876 112 C 1150 112, 1338 120, 1338 200 C 1338 500, 1338 820, 1296 903'},
+ {a:'k4', as:'r', b:'kb', bs:'t', flow:0, cls:'know',
+  d:'M876 112 C 1053 112, 1053 140, 1053 200 L 1053 640 C 1053 672, 913 668, 913 689'},
  /* no label: the gap is 84px and the node's own subtitle already says it */
- {a:'kb',    as:'r', b:'ccx', bs:'l', flow:0, cls:'know'},
+ {a:'kb',    as:'b', b:'ccx', bs:'l', flow:0, cls:'know',
+  d:'M960 775 C 960 815, 1000 840, 1060 840 L 1320 840 C 1350 840, 1360 903, 1380 903'},
  {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'what the product renders'}
 ];
 const byId={}; NODES.forEach(n=>byId[n.id]=n);
@@ -1327,7 +1329,7 @@ EDGES.forEach((e,i)=>{
     const A=byId[e.a],B=byId[e.b];
     const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
     const g=mk('g',{class:'elabel'});
-    const mx=(x1+x2)/2, my=(y1+y2)/2 - (e.as==='r'?11:0);
+    const mx=e.lx??(x1+x2)/2, my=e.ly??(y1+y2)/2 - (e.as==='r'?11:0);
     const t=mk('text',{x:mx,y:my,fill:'#7d93b1','font-family':'Geist Mono, monospace','font-size':12.5,'text-anchor':'middle','letter-spacing':'.06em'},e.label);
     g.appendChild(t); g.dataset.a=e.a; g.dataset.b=e.b;
     gLabels.appendChild(g);

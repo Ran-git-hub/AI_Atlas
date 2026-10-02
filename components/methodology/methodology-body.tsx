@@ -1144,6 +1144,15 @@ const NODES=[
          secs:[['What it taught','A database was damaged days after the newest backup was taken, and the missing ingest was recovered instead from the pipeline\u2019s own intermediate handoff files \u2014 which nobody had thought of as a backup. They are now treated as part of the recovery surface.'],
                ['Open issue','It requests every row in one call with no pagination, and the database returns only the first page. Nothing errors \u2014 the files are valid and have been growing weekly, while quietly holding less than the whole.']]}},
 
+ /* drawn as a job, not a know card: solid border and the three-line layout the
+    other standing work in this band uses */
+ {id:'kb', x:1090, y:860, w:206, h:86, kind:'job', title:'Knowledge base', own:'pm',
+  role:'Standing reference', line:'Runbooks, lessons, specs',
+  panel:{lead:'The standing record of what this system is and what it has already got wrong \u2014 kept outside the code, so that a lesson survives the session that learned it.',
+         secs:[['What it holds','A map of the codebase, runbooks for the operations that are easy to get wrong, postmortems with the rule each one produced, the data quality reports, and the product spec.'],
+               ['Who reads it','The coding agents, before touching anything. Which files to read before which kind of change is itself written down, so the reading is not left to judgement.'],
+               ['Why it is not memory','An agent\u2019s memory ends with its session. A finding that cost a day to reach is worth more than that, so it is written to a file that the next session is told to open.']]}},
+
  {id:'ccx', x:1380, y:860, w:206, h:86, kind:'io', title:'Claude Code \u00b7 Codex',
   role:'Coding & deployment', line:'Builds and ships the product',
   panel:{lead:'The coding agents receive everything the atlas knows about itself, and are responsible for writing and deploying the product that the data is read through.',
@@ -1171,6 +1180,14 @@ const EDGES=[
     returns to the atlas rather than ending at two loose outcomes */
  {a:'pub', as:'l', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1280,470,1330,732]},
  {a:'arc', as:'b', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1483,706,1392,748], label:'status synced'},
+ /* the other way to be already known: the case is simply on record */
+ {a:'atlas', as:'t', b:'dup', bs:'b', flow:0, cls:'feedback', cp:[1193,600,913,620], label:'already on record'},
+ /* the audit's only outcome: an advertorial is archived, never deleted. No label —
+    labels sit at the anchor midpoint, which for this route is nowhere near the line.
+    Routed underneath everything and up the outer right edge, so it shares no
+    corridor with another edge */
+ {a:'audit', as:'b', b:'arc', bs:'r', flow:0, cls:'feedback',
+  d:'M353 946 C 353 985, 400 985, 480 985 L 1560 985 C 1604 985, 1604 960, 1604 900 L 1604 640 C 1604 605, 1600 593, 1586 593'},
  /* what is already on record is also kept out of the judging, not only of the writing */
  {a:'dup', as:'l', b:'s2', bs:'b', flow:0, cls:'feedback', cp:[790,400,700,330], label:'excluded at validation'},
  /* what has been discarded is kept out of what gets asked for next */
@@ -1198,7 +1215,19 @@ const EDGES=[
  {a:'atlas', as:'b', b:'audit',  bs:'t', flow:0, cls:'feedback'},
  {a:'atlas', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback'},
  {a:'atlas', as:'b', b:'backup', bs:'t', flow:0, cls:'feedback'},
- {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'context & knowledge'}
+ /* the weekly report answers whether the system is working, which is a question
+    about the funnel — it reads the rejection rate and the top rejection reason */
+ {a:'rej', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback', cp:[440,620,440,800]},
+ /* what the human finds at the gate is what the pipeline learns to catch */
+ {a:'ran', as:'t', b:'k4', bs:'r', flow:0, cls:'feedback', cp:[1483,150,1000,112]},
+ /* the dataset's own state and its failures are written up rather than remembered */
+ {a:'atlas', as:'b', b:'kb',  bs:'t', flow:0, cls:'know'},
+ /* the pipeline's own memory is reviewed and written up at the atlas level */
+ {a:'k4', as:'r', b:'kb', bs:'r', flow:0, cls:'know',
+  d:'M876 112 C 1150 112, 1338 120, 1338 200 C 1338 500, 1338 820, 1296 903'},
+ /* no label: the gap is 84px and the node's own subtitle already says it */
+ {a:'kb',    as:'r', b:'ccx', bs:'l', flow:0, cls:'know'},
+ {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'what the product renders'}
 ];
 const byId={}; NODES.forEach(n=>byId[n.id]=n);
 function anchor(n,s){
@@ -1210,6 +1239,9 @@ function anchor(n,s){
 function pathFor(e){
   const A=byId[e.a],B=byId[e.b];
   const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
+  /* a written-out path, for the one edge that has to turn a corner: a single
+     cubic cannot both clear the stage row and stay in the 84px corridor */
+  if(e.d)return e.d;
   if(e.back){
     /* leaves leftward and climbs back into the stage it feeds */
     return 'M'+x1+' '+y1+' C '+(x1-70)+' '+(y1-30)+', '+x2+' '+(y2+60)+', '+x2+' '+y2;

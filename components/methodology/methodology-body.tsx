@@ -1117,7 +1117,7 @@ const NODES=[
                ['It feeds the deduplication','Archived cases are part of what the recording stage treats as already seen. Without that, a source a reviewer rejected would be found again, judged again, and written again \u2014 and the reviewer would have to make the same decision every week.'],
                ['Where it is visible','Nowhere on the public site. It is excluded from every frontend surface, and its URL is blocked from re-entering.']]}},
 
- {id:'atlas', x:1090, y:689, w:206, h:86, kind:'core', logo:'/ai-atlas-logo.png', title:'The atlas', own:'pm',
+ {id:'atlas', x:1090, y:689, w:206, h:86, kind:'core', logo:'/ai-atlas-logo.png', title:'AI Atlas', own:'pm',
   role:'The dataset behind the site', line:'Every recorded use case',
   panel:{lead:'What the whole pipeline exists to fill: a map of where AI is actually deployed, and to do what.',
          secs:[['What arrives unreviewed','New cases are visible in the product but labelled as not yet validated \u2014 a deliberate trade. Showing them is more useful than hiding them, as long as nobody can mistake them for verified.'],

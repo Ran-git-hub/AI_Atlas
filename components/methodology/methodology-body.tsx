@@ -1205,6 +1205,8 @@ const EDGES=[
  {a:'k3',  as:'r', b:'s3', bs:'l', flow:0, cls:'know'},
  /* the dashboard measures the stored data against the standard that defines it */
  {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard'},
+ /* the weekly report scores the week's published cases against the same standard */
+ {a:'k3',  as:'b', b:'weekly', bs:'t', flow:0, cls:'know'},
  /* the audit judges stored records against both standards, so it reads from each */
  {a:'k2',  as:'b', b:'audit', bs:'t', flow:0, cls:'know'},
  {a:'k3',  as:'b', b:'audit', bs:'r', flow:0, cls:'know', cp:[600,800,500,890]},

@@ -40,6 +40,7 @@ type IndustryBucket = {
 }
 
 const UNCATEGORIZED_INDUSTRY = "Uncategorized"
+const INDUSTRY_DEEP_DIVE_TAG = "Industry Deep Dive"
 
 function cleanValue(value: string | null | undefined): string {
   return value?.trim() ?? ""
@@ -203,7 +204,9 @@ function findRelatedReports({
 
   return reports
     .filter((report) => {
-      if (report.postKind !== "weekly_report") return false
+      if (report.postKind === "article") {
+        return report.tags.includes(INDUSTRY_DEEP_DIVE_TAG) && report.tags.includes(industryName)
+      }
 
       const hasRelatedCase = report.relatedCaseIds.some((id) => useCaseIds.has(String(id)))
       if (hasRelatedCase) return true

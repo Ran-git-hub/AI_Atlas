@@ -15,9 +15,9 @@ export function IndustryRelatedReports({ reports }: { reports: BlogPostRelatedIt
     <section className="rounded-xl border border-slate-800 bg-[#1a1a1a] p-5">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-[#f5f5f5]">Related Weekly Reports</h2>
+          <h2 className="text-xl font-semibold text-[#f5f5f5]">Related Reports</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Weekly updates linked by related use cases, industry tags, or report text.
+            Industry deep dives and weekly updates linked to this industry.
           </p>
         </div>
         <Link href="/blog" className="text-sm font-medium text-[#43cc93] transition-colors hover:text-[#7ee2b5]">
@@ -35,7 +35,7 @@ export function IndustryRelatedReports({ reports }: { reports: BlogPostRelatedIt
                     {formatWeekRange(report.weekStart, report.weekEnd, report.publishedAt)}
                   </span>
                   <span className="rounded bg-[#43cc93]/10 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-[#43cc93]">
-                    Weekly
+                    {report.postKind === "article" ? "Deep Dive" : "Weekly"}
                   </span>
                 </div>
                 <h3 className="line-clamp-2 text-base font-semibold leading-snug text-[#f5f5f5] transition-colors group-hover:text-[#43cc93]">
@@ -53,7 +53,7 @@ export function IndustryRelatedReports({ reports }: { reports: BlogPostRelatedIt
                     </span>
                   ))}
                   <span className="ml-auto text-xs text-slate-500">
-                    {report.newUseCasesCount.toLocaleString()} cases
+                    {(report.postKind === "article" ? report.relatedCaseIds.length : report.newUseCasesCount).toLocaleString()} cases
                   </span>
                 </div>
               </article>
@@ -62,7 +62,7 @@ export function IndustryRelatedReports({ reports }: { reports: BlogPostRelatedIt
         </div>
       ) : (
         <p className="rounded-lg border border-slate-800 bg-[#121212] px-4 py-6 text-center text-sm text-slate-500">
-          Related weekly reports will appear here as new posts are published with matching use cases or industry tags.
+          Related reports will appear here as new posts are published with matching use cases or industry tags.
         </p>
       )}
     </section>

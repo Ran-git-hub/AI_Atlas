@@ -1151,9 +1151,8 @@ const NODES=[
          secs:[['What it taught','A database was damaged days after the newest backup was taken, and the missing ingest was recovered instead from the pipeline\u2019s own intermediate handoff files \u2014 which nobody had thought of as a backup. They are now treated as part of the recovery surface.'],
                ['Open issue','It requests every row in one call with no pagination, and the database returns only the first page. Nothing errors \u2014 the files are valid and have been growing weekly, while quietly holding less than the whole.']]}},
 
- /* drawn as a job, not a know card: solid border and the three-line layout the
-    other standing work in this band uses */
- {id:'kb', x:810, y:689, w:206, h:86, kind:'job', title:'Knowledge base', own:'pm',
+ /* a reference card, like the quality bar and the data standard beside it */
+ {id:'kb', x:810, y:700, w:206, h:64, kind:'know', title:'Knowledge base', own:'pm',
   role:'Standing reference', line:'Runbooks, lessons, specs',
   panel:{lead:'The standing record of what this system is and what it has already got wrong \u2014 kept outside the code, so that a lesson survives the session that learned it.',
          secs:[['What it holds','A map of the codebase, runbooks for the operations that are easy to get wrong, postmortems with the rule each one produced, the data quality reports, and the product spec.'],
@@ -1243,10 +1242,10 @@ const EDGES=[
  {a:'atlas', as:'l', b:'kb',  bs:'r', flow:0, cls:'know'},
  /* the pipeline's own memory is reviewed and written up at the atlas level */
  {a:'k4', as:'r', b:'kb', bs:'t', flow:0, cls:'know',
-  d:'M876 112 C 1053 112, 1053 140, 1053 200 L 1053 640 C 1053 672, 913 668, 913 689'},
+  d:'M876 112 C 1053 112, 1053 140, 1053 200 L 1053 640 C 1053 680, 913 676, 913 700'},
  /* no label: the gap is 84px and the node's own subtitle already says it */
  {a:'kb',    as:'b', b:'ccx', bs:'l', flow:0, cls:'know',
-  d:'M960 775 C 960 815, 1000 840, 1060 840 L 1320 840 C 1350 840, 1360 903, 1380 903'},
+  d:'M960 764 C 960 810, 1000 840, 1060 840 L 1320 840 C 1350 840, 1360 903, 1380 903'},
  {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'what the product renders'}
 ];
 const byId={}; NODES.forEach(n=>byId[n.id]=n);

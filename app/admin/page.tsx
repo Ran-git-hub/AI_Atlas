@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Activity, Layers3, LogOut, Megaphone, Newspaper } from "lucide-react"
+import { Activity, Layers3, LogOut, Megaphone, Newspaper, Users } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 
@@ -33,6 +33,13 @@ const tiles = [
     icon: Megaphone,
     color: "#f59e0b",
     href: "/admin/announcement",
+  },
+  {
+    label: "Visitors",
+    description: "Total, daily and per-country visitors to the public site",
+    icon: Users,
+    color: "#a78bfa",
+    href: "/admin/visitors",
   },
 ] as const
 

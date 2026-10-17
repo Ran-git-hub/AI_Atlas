@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import dynamic from "next/dynamic"
 import type { BeforeSendEvent } from "@vercel/analytics"
 
@@ -53,6 +54,36 @@ function beforeSend(event: BeforeSendEvent): BeforeSendEvent | null {
   return event
 }
 
+const VISITOR_ID_KEY = "atlas-visitor-id"
+const VISITOR_PING_KEY = "atlas-visitor-ping"
+
+/** Record this browser once per UTC day in our own table (see /api/visit). */
+function recordVisit() {
+  try {
+    const path = window.location.pathname
+    if (path.startsWith("/admin")) return
+    if (isAutomatedBrowser()) return
+    if (localStorage.getItem(OPT_OUT_KEY) === "true") return
+
+    const today = new Date().toISOString().slice(0, 10)
+    if (localStorage.getItem(VISITOR_PING_KEY) === today) return
+
+    let id = localStorage.getItem(VISITOR_ID_KEY)
+    if (!id) {
+      id = crypto.randomUUID()
+      localStorage.setItem(VISITOR_ID_KEY, id)
+    }
+    localStorage.setItem(VISITOR_PING_KEY, today)
+    void fetch("/api/visit", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id, path }),
+      keepalive: true,
+    }).catch(() => {})
+  } catch {}
+}
+
 export function ClientAnalytics() {
+  useEffect(recordVisit, [])
   return <Analytics beforeSend={beforeSend} />
 }

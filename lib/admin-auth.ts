@@ -1,16 +1,19 @@
 // Admin session token helpers.
 // Uses Web Crypto API (Edge-runtime compatible) with HMAC-SHA256.
-// The signing key is derived from SUPABASE_SERVICE_ROLE_KEY.
+// The signing key is ADMIN_SESSION_SECRET, a dedicated random secret.
 
 const ALGORITHM: HmacImportParams = { name: "HMAC", hash: "SHA-256" }
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+const MIN_SECRET_LENGTH = 32
 
 function secretKeyRaw(): Uint8Array {
-  const raw = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!raw) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set")
+  const raw = process.env.ADMIN_SESSION_SECRET
+  if (!raw || raw.length < MIN_SECRET_LENGTH) {
+    throw new Error(
+      `ADMIN_SESSION_SECRET must be set to at least ${MIN_SECRET_LENGTH} characters`,
+    )
   }
-  return new TextEncoder().encode(raw.slice(0, 64))
+  return new TextEncoder().encode(raw)
 }
 
 async function importKey(): Promise<CryptoKey> {
@@ -76,7 +79,9 @@ export async function verifyAdminToken(
       new TextDecoder().decode(base64UrlDecode(payload)),
     ) as { username: string; exp: number }
     if (!data.exp || !data.username) return null
-    if (Date.now() > data.exp) return null
+    if (data.username !== process.env.ADMIN_USERNAME) return null
+    const now = Date.now()
+    if (now > data.exp || data.exp > now + TOKEN_TTL_MS) return null
     return data.username
   } catch {
     return null

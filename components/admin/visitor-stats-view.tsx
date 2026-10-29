@@ -76,19 +76,36 @@ export function VisitorStatsView({ stats }: { stats: VisitorStats }) {
           <h2 className="text-base font-semibold">Daily visitors</h2>
           <p className="text-xs text-[#8a8a8a]">Last 30 days · peak {n(maxDaily)}</p>
         </div>
-        <div className="flex h-40 items-end gap-[2px] sm:gap-1">
-          {stats.daily.map((d) => (
-            <div
-              key={d.day}
-              title={`${formatDay(d.day)}: ${n(d.visitors)}`}
-              className="flex h-full flex-1 flex-col justify-end"
-            >
+        {/* pt-8 leaves room for the tooltip over the tallest bar. Focus as
+            well as hover, so a tap shows it on phones. */}
+        <div className="flex h-48 items-end gap-[2px] pt-8 sm:gap-1">
+          {stats.daily.map((d, i) => {
+            const height = Math.max(d.visitors ? 2 : 0, (d.visitors / maxDaily) * 100)
+            const align =
+              i < 4 ? "left-0" : i >= stats.daily.length - 4 ? "right-0" : "left-1/2 -translate-x-1/2"
+            return (
               <div
-                className="rounded-t-sm bg-[#43cc93]/70 transition-colors hover:bg-[#43cc93]"
-                style={{ height: `${Math.max(d.visitors ? 2 : 0, (d.visitors / maxDaily) * 100)}%` }}
-              />
-            </div>
-          ))}
+                key={d.day}
+                tabIndex={0}
+                aria-label={`${formatDay(d.day)}: ${n(d.visitors)} visitors`}
+                className="group relative flex h-full flex-1 flex-col justify-end outline-none"
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none absolute z-10 whitespace-nowrap rounded-md border border-[#2f2f2f] bg-[#0f0f0f] px-2 py-1 text-xs text-[#d4d4d4] opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus:opacity-100",
+                    align,
+                  )}
+                  style={{ bottom: `calc(${height}% + 6px)` }}
+                >
+                  {formatDay(d.day)} · <span className="font-semibold tabular-nums text-[#f5f5f5]">{n(d.visitors)}</span>
+                </span>
+                <div
+                  className="rounded-t-sm bg-[#43cc93]/70 transition-colors group-hover:bg-[#43cc93] group-focus:bg-[#43cc93]"
+                  style={{ height: `${height}%` }}
+                />
+              </div>
+            )
+          })}
         </div>
         <div className="mt-2 flex justify-between text-xs text-[#8a8a8a]">
           <span>{stats.daily[0] ? formatDay(stats.daily[0].day) : ""}</span>

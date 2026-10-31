@@ -56,9 +56,10 @@ export function VisitorStatsView({ stats }: { stats: VisitorStats }) {
   const maxDaily = Math.max(1, ...stats.daily.map((d) => d.visitors))
   const countryTotal = stats.countries.reduce((sum, c) => sum + c.visitors, 0)
   const since = stats.firstDay ? formatDay(stats.firstDay, true) : "the first visit"
-  // Average over complete days since recording began: earlier days in the
-  // window were never recorded, and today is still filling up.
-  const averagedDays = stats.daily.slice(0, -1).filter((d) => stats.firstDay !== null && d.day >= stats.firstDay)
+  // Average over complete days only: days before recording began were never
+  // recorded, the first day was recorded from mid-day, and today is still
+  // filling up.
+  const averagedDays = stats.daily.slice(0, -1).filter((d) => stats.firstDay !== null && d.day > stats.firstDay)
   const dailyAverage = averagedDays.length
     ? Math.round(averagedDays.reduce((sum, d) => sum + d.visitors, 0) / averagedDays.length)
     : null

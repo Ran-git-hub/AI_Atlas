@@ -121,6 +121,21 @@ function formatDate(v: string | null | undefined): string {
   return Number.isNaN(d.getTime()) ? v : d.toISOString().slice(0, 10)
 }
 
+// en-CA formats as YYYY-MM-DD; pinned to the Central Europe day the daily
+// jobs are scheduled in, so a run lands on one date.
+const JOB_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Europe/Berlin",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+})
+
+function formatJobDay(v: string | null | undefined): string {
+  if (!v) return "—"
+  const d = new Date(v)
+  return Number.isNaN(d.getTime()) ? v : JOB_DAY.format(d)
+}
+
 export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
   // A status change used to call router.refresh(), which re-rendered
   // /admin/news on the server - a 200-row read of the whole table on every
@@ -146,6 +161,7 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const [sourceFilter, setSourceFilter] = useState<string[]>([])
+  const [addedFilter, setAddedFilter] = useState<string[]>([])
 
   // Derive unique sources from items
   const allSources = useMemo(() => {
@@ -154,6 +170,13 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
       if (item.sourceName) set.add(item.sourceName)
     }
     return Array.from(set).sort()
+  }, [items])
+
+  // Rows arrive newest created_at first, so job days come out newest first.
+  const allAddedDays = useMemo(() => {
+    const set = new Set<string>()
+    for (const item of items) set.add(formatJobDay(item.createdAt))
+    return Array.from(set)
   }, [items])
 
   // Apply filters
@@ -176,8 +199,13 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
     if (sourceFilter.length > 0) {
       result = result.filter((item) => sourceFilter.includes(item.sourceName))
     }
+    if (addedFilter.length > 0) {
+      result = result.filter((item) =>
+        addedFilter.includes(formatJobDay(item.createdAt)),
+      )
+    }
     return result
-  }, [items, search, statusFilter, sourceFilter])
+  }, [items, search, statusFilter, sourceFilter, addedFilter])
 
   // Reset page when filters change
   const displayItems = useMemo(() => {
@@ -197,12 +225,14 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
   const pending = items.filter((i) => i.status === "pending").length
   const noise = items.filter((i) => i.status === "noise").length
   const uncategorized = items.filter((i) => !i.status).length
-  const activeFilters = (search ? 1 : 0) + statusFilter.length + sourceFilter.length
+  const activeFilters =
+    (search ? 1 : 0) + statusFilter.length + sourceFilter.length + addedFilter.length
 
   function clearFilters() {
     setSearch("")
     setStatusFilter([])
     setSourceFilter([])
+    setAddedFilter([])
     setPage(1)
   }
 
@@ -241,7 +271,7 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
             className="h-9 w-full rounded-full border-[#2f2f2f] bg-[#1c1c1c] pl-9 pr-4 text-sm text-[#f5f5f5] placeholder:text-[#555] sm:max-w-[400px]"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {/* Status filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -324,6 +354,47 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Added (job day) filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-9 rounded-full border-[#2f2f2f] bg-[#1c1c1c] px-3 text-xs text-[#f5f5f5]"
+              >
+                <Filter className="mr-1.5 h-3.5 w-3.5" />
+                {addedFilter.length > 0
+                  ? `${addedFilter.length} added`
+                  : "Added"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="max-h-[400px] overflow-y-auto border-[#2f2f2f] bg-[#181818] text-[#f5f5f5]">
+              <DropdownMenuCheckboxItem
+                checked={addedFilter.length === 0}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={() => setAddedFilter([])}
+                className="text-xs focus:bg-slate-800"
+              >
+                All days
+              </DropdownMenuCheckboxItem>
+              {allAddedDays.map((d) => (
+                <DropdownMenuCheckboxItem
+                  key={d}
+                  checked={addedFilter.includes(d)}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    setAddedFilter((prev) =>
+                      checked ? [...prev, d] : prev.filter((v) => v !== d),
+                    )
+                    setPage(1)
+                  }}
+                  className="text-xs tabular-nums focus:bg-slate-800"
+                >
+                  {d}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Clear */}
           {activeFilters > 0 ? (
             <Button
@@ -386,6 +457,23 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
               </button>
             </span>
           ))}
+          {addedFilter.map((d) => (
+            <span
+              key={`a-${d}`}
+              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 text-xs text-[#d0d0d0]"
+            >
+              Added: {d}
+              <button
+                onClick={() => {
+                  setAddedFilter((prev) => prev.filter((v) => v !== d))
+                  setPage(1)
+                }}
+                className="ml-0.5 rounded-full p-0.5 text-[#8a8a8a] hover:text-white"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
         </div>
       ) : null}
 
@@ -405,6 +493,9 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
               </th>
               <th className="hidden whitespace-nowrap px-3 py-2.5 text-left text-xs font-medium text-[#8a8a8a] lg:table-cell">
                 Published
+              </th>
+              <th className="hidden whitespace-nowrap px-3 py-2.5 text-left text-xs font-medium text-[#8a8a8a] sm:table-cell">
+                Added
               </th>
             </tr>
           </thead>
@@ -426,6 +517,9 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
                 </td>
                 <td className="hidden whitespace-nowrap px-3 py-2 text-[#8a8a8a] lg:table-cell">
                   {formatDate(item.publishedAt)}
+                </td>
+                <td className="hidden whitespace-nowrap px-3 py-2 tabular-nums text-[#8a8a8a] sm:table-cell">
+                  {formatJobDay(item.createdAt)}
                 </td>
               </tr>
             ))}

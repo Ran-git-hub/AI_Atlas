@@ -56,6 +56,13 @@ export function VisitorStatsView({ stats }: { stats: VisitorStats }) {
   const maxDaily = Math.max(1, ...stats.daily.map((d) => d.visitors))
   const countryTotal = stats.countries.reduce((sum, c) => sum + c.visitors, 0)
   const since = stats.firstDay ? formatDay(stats.firstDay, true) : "the first visit"
+  // Average over complete days only: days before recording began were never
+  // recorded, the first day was recorded from mid-day, and today is still
+  // filling up.
+  const averagedDays = stats.daily.slice(0, -1).filter((d) => stats.firstDay !== null && d.day > stats.firstDay)
+  const dailyAverage = averagedDays.length
+    ? Math.round(averagedDays.reduce((sum, d) => sum + d.visitors, 0) / averagedDays.length)
+    : null
 
   return (
     <div className="space-y-6">
@@ -72,23 +79,56 @@ export function VisitorStatsView({ stats }: { stats: VisitorStats }) {
       </div>
 
       <section className="rounded-xl border border-[#2f2f2f] bg-[#1c1c1c] p-4">
-        <div className="mb-4 flex items-baseline justify-between gap-3">
-          <h2 className="text-base font-semibold">Daily visitors</h2>
-          <p className="text-xs text-[#8a8a8a]">Last 30 days · peak {n(maxDaily)}</p>
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 className="whitespace-nowrap text-base font-semibold">Daily visitors</h2>
+          <p className="text-xs text-[#8a8a8a]">
+            Last 30 days · peak {n(maxDaily)}
+            {dailyAverage !== null && <> · avg {n(dailyAverage)}/day</>}
+          </p>
         </div>
-        <div className="flex h-40 items-end gap-[2px] sm:gap-1">
-          {stats.daily.map((d) => (
-            <div
-              key={d.day}
-              title={`${formatDay(d.day)}: ${n(d.visitors)}`}
-              className="flex h-full flex-1 flex-col justify-end"
-            >
+        {/* pt-8 leaves room for the tooltip over the tallest bar. Focus as
+            well as hover, so a tap shows it on phones. */}
+        <div className="h-48 pt-8">
+          <div className="relative flex h-full items-end gap-[2px] sm:gap-1">
+            {dailyAverage !== null && (
               <div
-                className="rounded-t-sm bg-[#43cc93]/70 transition-colors hover:bg-[#43cc93]"
-                style={{ height: `${Math.max(d.visitors ? 2 : 0, (d.visitors / maxDaily) * 100)}%` }}
-              />
-            </div>
-          ))}
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 z-[5] border-t border-dashed border-[#f5f5f5]/45"
+                style={{ bottom: `${(dailyAverage / maxDaily) * 100}%` }}
+              >
+                <span className="absolute bottom-full left-0 mb-0.5 rounded bg-[#1c1c1c]/90 px-1 text-xs text-[#b3b3b3]">
+                  avg {n(dailyAverage)}
+                </span>
+              </div>
+            )}
+            {stats.daily.map((d, i) => {
+              const height = Math.max(d.visitors ? 2 : 0, (d.visitors / maxDaily) * 100)
+              const align =
+                i < 4 ? "left-0" : i >= stats.daily.length - 4 ? "right-0" : "left-1/2 -translate-x-1/2"
+              return (
+                <div
+                  key={d.day}
+                  tabIndex={0}
+                  aria-label={`${formatDay(d.day)}: ${n(d.visitors)} visitors`}
+                  className="group relative flex h-full flex-1 flex-col justify-end outline-none"
+                >
+                  <span
+                    className={cn(
+                      "pointer-events-none absolute z-10 whitespace-nowrap rounded-md border border-[#2f2f2f] bg-[#0f0f0f] px-2 py-1 text-xs text-[#d4d4d4] opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus:opacity-100",
+                      align,
+                    )}
+                    style={{ bottom: `calc(${height}% + 6px)` }}
+                  >
+                    {formatDay(d.day)} · <span className="font-semibold tabular-nums text-[#f5f5f5]">{n(d.visitors)}</span>
+                  </span>
+                  <div
+                    className="rounded-t-sm bg-[#43cc93]/70 transition-colors group-hover:bg-[#43cc93] group-focus:bg-[#43cc93]"
+                    style={{ height: `${height}%` }}
+                  />
+                </div>
+              )
+            })}
+          </div>
         </div>
         <div className="mt-2 flex justify-between text-xs text-[#8a8a8a]">
           <span>{stats.daily[0] ? formatDay(stats.daily[0].day) : ""}</span>

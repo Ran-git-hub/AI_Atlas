@@ -143,6 +143,9 @@ const NEWS_ADMIN_STATUSES = ["published", "pending", "noise"] as const
  * older than the newest 200 are not represented in them - at the time of this
  * change that meant 56 pending rows, all older, which the page will report as
  * zero pending.
+ *
+ * Sorted the same way as getNewsItems, so a batch reads in the order /news
+ * shows it.
  */
 export async function getAdminNewsItems(): Promise<NewsItem[]> {
   const supabase = createServiceRoleClient() ?? (await createClient())
@@ -150,6 +153,7 @@ export async function getAdminNewsItems(): Promise<NewsItem[]> {
     .from(TABLE)
     .select(NEWS_SELECT)
     .order("created_at", { ascending: false, nullsFirst: false })
+    .order("published_at", { ascending: false, nullsFirst: false })
     .order("id", { ascending: true })
     .limit(ADMIN_NEWS_LIMIT)
 

@@ -353,7 +353,7 @@ export async function generateMetadata({
   // shares as a generic "AI Atlas" card. The image comes from this route's
   // opengraph-image.tsx unless the record carries its own.
   const metadata = pageMetadata({
-    title: `${title} · AI Atlas`.length <= 60 ? `${title} · AI Atlas` : title,
+    title,
     description,
     path: `/use-cases/${encodeURIComponent(row.id)}`,
     image: row.image_url,

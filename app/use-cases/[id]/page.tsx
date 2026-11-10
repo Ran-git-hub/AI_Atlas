@@ -328,6 +328,15 @@ const getViewableRow = cache(async (id: string) => {
   return (await hasAdminSession()) ? row : null
 })
 
+function trimMetaDescription(text: string, max = 155): string {
+  const flat = text.replace(/\s+/g, " ").trim()
+  if (flat.length <= max) return flat
+  const cut = flat.slice(0, max - 1)
+  const lastSpace = cut.lastIndexOf(" ")
+  const body = lastSpace > 0 ? cut.slice(0, lastSpace) : cut
+  return `${body.replace(/[\s,;:.—-]+$/, "")}…`
+}
+
 export async function generateMetadata({
   params,
 }: UseCaseDetailPageProps): Promise<Metadata> {
@@ -336,8 +345,9 @@ export async function generateMetadata({
   if (!row) return { title: "Use case" }
   const title = useCaseDisplayName(row)
   const desc = row.description?.trim()
-  const description =
-    desc || `${title} — explore this AI use case in the AI Atlas catalog.`
+  const description = desc
+    ? trimMetaDescription(desc)
+    : `${title} — explore this AI use case in the AI Atlas catalog.`
   // Without these the root layout's homepage canonical/openGraph are inherited,
   // so every use case page reports itself as a duplicate of the homepage and
   // shares as a generic "AI Atlas" card. The image comes from this route's
@@ -348,6 +358,7 @@ export async function generateMetadata({
     path: `/use-cases/${encodeURIComponent(row.id)}`,
     image: row.image_url,
     type: "article",
+    publishedTime: row.created_at ?? undefined,
   })
   // Only an admin reaches an unpublished case, but keep it out of any index
   // regardless of how its URL travels.

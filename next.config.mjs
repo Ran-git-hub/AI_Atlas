@@ -43,6 +43,21 @@ const nextConfig = {
     return [{ source: "/sitemap.xml", destination: "/api/sitemap" }]
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/industries/food-retail",
+        destination: "/industries/consumer-staples-distribution-and-retail",
+        statusCode: 301,
+      },
+      {
+        source: "/industries/media-and-entertainment",
+        destination: "/industries/entertainment",
+        statusCode: 301,
+      },
+    ]
+  },
+
   /**
    * Baseline security headers on every response.
    *

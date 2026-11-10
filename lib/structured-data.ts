@@ -42,6 +42,34 @@ export function breadcrumbSchema(trail: { name: string; path: string }[]) {
   }
 }
 
+export function useCasesDatasetSchema({
+  name,
+  description,
+  rows,
+}: {
+  name: string
+  description: string
+  rows: { industry?: string | null; country?: string | null; created_at?: string | null }[]
+}) {
+  const distinct = (values: (string | null | undefined)[]) =>
+    [...new Set(values.map((v) => v?.trim()).filter((v): v is string => Boolean(v)))].sort()
+  const latestMs = Math.max(0, ...rows.map((row) => Date.parse(row.created_at ?? "") || 0))
+  return {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name,
+    description,
+    url: absoluteUrl("/use-cases"),
+    ...(latestMs ? { dateModified: new Date(latestMs).toISOString() } : {}),
+    creator: organizationNode(),
+    spatialCoverage: distinct(rows.map((row) => row.country)).map((country) => ({
+      "@type": "Place",
+      name: country,
+    })),
+    keywords: distinct(rows.map((row) => row.industry)),
+  }
+}
+
 /**
  * A use case is an editorial summary AI Atlas wrote about someone else's
  * deployment, so Article with `isBasedOn` pointing at the primary source is the

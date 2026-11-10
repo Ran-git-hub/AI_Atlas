@@ -10,6 +10,7 @@ import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
 import { UseCaseLinkIndex } from "@/components/use-cases/use-case-link-index"
 import { pageMetadata } from "@/lib/page-metadata"
+import { breadcrumbSchema, jsonLdProps } from "@/lib/structured-data"
 import { formatAtlasDate } from "@/lib/format-date"
 const industriesShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
@@ -58,6 +59,16 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
+      {/* eslint-disable-next-line react/no-danger */}
+      <script
+        {...jsonLdProps(
+          breadcrumbSchema([
+            { name: "AI Atlas", path: "/" },
+            { name: "Industries", path: "/industries" },
+            { name: detail.name, path: `/industries/${encodeURIComponent(detail.slug)}` },
+          ]),
+        )}
+      />
       <div className="border-b border-slate-800 bg-[#121212]">
         <div className={industriesShellPad}>
           <AtlasAppTopRow activeView="industries" />

@@ -1,13 +1,17 @@
 import { getCachedUseCasesCatalogRows, getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
 import { UseCasesTableFromUrl } from "@/components/use-cases/use-cases-table-from-url"
 import { pageMetadata } from "@/lib/page-metadata"
+import { jsonLdProps, useCasesDatasetSchema } from "@/lib/structured-data"
+
+const PAGE_TITLE = "AI Use Cases — AI Atlas"
+const PAGE_DESCRIPTION =
+  "Search and filter real-world AI deployments by organization, industry, and country/region."
 
 // Canonical is the bare path: filter/pagination params would otherwise spawn
 // endless duplicate URLs for crawlers.
 export const metadata = pageMetadata({
-  title: "AI Use Cases — AI Atlas",
-  description:
-    "Search and filter real-world AI deployments by organization, industry, and country/region.",
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   path: "/use-cases",
 })
 
@@ -35,6 +39,12 @@ export default async function UseCasesPage() {
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
+      {/* eslint-disable-next-line react/no-danger */}
+      <script
+        {...jsonLdProps(
+          useCasesDatasetSchema({ name: PAGE_TITLE, description: PAGE_DESCRIPTION, rows }),
+        )}
+      />
       <div className="mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]">
         <UseCasesTableFromUrl rows={rows} latestDataUpdateCet={latestDataUpdateCet} />
       </div>

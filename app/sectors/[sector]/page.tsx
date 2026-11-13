@@ -64,7 +64,6 @@ export default async function SectorDetailPage({ params }: { params: Promise<Par
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
-      {/* eslint-disable-next-line react/no-danger */}
       <script
         {...jsonLdProps(
           breadcrumbSchema([

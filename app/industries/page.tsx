@@ -1,5 +1,6 @@
 import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
-import { getCachedIndustrySummaries } from "@/lib/data-industries"
+import Link from "next/link"
+import { getCachedIndustrySummaries, SECTORS } from "@/lib/data-industries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustrySummaryCard } from "@/components/industries/industry-summary-card"
@@ -22,6 +23,17 @@ export default async function IndustriesPage() {
 
   const totalUseCases = industries.reduce((sum, industry) => sum + industry.useCaseCount, 0)
   const totalCompanies = industries.reduce((sum, industry) => sum + industry.companyCount, 0)
+  const sectorGroups = SECTORS.map((sector) => {
+    const members = industries.filter((industry) => sector.industries.includes(industry.name))
+    return {
+      sector,
+      members,
+      useCaseCount: members.reduce((sum, industry) => sum + industry.useCaseCount, 0),
+    }
+  })
+    .filter((group) => group.members.length > 0)
+    .sort((a, b) => b.useCaseCount - a.useCaseCount)
+  const otherIndustries = industries.filter((industry) => !SECTORS.some((sector) => sector.industries.includes(industry.name)))
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
@@ -57,10 +69,39 @@ export default async function IndustriesPage() {
         {industries.length > 0 ? (
           <>
             <IndustryUseCaseOverview industries={industries} />
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {industries.map((industry) => (
-                <IndustrySummaryCard key={industry.slug} industry={industry} />
+            <div className="space-y-8">
+              {sectorGroups.map(({ sector, members, useCaseCount }) => (
+                <section key={sector.slug}>
+                  <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                    <h2 className="text-xl font-semibold text-[#f5f5f5]">
+                      <Link href={`/sectors/${sector.slug}`} className="transition-colors hover:text-[#43cc93]">
+                        {sector.name}
+                      </Link>
+                    </h2>
+                    <Link
+                      href={`/sectors/${sector.slug}`}
+                      className="text-sm font-medium text-[#43cc93] transition-colors hover:text-[#7ee2b5]"
+                    >
+                      {useCaseCount.toLocaleString()} use cases →
+                    </Link>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {members.map((industry) => (
+                      <IndustrySummaryCard key={industry.slug} industry={industry} />
+                    ))}
+                  </div>
+                </section>
               ))}
+              {otherIndustries.length > 0 ? (
+                <section>
+                  <h2 className="mb-3 text-xl font-semibold text-[#f5f5f5]">Other</h2>
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    {otherIndustries.map((industry) => (
+                      <IndustrySummaryCard key={industry.slug} industry={industry} />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
             </div>
           </>
         ) : (

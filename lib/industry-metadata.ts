@@ -54,7 +54,7 @@ export function getIndustryMetadata(slug: string): IndustryMetadata {
 
 const INDUSTRY_SEARCH_NAMES: Record<string, string> = {
   banks: "Banking",
-  "health-care-providers-and-services": "Healthcare",
+  "health-care-providers-and-services": "Healthcare Providers",
   "public-administration": "Government",
   "diversified-telecommunication-services": "Telecom",
   automobiles: "Automotive",
@@ -63,4 +63,18 @@ const INDUSTRY_SEARCH_NAMES: Record<string, string> = {
 
 export function getIndustrySearchName(slug: string, name: string): string {
   return INDUSTRY_SEARCH_NAMES[slug] ?? name
+}
+
+const SECTOR_SEARCH_NAMES: Record<string, string> = {
+  "Information Technology": "Technology",
+  "Health Care": "Healthcare",
+  Financials: "Finance",
+  Industrials: "Manufacturing & Industrials",
+  "Consumer Discretionary": "Consumer & Retail",
+  "Communication Services": "Telecom & Media",
+  "Consumer Staples": "Food & Consumer Goods",
+}
+
+export function getSectorSearchName(gicsSector: string): string {
+  return SECTOR_SEARCH_NAMES[gicsSector] ?? gicsSector
 }

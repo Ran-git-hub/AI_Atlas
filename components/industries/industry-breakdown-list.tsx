@@ -1,6 +1,9 @@
+import Link from "next/link"
+
 type BreakdownItem = {
   name: string
   count: number
+  href?: string
 }
 
 export function IndustryBreakdownList({
@@ -11,7 +14,7 @@ export function IndustryBreakdownList({
   items: BreakdownItem[]
 }) {
   return (
-    <section className="rounded-xl border border-slate-800 bg-[#1a1a1a] p-4">
+    <section className="min-w-0 rounded-xl border border-slate-800 bg-[#1a1a1a] p-4">
       <h2 className="mb-3 text-lg font-semibold text-[#f5f5f5]">{title}</h2>
       {items.length > 0 ? (
         <div className="space-y-1.5">
@@ -24,7 +27,16 @@ export function IndustryBreakdownList({
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-[#43cc93]/10 text-xs font-semibold text-[#43cc93]">
                   {index + 1}
                 </span>
-                <span className="truncate text-base font-medium text-slate-200">{item.name}</span>
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    className="truncate text-base font-medium text-slate-200 transition-colors hover:text-[#43cc93]"
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <span className="truncate text-base font-medium text-slate-200">{item.name}</span>
+                )}
               </div>
               <span className="shrink-0 text-sm text-slate-400">{item.count.toLocaleString()} cases</span>
             </div>

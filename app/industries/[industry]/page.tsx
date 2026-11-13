@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
-import { getIndustryDetail } from "@/lib/data-industries"
+import { getIndustryDetail, getSectorForIndustry } from "@/lib/data-industries"
 import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
 import { IndustryBreakdownList } from "@/components/industries/industry-breakdown-list"
@@ -63,6 +63,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
   }
 
   const useCasesHref = `/use-cases?industry=${encodeURIComponent(detail.name)}`
+  const sector = getSectorForIndustry(detail.name)
   const latestUpdated = formatDate(detail.latestUpdatedAt)
 
   return (
@@ -73,6 +74,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
           breadcrumbSchema([
             { name: "AI Atlas", path: "/" },
             { name: "Industries", path: "/industries" },
+            ...(sector ? [{ name: sector.name, path: `/sectors/${sector.slug}` }] : []),
             { name: detail.name, path: `/industries/${encodeURIComponent(detail.slug)}` },
           ]),
         )}
@@ -88,6 +90,14 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
               >
                 ← All industries
               </Link>
+              {sector ? (
+                <Link
+                  href={`/sectors/${sector.slug}`}
+                  className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-3.5 py-1.5 text-sm font-medium text-slate-300 transition-colors hover:border-[#43cc93]/60 hover:text-[#7ee2b5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#43cc93]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#121212]"
+                >
+                  {sector.name}
+                </Link>
+              ) : null}
             </div>
             <p className="mb-2 text-sm font-medium uppercase tracking-wide text-[#43cc93]">
               Industry

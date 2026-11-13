@@ -39,7 +39,6 @@ export default async function UseCasesPage() {
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
-      {/* eslint-disable-next-line react/no-danger */}
       <script
         {...jsonLdProps(
           useCasesDatasetSchema({ name: PAGE_TITLE, description: PAGE_DESCRIPTION, rows }),

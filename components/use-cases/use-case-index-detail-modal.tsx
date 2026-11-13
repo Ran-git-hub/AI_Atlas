@@ -69,7 +69,7 @@ export function UseCaseIndexDetailModal({
   onStatusChange?: (id: string, newStatus: string) => Promise<void>
 }) {
   const backdropRef = React.useRef<HTMLDivElement>(null)
-  const openedAt = React.useRef(Date.now())
+  const [openedAt] = React.useState(() => Date.now())
   // Bulk catalog rows (the `detail` this modal is normally given) no longer
   // carry fieldEntries — it was ~0.98 MB of redundant {key,label,value}
   // triples duplicated across every list/hub cache. Fetch the full row's
@@ -77,14 +77,23 @@ export function UseCaseIndexDetailModal({
   // still returns them, via getUseCaseCatalogRowById) the same way this
   // component already lazy-loaded `content` alone.
   const [lazyFieldEntries, setLazyFieldEntries] = React.useState<UseCaseFieldEntry[] | null>(null)
-  const [entriesLoading, setEntriesLoading] = React.useState(false)
+  const [entriesLoading, setEntriesLoading] = React.useState(() => !detail.fieldEntries)
+  const [prevEntriesSource, setPrevEntriesSource] = React.useState({
+    id: detail.id,
+    fieldEntries: detail.fieldEntries,
+  })
+  if (prevEntriesSource.id !== detail.id || prevEntriesSource.fieldEntries !== detail.fieldEntries) {
+    setPrevEntriesSource({ id: detail.id, fieldEntries: detail.fieldEntries })
+    if (!detail.fieldEntries) {
+      setLazyFieldEntries(null)
+      setEntriesLoading(true)
+    }
+  }
 
   const displayEntries = detail.fieldEntries ?? lazyFieldEntries ?? []
 
   React.useEffect(() => {
     if (detail.fieldEntries) return
-    setLazyFieldEntries(null)
-    setEntriesLoading(true)
     let cancelled = false
     fetch(`/api/use-cases/${encodeURIComponent(detail.id)}`)
       .then((r) => (r.ok ? r.json() : null))
@@ -119,7 +128,7 @@ export function UseCaseIndexDetailModal({
       ref={backdropRef}
       onClick={(e) => {
         if (e.target !== backdropRef.current) return
-        if (Date.now() - openedAt.current < 350) return
+        if (Date.now() - openedAt < 350) return
         onClose()
       }}
       style={{

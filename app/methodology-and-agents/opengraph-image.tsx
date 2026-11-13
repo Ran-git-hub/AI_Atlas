@@ -263,7 +263,6 @@ export default function Image() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {LOGO_DATA_URL && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={LOGO_DATA_URL}
                 width={32}

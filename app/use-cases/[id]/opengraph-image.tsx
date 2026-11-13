@@ -88,7 +88,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               opacity: 0.28,
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={GLOBE_DATA_URL}
               width={520}
@@ -100,7 +99,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         )}
 
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={LOGO_URL}
             width={44}

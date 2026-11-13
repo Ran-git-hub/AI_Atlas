@@ -95,7 +95,6 @@ export function OgSiteCard({ height }: { height: number }) {
             top: `${globeTop(height) - PAD_Y}px`,
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={GLOBE_DATA_URL}
             width={GLOBE_SIZE}
@@ -120,7 +119,6 @@ export function OgSiteCard({ height }: { height: number }) {
       />
 
       <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={LOGO_URL}
           width={62}

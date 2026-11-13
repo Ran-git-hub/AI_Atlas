@@ -167,9 +167,7 @@ export function NewsFeed({
   const paginated = filtered.slice(pageStart, pageEnd)
   const hasFilters = queryNorm !== "" || source !== "all" || tag !== "all" || sort !== "newest"
 
-  useEffect(() => {
-    if (pageIndex > totalPages - 1) setPageIndex(totalPages - 1)
-  }, [pageIndex, totalPages])
+  if (pageIndex > totalPages - 1) setPageIndex(totalPages - 1)
 
   useEffect(() => {
     const updateBackToTop = () => setShowBackToTop(window.scrollY > 520)

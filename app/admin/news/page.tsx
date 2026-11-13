@@ -1,5 +1,4 @@
 import { getAdminNewsItems } from "@/lib/data-news"
-import type { NewsItem } from "@/lib/types-news"
 import { AdminNewsTable } from "@/components/news/admin-news-table"
 import { BackToAdminPanel } from "@/components/admin/back-to-admin"
 import { requireAdminPage } from "@/lib/admin-session"

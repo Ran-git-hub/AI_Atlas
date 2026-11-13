@@ -58,11 +58,14 @@ export function NewsCardImage({
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
   const useXIcon = isXSource(articleUrl, sourceName)
-
-  useEffect(() => {
+  const [prevImageSource, setPrevImageSource] = useState({ articleUrl, useXIcon })
+  if (prevImageSource.articleUrl !== articleUrl || prevImageSource.useXIcon !== useXIcon) {
+    setPrevImageSource({ articleUrl, useXIcon })
     setImageUrl(null)
     setLoaded(false)
+  }
 
+  useEffect(() => {
     if (useXIcon) return
     if (!articleUrl) return
 

@@ -51,3 +51,16 @@ const INDUSTRY_METADATA: Record<string, IndustryMetadata> = {
 export function getIndustryMetadata(slug: string): IndustryMetadata {
   return INDUSTRY_METADATA[slug] ?? FALLBACK_METADATA
 }
+
+const INDUSTRY_SEARCH_NAMES: Record<string, string> = {
+  banks: "Banking",
+  "health-care-providers-and-services": "Healthcare",
+  "public-administration": "Government",
+  "diversified-telecommunication-services": "Telecom",
+  automobiles: "Automotive",
+  "broadline-retail": "Retail",
+}
+
+export function getIndustrySearchName(slug: string, name: string): string {
+  return INDUSTRY_SEARCH_NAMES[slug] ?? name
+}

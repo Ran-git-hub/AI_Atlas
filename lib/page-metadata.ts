@@ -63,3 +63,30 @@ export function pageMetadata({
     },
   }
 }
+
+export function hubMetaDescription({
+  place,
+  useCaseCount,
+  organizations,
+  span,
+  max = 155,
+}: {
+  place: string
+  useCaseCount: number
+  organizations: string[]
+  span: string
+  max?: number
+}): string {
+  const lead = `${useCaseCount.toLocaleString()} real-world AI ${useCaseCount === 1 ? "deployment" : "deployments"} in ${place}`
+  const names = organizations.filter(Boolean)
+  let shown = Math.min(3, names.length)
+  for (;;) {
+    const picked = names.slice(0, shown)
+    const list =
+      picked.length > 1 ? `${picked.slice(0, -1).join(", ")} and ${picked[picked.length - 1]}` : (picked[0] ?? "")
+    const orgs = list ? `, ${names.length > shown ? "including" : "from"} ${list}` : ""
+    const text = `${lead}${orgs}, across ${span}.`
+    if (text.length <= max || shown === 0) return text
+    shown -= 1
+  }
+}

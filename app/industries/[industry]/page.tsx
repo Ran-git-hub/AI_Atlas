@@ -9,7 +9,8 @@ import { IndustryRelatedReports } from "@/components/industries/industry-related
 import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
 import { UseCaseLinkIndex } from "@/components/use-cases/use-case-link-index"
-import { pageMetadata } from "@/lib/page-metadata"
+import { getIndustrySearchName } from "@/lib/industry-metadata"
+import { hubMetaDescription, pageMetadata } from "@/lib/page-metadata"
 import { breadcrumbSchema, jsonLdProps } from "@/lib/structured-data"
 import { formatAtlasDate } from "@/lib/format-date"
 const industriesShellPad =
@@ -36,9 +37,16 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
     }
   }
 
+  const searchName = getIndustrySearchName(detail.slug, detail.name)
+
   return pageMetadata({
-    title: `AI Use Cases in ${detail.name} — AI Atlas`,
-    description: `Explore real-world ${detail.name} AI deployments across organizations and countries/regions.`,
+    title: `AI Use Cases in ${searchName} — AI Atlas`,
+    description: hubMetaDescription({
+      place: searchName,
+      useCaseCount: detail.useCaseCount,
+      organizations: detail.topCompanies.map((item) => item.name),
+      span: detail.countryCount === 1 ? "1 country/region" : `${detail.countryCount} countries/regions`,
+    }),
     path: `/industries/${encodeURIComponent(detail.slug)}`,
   })
 }
@@ -85,7 +93,7 @@ export default async function IndustryDetailPage({ params }: { params: Promise<P
               Industry
             </p>
             <h1 className="mb-3 text-3xl font-bold leading-tight text-[#f5f5f5] md:text-4xl">
-              AI in {detail.name}
+              AI in {getIndustrySearchName(detail.slug, detail.name)}
             </h1>
             <p className="text-pretty text-base leading-relaxed text-slate-400">
               {detail.metadata.shortDescription}

@@ -8,7 +8,7 @@ import { IndustryBreakdownList } from "@/components/industries/industry-breakdow
 import { IndustryStats } from "@/components/industries/industry-stats"
 import { IndustryUseCaseCard } from "@/components/industries/industry-use-case-card"
 import { UseCaseLinkIndex } from "@/components/use-cases/use-case-link-index"
-import { pageMetadata } from "@/lib/page-metadata"
+import { hubMetaDescription, pageMetadata } from "@/lib/page-metadata"
 import { breadcrumbSchema, jsonLdProps } from "@/lib/structured-data"
 import { formatAtlasDate } from "@/lib/format-date"
 
@@ -38,7 +38,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }) 
 
   return pageMetadata({
     title: `AI Use Cases in ${detail.name} — AI Atlas`,
-    description: `Explore real-world AI deployments in ${detail.name} across organizations and industries.`,
+    description: hubMetaDescription({
+      place: detail.name,
+      useCaseCount: detail.useCaseCount,
+      organizations: detail.topCompanies.map((item) => item.name),
+      span: detail.industryCount === 1 ? "1 industry" : `${detail.industryCount} industries`,
+    }),
     path: `/countries/${encodeURIComponent(detail.slug)}`,
   })
 }

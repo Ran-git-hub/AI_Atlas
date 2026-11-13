@@ -11,7 +11,7 @@ import { getCachedUseCasesCatalogRows } from "@/lib/data"
 // client: a cookie-scoped client inside unstable_cache throws, and that once
 // silently cut the sitemap's blog URLs from 25 to 2. See fetchBlogListItems.
 import { getBlogPosts } from "@/lib/data-blog"
-import { getCachedIndustrySummaries } from "@/lib/data-industries"
+import { getCachedIndustrySummaries, SECTORS } from "@/lib/data-industries"
 import { getCachedCountrySummaries } from "@/lib/data-countries"
 import { absoluteUrl } from "@/lib/site-url"
 import type { UseCaseCatalogRow } from "@/lib/types"
@@ -94,6 +94,13 @@ export async function GET(): Promise<Response> {
       modified: lastModified(item.latestUpdatedAt),
       changefreq: "weekly",
       priority: 0.7,
+    })),
+    ...SECTORS.filter((sector) =>
+      (industries as IndustrySummary[]).some((item) => sector.industries.includes(item.name)),
+    ).map((sector) => ({
+      loc: url(`/sectors/${encodeURIComponent(sector.slug)}`),
+      changefreq: "weekly",
+      priority: 0.8,
     })),
     ...(countries as CountrySummary[]).map((item) => ({
       loc: url(`/countries/${encodeURIComponent(item.slug)}`),

@@ -79,5 +79,136 @@
   "exceptions": [
     "Research Institution",
     "Public Administration"
+  ],
+  "sectors": [
+    {
+      "name": "Energy",
+      "industries": [
+        "Energy Equipment & Services",
+        "Oil, Gas & Consumable Fuels"
+      ]
+    },
+    {
+      "name": "Materials",
+      "industries": [
+        "Chemicals",
+        "Construction Materials",
+        "Containers & Packaging",
+        "Metals & Mining",
+        "Paper & Forest Products"
+      ]
+    },
+    {
+      "name": "Industrials",
+      "industries": [
+        "Aerospace & Defense",
+        "Building Products",
+        "Construction & Engineering",
+        "Electrical Equipment",
+        "Industrial Conglomerates",
+        "Machinery",
+        "Trading Companies & Distributors",
+        "Commercial Services & Supplies",
+        "Professional Services",
+        "Air Freight & Logistics",
+        "Passenger Airlines",
+        "Marine Transportation",
+        "Ground Transportation",
+        "Transportation Infrastructure"
+      ]
+    },
+    {
+      "name": "Consumer Discretionary",
+      "industries": [
+        "Automobile Components",
+        "Automobiles",
+        "Household Durables",
+        "Leisure Products",
+        "Textiles, Apparel & Luxury Goods",
+        "Hotels, Restaurants & Leisure",
+        "Diversified Consumer Services",
+        "Distributors",
+        "Broadline Retail",
+        "Specialty Retail"
+      ]
+    },
+    {
+      "name": "Consumer Staples",
+      "industries": [
+        "Consumer Staples Distribution & Retail",
+        "Beverages",
+        "Food Products",
+        "Tobacco",
+        "Household Products",
+        "Personal Care Products"
+      ]
+    },
+    {
+      "name": "Health Care",
+      "industries": [
+        "Health Care Equipment & Supplies",
+        "Health Care Providers & Services",
+        "Health Care Technology",
+        "Biotechnology",
+        "Pharmaceuticals",
+        "Life Sciences Tools & Services"
+      ]
+    },
+    {
+      "name": "Financials",
+      "industries": [
+        "Banks",
+        "Financial Services",
+        "Consumer Finance",
+        "Capital Markets",
+        "Mortgage Real Estate Investment Trusts (REITs)",
+        "Insurance"
+      ]
+    },
+    {
+      "name": "Information Technology",
+      "industries": [
+        "IT Services",
+        "Software",
+        "Communications Equipment",
+        "Technology Hardware, Storage & Peripherals",
+        "Electronic Equipment, Instruments & Components",
+        "Semiconductors & Semiconductor Equipment"
+      ]
+    },
+    {
+      "name": "Communication Services",
+      "industries": [
+        "Diversified Telecommunication Services",
+        "Wireless Telecommunication Services",
+        "Media",
+        "Entertainment",
+        "Interactive Media & Services"
+      ]
+    },
+    {
+      "name": "Utilities",
+      "industries": [
+        "Electric Utilities",
+        "Gas Utilities",
+        "Multi-Utilities",
+        "Water Utilities",
+        "Independent Power and Renewable Electricity Producers"
+      ]
+    },
+    {
+      "name": "Real Estate",
+      "industries": [
+        "Diversified REITs",
+        "Industrial REITs",
+        "Hotel & Resort REITs",
+        "Office REITs",
+        "Health Care REITs",
+        "Residential REITs",
+        "Retail REITs",
+        "Specialized REITs",
+        "Real Estate Management & Development"
+      ]
+    }
   ]
 }

@@ -2,7 +2,14 @@ import { CACHE_TAGS } from "@/lib/cache-tags"
 import { unstable_cache } from "next/cache"
 import { cache } from "react"
 import { getBlogPostsWithRelatedCaseIds } from "@/lib/data-blog"
-import { getIndustryMetadata, type IndustryMetadata } from "@/lib/industry-metadata"
+import gicsWhitelist from "@/data/gics-industries.json"
+import {
+  DEFAULT_SECTOR_ACCENT,
+  getIndustryMetadata,
+  getSectorAccent,
+  getSectorSearchName,
+  type IndustryMetadata,
+} from "@/lib/industry-metadata"
 import { getCachedUseCasesCatalogRows, getUseCasesCatalogRows } from "@/lib/data"
 import type { BlogPostRelatedItem } from "@/lib/types-blog"
 import type { UseCaseCatalogRow } from "@/lib/types"
@@ -278,3 +285,121 @@ async function loadIndustryDetail(slug: string): Promise<IndustryDetail | null> 
 
 /** generateMetadata and the page both call this in one request; cache() makes it one computation. */
 export const getIndustryDetail = cache(loadIndustryDetail)
+
+export type Sector = {
+  name: string
+  slug: string
+  accent: string
+  industries: string[]
+}
+
+export const SECTORS: Sector[] = gicsWhitelist.sectors.map((sector) => {
+  const name = getSectorSearchName(sector.name)
+  return {
+    name,
+    slug: slugifyTaxonomyValue(name),
+    accent: getSectorAccent(sector.name),
+    industries: sector.industries,
+  }
+})
+
+export function getSectorForIndustry(industry: string): Sector | undefined {
+  return SECTORS.find((sector) => sector.industries.includes(industry))
+}
+
+export type SectorDetail = {
+  name: string
+  slug: string
+  accent: string
+  summary: string
+  useCaseCount: number
+  companyCount: number
+  countryCount: number
+  latestUpdatedAt: string | null
+  industries: (CountItem & { href: string })[]
+  topCompanies: CountItem[]
+  relatedCountries: CountItem[]
+  recentUseCases: UseCaseCatalogRow[]
+  allUseCases: UseCaseCatalogRow[]
+}
+
+async function loadSectorDetail(slug: string): Promise<SectorDetail | null> {
+  const sector = SECTORS.find((item) => item.slug === slug)
+  if (!sector) return null
+
+  const members = new Set(sector.industries)
+  const rows = (await getCachedUseCasesCatalogRows()).filter((row) => members.has(cleanValue(row.industry)))
+  if (rows.length === 0) return null
+
+  const companies = rows.map(rowCompanyName)
+  const countries = rows.map((row) => cleanValue(row.country))
+  const topCompanies = countBy(companies).slice(0, 8)
+  const relatedCountries = countBy(countries).slice(0, 8)
+  const useCaseCount = rows.length
+  const companyCount = uniqueCount(companies)
+  const countryCount = uniqueCount(countries)
+
+  return {
+    name: sector.name,
+    slug: sector.slug,
+    accent: sector.accent,
+    summary: buildIndustrySummaryText({
+      name: sector.name,
+      useCaseCount,
+      companyCount,
+      countryCount,
+      relatedCountries,
+      topCompanies,
+    }),
+    useCaseCount,
+    companyCount,
+    countryCount,
+    latestUpdatedAt: latestTimestamp(rows),
+    industries: countBy(rows.map((row) => cleanValue(row.industry))).map((item) => ({
+      ...item,
+      href: `/industries/${slugifyTaxonomyValue(item.name)}`,
+    })),
+    topCompanies,
+    relatedCountries,
+    recentUseCases: sortRecentRows(rows).slice(0, 8),
+    allUseCases: rows,
+  }
+}
+
+export const getSectorDetail = cache(loadSectorDetail)
+
+export type SectorGroup = {
+  name: string
+  slug?: string
+  accent: string
+  useCaseCount: number
+  industries: { name: string; slug: string; useCaseCount: number }[]
+}
+
+export function groupIndustriesBySector(industries: IndustrySummary[]): SectorGroup[] {
+  const toGroup = (name: string, accent: string, members: IndustrySummary[], slug?: string): SectorGroup => ({
+    name,
+    slug,
+    accent,
+    useCaseCount: members.reduce((sum, industry) => sum + industry.useCaseCount, 0),
+    industries: members.map(({ name: industryName, slug: industrySlug, useCaseCount }) => ({
+      name: industryName,
+      slug: industrySlug,
+      useCaseCount,
+    })),
+  })
+
+  const groups = SECTORS.map((sector) =>
+    toGroup(
+      sector.name,
+      sector.accent,
+      industries.filter((industry) => sector.industries.includes(industry.name)),
+      sector.slug,
+    ),
+  )
+    .filter((group) => group.industries.length > 0)
+    .sort((a, b) => b.useCaseCount - a.useCaseCount)
+
+  const other = industries.filter((industry) => !getSectorForIndustry(industry.name))
+  return other.length > 0 ? [...groups, toGroup("Other", DEFAULT_SECTOR_ACCENT, other)] : groups
+}

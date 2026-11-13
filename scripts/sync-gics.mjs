@@ -28,17 +28,27 @@ try {
 
 const industries = []
 const exceptions = []
+const sectors = []
 let inExceptions = false
 
 for (const line of markdown.split("\n")) {
   const heading = line.match(/^##\s+(.*?)\s*$/)
   if (heading) {
     inExceptions = heading[1] === EXCEPTIONS_HEADING
+    if (!inExceptions) sectors.push({ name: heading[1], industries: [] })
     continue
   }
   const bullet = line.match(/^-\s+(.*?)\s*$/)
-  if (bullet) (inExceptions ? exceptions : industries).push(bullet[1])
+  if (!bullet) continue
+  if (inExceptions) exceptions.push(bullet[1])
+  else {
+    industries.push(bullet[1])
+    sectors[sectors.length - 1].industries.push(bullet[1])
+  }
 }
+
+const EXPECTED_SECTORS = 11
+const gicsSectors = sectors.filter((sector) => sector.industries.length > 0)
 
 const fail = (message) => {
   console.error(`${message}\nSource: ${SOURCE}\nNothing was written.`)
@@ -47,6 +57,8 @@ const fail = (message) => {
 
 if (industries.length !== EXPECTED_INDUSTRIES)
   fail(`Expected ${EXPECTED_INDUSTRIES} GICS L3 industries, parsed ${industries.length}.`)
+if (gicsSectors.length !== EXPECTED_SECTORS)
+  fail(`Expected ${EXPECTED_SECTORS} GICS sectors, parsed ${gicsSectors.length}.`)
 if (exceptions.length !== EXPECTED_EXCEPTIONS)
   fail(`Expected ${EXPECTED_EXCEPTIONS} non-GICS exceptions, parsed ${exceptions.length}.`)
 
@@ -54,5 +66,5 @@ const all = [...industries, ...exceptions]
 const duplicates = all.filter((value, i) => all.indexOf(value) !== i)
 if (duplicates.length) fail(`Duplicate values: ${duplicates.join(", ")}`)
 
-writeFileSync(OUT, `${JSON.stringify({ _source: SOURCE, industries, exceptions }, null, 2)}\n`)
+writeFileSync(OUT, `${JSON.stringify({ _source: SOURCE, industries, exceptions, sectors: gicsSectors }, null, 2)}\n`)
 console.log(`Wrote ${industries.length} industries + ${exceptions.length} exceptions to ${OUT}`)

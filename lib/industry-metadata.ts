@@ -54,7 +54,7 @@ export function getIndustryMetadata(slug: string): IndustryMetadata {
 
 const INDUSTRY_SEARCH_NAMES: Record<string, string> = {
   banks: "Banking",
-  "health-care-providers-and-services": "Healthcare",
+  "health-care-providers-and-services": "Healthcare Providers",
   "public-administration": "Government",
   "diversified-telecommunication-services": "Telecom",
   automobiles: "Automotive",
@@ -63,4 +63,38 @@ const INDUSTRY_SEARCH_NAMES: Record<string, string> = {
 
 export function getIndustrySearchName(slug: string, name: string): string {
   return INDUSTRY_SEARCH_NAMES[slug] ?? name
+}
+
+const SECTOR_SEARCH_NAMES: Record<string, string> = {
+  "Information Technology": "Technology",
+  "Health Care": "Healthcare",
+  Financials: "Finance",
+  Industrials: "Manufacturing & Industrials",
+  "Consumer Discretionary": "Consumer & Retail",
+  "Communication Services": "Telecom & Media",
+  "Consumer Staples": "Food & Consumer Goods",
+}
+
+export function getSectorSearchName(gicsSector: string): string {
+  return SECTOR_SEARCH_NAMES[gicsSector] ?? gicsSector
+}
+
+const SECTOR_ACCENTS: Record<string, string> = {
+  "Information Technology": "#38bdf8",
+  "Health Care": "#43cc93",
+  Financials: "#facc15",
+  Industrials: "#fb923c",
+  "Consumer Discretionary": "#f472b6",
+  "Communication Services": "#a78bfa",
+  Utilities: "#2dd4bf",
+  "Consumer Staples": "#a3e635",
+  Materials: "#e879f9",
+  Energy: "#f87171",
+  "Real Estate": "#818cf8",
+}
+
+export const DEFAULT_SECTOR_ACCENT = "#94a3b8"
+
+export function getSectorAccent(gicsSector: string): string {
+  return SECTOR_ACCENTS[gicsSector] ?? DEFAULT_SECTOR_ACCENT
 }

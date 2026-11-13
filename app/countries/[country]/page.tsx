@@ -135,6 +135,7 @@ export default async function CountryDetailPage({ params }: { params: Promise<Pa
           rows={detail.allUseCases}
           title={`All ${detail.name} use cases`}
           description={`Every ${detail.name} deployment tracked in the catalog, A-Z.`}
+          meta="industry"
         />
       </div>
 

@@ -110,6 +110,7 @@ export function UseCasesTableFromUrl({
     // No parameters is the common case: leave the prerendered render in place
     // rather than remounting the whole table for nothing.
     if (!read.hasAny) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of window.location.search after hydration so the prerendered table matches the server HTML; it must not track later URL writes, which would remount the table
     setFromUrl({ state: read.state, caseId: read.caseId })
   }, [])
 

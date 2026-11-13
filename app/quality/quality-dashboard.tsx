@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   AlertTriangle,
   Building2,
-  CheckCircle2,
   Database,
   Filter,
   RefreshCw,
@@ -146,12 +145,6 @@ function statusTone(rate: number) {
   }
 }
 
-function severityChip(severity: Severity) {
-  if (severity === "critical") return "border-red-400/25 bg-red-400/10 text-red-200"
-  if (severity === "warning") return "border-amber-300/25 bg-amber-300/10 text-amber-100"
-  return "border-cyan-300/25 bg-cyan-300/10 text-cyan-100"
-}
-
 function severityLabel(severity: Severity) {
   if (severity === "critical") return "High"
   if (severity === "warning") return "Medium"
@@ -193,7 +186,6 @@ function TableSummaryCard({
   highFailures,
   mediumFailures,
   lowFailures,
-  rules,
 }: {
   table: TableName
   records: number
@@ -456,23 +448,29 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
   const [severity, setSeverity] = useState<Severity | "All">("All")
   const [showOnlyIssues, setShowOnlyIssues] = useState(true)
 
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await fetch("/api/quality", { cache: "no-store" })
-      if (!response.ok) throw new Error(`Quality API returned ${response.status}`)
-      setData(await response.json())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load data quality results")
-    } finally {
-      setLoading(false)
-    }
+  const loadData = useCallback(() => {
+    return fetch("/api/quality", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Quality API returned ${response.status}`)
+        setData(await response.json())
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load data quality results")
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
 
+  const fetchData = useCallback(() => {
+    setLoading(true)
+    setError(null)
+    return loadData()
+  }, [loadData])
+
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    loadData()
+  }, [loadData])
 
   const filteredRules = useMemo(() => {
     return (data?.rules ?? []).filter((rule) => {
@@ -523,8 +521,6 @@ export function QualityDashboard({ latestDataUpdateCet }: { latestDataUpdateCet:
   }
 
   const scoreTone = statusTone(data?.score ?? 100)
-  const useCaseScoreTone = statusTone(data?.scores.useCases ?? 100)
-  const companyScoreTone = statusTone(data?.scores.companies ?? 100)
   const useCaseWeight = data?.scores.weights?.useCases ?? 90
   const companyWeight = data?.scores.weights?.companies ?? 10
   const useCaseCriticalFailures = tableRules["Use Cases"]

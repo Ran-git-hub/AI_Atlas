@@ -414,7 +414,7 @@ export function AdminNewsTable({ items: rawItems }: { items: NewsItem[] }) {
         <div className="mb-3 flex flex-wrap gap-1.5">
           {search.trim() ? (
             <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/5 px-2.5 py-0.5 text-xs text-[#d0d0d0]">
-              Search: "{search.trim()}"
+              Search: &quot;{search.trim()}&quot;
               <button
                 onClick={() => setSearch("")}
                 className="ml-0.5 rounded-full p-0.5 text-[#8a8a8a] hover:text-white"

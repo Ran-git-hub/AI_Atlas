@@ -141,7 +141,7 @@ function AtlasTake({
             and <UseCaseTextLink id={relatedUseCases[1].id} label={relatedUseCases[1].label} onUseCaseClick={onUseCaseClick} />
           </>
         ) : null}
-        . Read next to "{truncatePhrase(relatedNews[0], 86)}", it suggests the same pressure is showing up
+        . Read next to &quot;{truncatePhrase(relatedNews[0], 86)}&quot;, it suggests the same pressure is showing up
         in both market news and implemented use cases.
       </p>
     )
@@ -163,7 +163,7 @@ function AtlasTake({
     return (
       <p className="text-base leading-relaxed text-slate-300">
         <strong className="font-semibold text-slate-100">AI Atlas take:</strong> No close published use-case match
-        stands out yet, but this connects to recent news such as "{truncatePhrase(relatedNews[0], 90)}". For AI
+        stands out yet, but this connects to recent news such as &quot;{truncatePhrase(relatedNews[0], 90)}&quot;. For AI
         Atlas, the next test is whether this {topic} signal starts appearing in customer deployments rather than
         remaining a vendor or builder narrative.
       </p>

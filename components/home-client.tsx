@@ -112,6 +112,7 @@ export function HomeClient({
   const [searchIncludeCompany, setSearchIncludeCompany] = useState(true)
   const [searchIncludeUseCase, setSearchIncludeUseCase] = useState(true)
   const [searchRecentOnly, setSearchRecentOnly] = useState(false)
+  const [recentOnlyNow, setRecentOnlyNow] = useState(0)
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([])
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [statsPanelOpen, setStatsPanelOpen] = useState(false)
@@ -122,8 +123,8 @@ export function HomeClient({
     return () => clearTimeout(t)
   }, [searchQuery])
 
-  const safeCompanies = companies || []
-  const safeUseCases = useCases || []
+  const safeCompanies = useMemo(() => companies || [], [companies])
+  const safeUseCases = useMemo(() => useCases || [], [useCases])
 
   /**
    * `/?useCaseId=…` opens that case's panel.
@@ -140,6 +141,7 @@ export function HomeClient({
     if (!raw) return
     const uc = safeUseCases.find((u) => String(u.id) === raw)
     if (!uc) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of window.location.search after hydration; initialising state from it during render would mismatch the server HTML
     setSelectedCompany(null)
     setUseCaseReturnCompany(null)
     setSelectedUseCase(uc)
@@ -218,12 +220,16 @@ export function HomeClient({
 
   const displayUseCases = useMemo(() => {
     if (!searchRecentOnly) return filteredUseCases
-    const now = Date.now()
     return filteredUseCases.filter((u) => {
       const ts = Date.parse(u.updated_at ?? u.created_at ?? "")
-      return Number.isFinite(ts) && now - ts <= 24 * 60 * 60 * 1000
+      return Number.isFinite(ts) && recentOnlyNow - ts <= 24 * 60 * 60 * 1000
     })
-  }, [filteredUseCases, searchRecentOnly])
+  }, [filteredUseCases, searchRecentOnly, recentOnlyNow])
+
+  const handleIncludeRecent24hOnlyChange = useCallback((next: boolean) => {
+    if (next) setRecentOnlyNow(Date.now())
+    setSearchRecentOnly(next)
+  }, [])
 
   const detailOpen = !!(selectedCompany || selectedUseCase)
 
@@ -407,8 +413,6 @@ export function HomeClient({
     setStatsPanelOpen(false)
   }, [])
 
-  const footerLastUpdated = "2026-03-23"
-
   return (
     <main className="relative w-full min-h-screen bg-[#020a18]">
       {/* Stars background */}
@@ -441,7 +445,7 @@ export function HomeClient({
         includeRecent24hOnly={searchRecentOnly}
         onIncludeCompanyChange={setSearchIncludeCompany}
         onIncludeUseCaseChange={setSearchIncludeUseCase}
-        onIncludeRecent24hOnlyChange={setSearchRecentOnly}
+        onIncludeRecent24hOnlyChange={handleIncludeRecent24hOnlyChange}
         selectedIndustries={selectedIndustries}
         industryOptions={industryOptions}
         onIndustryToggle={handleIndustryToggle}

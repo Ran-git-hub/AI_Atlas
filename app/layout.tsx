@@ -64,7 +64,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        {/* eslint-disable-next-line react/no-danger */}
         <script {...jsonLdProps(siteSchema())} />
         <AnnouncementBar />
         {children}

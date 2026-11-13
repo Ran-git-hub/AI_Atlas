@@ -25,6 +25,7 @@ export function InteractionTips() {
     try {
       const persisted = window.localStorage.getItem(INTERACTION_TIPS_STORAGE_KEY)
       if (persisted === "1") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is read after mount so the server-rendered (expanded) tips match on hydration
         setCollapsed(true)
       }
     } catch {

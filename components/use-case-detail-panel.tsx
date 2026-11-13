@@ -54,14 +54,23 @@ export function UseCaseDetailPanel({
   const [lazyFieldEntries, setLazyFieldEntries] = useState<UseCaseFieldEntry[] | null>(null)
   // The whole table is empty until the fetch lands now, not just its content
   // row, so the panel has to say so rather than showing an empty frame.
-  const [entriesLoading, setEntriesLoading] = useState(false)
+  const [entriesLoading, setEntriesLoading] = useState(() => !useCase.fieldEntries)
+  const [prevEntriesSource, setPrevEntriesSource] = useState({
+    id: useCase.id,
+    fieldEntries: useCase.fieldEntries,
+  })
+  if (prevEntriesSource.id !== useCase.id || prevEntriesSource.fieldEntries !== useCase.fieldEntries) {
+    setPrevEntriesSource({ id: useCase.id, fieldEntries: useCase.fieldEntries })
+    if (!useCase.fieldEntries) {
+      setLazyFieldEntries(null)
+      setEntriesLoading(true)
+    }
+  }
 
   const displayEntries = useCase.fieldEntries ?? lazyFieldEntries ?? []
 
   useEffect(() => {
     if (useCase.fieldEntries) return
-    setLazyFieldEntries(null)
-    setEntriesLoading(true)
     let cancelled = false
     fetch(`/api/use-cases/${encodeURIComponent(useCase.id)}`)
       .then((r) => (r.ok ? r.json() : null))

@@ -1715,7 +1715,6 @@ export function MethodologyBody() {
     if (!root || started.current) return
     started.current = true
     try {
-      // eslint-disable-next-line no-new-func
       new Function("ROOT", "__el", BEHAVIOUR)(root, (id: string) =>
         root.querySelector<HTMLElement>(`#${id}`),
       )

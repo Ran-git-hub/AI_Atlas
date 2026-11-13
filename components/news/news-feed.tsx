@@ -186,7 +186,7 @@ export function NewsFeed({
         }`}
       >
         <p className="text-slate-400">
-          Showing {paginated.length} / {filtered.length} filtered news items
+          Showing {paginated.length} / {filtered.length} filtered signals
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <Select
@@ -247,7 +247,7 @@ export function NewsFeed({
         </div>
         <h2 className="mb-1 text-lg font-semibold text-[#f5f5f5]">No news yet</h2>
         <p className="max-w-sm text-xs text-slate-400">
-          News will appear here once OpenClaw starts publishing records to the database.
+          Signals will appear here once they are published.
         </p>
       </div>
     )

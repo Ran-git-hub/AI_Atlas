@@ -12,7 +12,7 @@ const newsShellPad =
   "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
 
 export const metadata = pageMetadata({
-  title: "AI News — AI Atlas",
+  title: "AI Signals — AI Atlas",
   description:
     "AI Atlas curates AI industry updates from leading media and builder channels, then connects them with published use cases for editorial context.",
   path: "/news",
@@ -42,7 +42,7 @@ export default async function NewsPage() {
         <div className={newsShellPad}>
           <AtlasAppTopRow activeView="news" />
           <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-4">
-            <h1 className="mb-1 text-2xl font-bold text-[#f5f5f5]">AI News</h1>
+            <h1 className="mb-1 text-2xl font-bold text-[#f5f5f5]">AI Signals</h1>
             <p className="text-pretty text-sm text-slate-400">
               AI Atlas curates AI industry updates from{" "}
               <NewsSourcesButton />{" "}

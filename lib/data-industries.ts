@@ -3,7 +3,13 @@ import { unstable_cache } from "next/cache"
 import { cache } from "react"
 import { getBlogPostsWithRelatedCaseIds } from "@/lib/data-blog"
 import gicsWhitelist from "@/data/gics-industries.json"
-import { getIndustryMetadata, getSectorSearchName, type IndustryMetadata } from "@/lib/industry-metadata"
+import {
+  DEFAULT_SECTOR_ACCENT,
+  getIndustryMetadata,
+  getSectorAccent,
+  getSectorSearchName,
+  type IndustryMetadata,
+} from "@/lib/industry-metadata"
 import { getCachedUseCasesCatalogRows, getUseCasesCatalogRows } from "@/lib/data"
 import type { BlogPostRelatedItem } from "@/lib/types-blog"
 import type { UseCaseCatalogRow } from "@/lib/types"
@@ -283,12 +289,18 @@ export const getIndustryDetail = cache(loadIndustryDetail)
 export type Sector = {
   name: string
   slug: string
+  accent: string
   industries: string[]
 }
 
 export const SECTORS: Sector[] = gicsWhitelist.sectors.map((sector) => {
   const name = getSectorSearchName(sector.name)
-  return { name, slug: slugifyTaxonomyValue(name), industries: sector.industries }
+  return {
+    name,
+    slug: slugifyTaxonomyValue(name),
+    accent: getSectorAccent(sector.name),
+    industries: sector.industries,
+  }
 })
 
 export function getSectorForIndustry(industry: string): Sector | undefined {
@@ -298,6 +310,7 @@ export function getSectorForIndustry(industry: string): Sector | undefined {
 export type SectorDetail = {
   name: string
   slug: string
+  accent: string
   summary: string
   useCaseCount: number
   companyCount: number
@@ -329,6 +342,7 @@ async function loadSectorDetail(slug: string): Promise<SectorDetail | null> {
   return {
     name: sector.name,
     slug: sector.slug,
+    accent: sector.accent,
     summary: buildIndustrySummaryText({
       name: sector.name,
       useCaseCount,
@@ -353,3 +367,39 @@ async function loadSectorDetail(slug: string): Promise<SectorDetail | null> {
 }
 
 export const getSectorDetail = cache(loadSectorDetail)
+
+export type SectorGroup = {
+  name: string
+  slug?: string
+  accent: string
+  useCaseCount: number
+  industries: { name: string; slug: string; useCaseCount: number }[]
+}
+
+export function groupIndustriesBySector(industries: IndustrySummary[]): SectorGroup[] {
+  const toGroup = (name: string, accent: string, members: IndustrySummary[], slug?: string): SectorGroup => ({
+    name,
+    slug,
+    accent,
+    useCaseCount: members.reduce((sum, industry) => sum + industry.useCaseCount, 0),
+    industries: members.map(({ name: industryName, slug: industrySlug, useCaseCount }) => ({
+      name: industryName,
+      slug: industrySlug,
+      useCaseCount,
+    })),
+  })
+
+  const groups = SECTORS.map((sector) =>
+    toGroup(
+      sector.name,
+      sector.accent,
+      industries.filter((industry) => sector.industries.includes(industry.name)),
+      sector.slug,
+    ),
+  )
+    .filter((group) => group.industries.length > 0)
+    .sort((a, b) => b.useCaseCount - a.useCaseCount)
+
+  const other = industries.filter((industry) => !getSectorForIndustry(industry.name))
+  return other.length > 0 ? [...groups, toGroup("Other", DEFAULT_SECTOR_ACCENT, other)] : groups
+}

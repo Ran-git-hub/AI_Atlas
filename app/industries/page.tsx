@@ -1,13 +1,15 @@
+import type { CSSProperties } from "react"
 import { getCachedLatestAtlasDataUpdateCetDisplay } from "@/lib/data"
-import Link from "next/link"
-import { getCachedIndustrySummaries, SECTORS } from "@/lib/data-industries"
-import { AtlasAppTopRow } from "@/components/atlas-app-top-row"
+import { getCachedIndustrySummaries, groupIndustriesBySector } from "@/lib/data-industries"
 import { AtlasSiteFooter } from "@/components/atlas-site-footer"
-import { IndustrySummaryCard } from "@/components/industries/industry-summary-card"
-import { IndustryUseCaseOverview } from "@/components/industries/industry-use-case-overview"
+import { HubHeading } from "@/components/industries/hub-heading"
+import { HubHero } from "@/components/industries/hub-hero"
+import { SectorPanel } from "@/components/industries/sector-panel"
+import { SectorTreemap } from "@/components/industries/sector-treemap"
 import { pageMetadata } from "@/lib/page-metadata"
-const industriesShellPad =
-  "mx-auto max-w-7xl p-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))] pt-[max(1rem,env(safe-area-inset-top,0px))]"
+
+const bodyPad =
+  "mx-auto max-w-7xl px-4 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]"
 
 export const metadata = pageMetadata({
   title: "AI Use Cases By Industry — AI Atlas",
@@ -21,100 +23,57 @@ export default async function IndustriesPage() {
     getCachedLatestAtlasDataUpdateCetDisplay(),
   ])
 
+  const groups = groupIndustriesBySector(industries)
   const totalUseCases = industries.reduce((sum, industry) => sum + industry.useCaseCount, 0)
   const totalCompanies = industries.reduce((sum, industry) => sum + industry.companyCount, 0)
-  const sectorGroups = SECTORS.map((sector) => {
-    const members = industries.filter((industry) => sector.industries.includes(industry.name))
-    return {
-      sector,
-      members,
-      useCaseCount: members.reduce((sum, industry) => sum + industry.useCaseCount, 0),
-    }
-  })
-    .filter((group) => group.members.length > 0)
-    .sort((a, b) => b.useCaseCount - a.useCaseCount)
-  const otherIndustries = industries.filter((industry) => !SECTORS.some((sector) => sector.industries.includes(industry.name)))
 
   return (
     <main className="dark min-h-dvh bg-[#121212] text-[#f5f5f5]" style={{ colorScheme: "dark" }}>
-      <div className="border-b border-slate-800 bg-[#121212]">
-        <div className={industriesShellPad}>
-          <AtlasAppTopRow activeView="industries" />
-          <div className="mt-4 w-full min-w-0 border-t border-slate-800/80 pt-5">
-            <p className="mb-2 text-sm font-medium uppercase tracking-wide text-cyan-400">
-              Industry Explorer
-            </p>
-            <h1 className="mb-3 text-3xl font-bold leading-tight text-[#f5f5f5] md:text-4xl">
-              AI Use Cases By Industry
-            </h1>
-            <p className="text-pretty text-base leading-relaxed text-slate-400">
-              Browse real-world AI deployments by industry, then jump into the full use case index for deeper filtering and source-level exploration.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-sm text-slate-300">
-              <span className="rounded-full border border-slate-800 bg-[#1a1a1a] px-3 py-1.5">
-                {industries.length.toLocaleString()} industries
-              </span>
-              <span className="rounded-full border border-slate-800 bg-[#1a1a1a] px-3 py-1.5">
-                {totalUseCases.toLocaleString()} use cases
-              </span>
-              <span className="rounded-full border border-slate-800 bg-[#1a1a1a] px-3 py-1.5">
-                {totalCompanies.toLocaleString()} organization appearances
-              </span>
+      <HubHero
+        accent="#43cc93"
+        crumbs={[{ name: "AI Atlas", href: "/" }, { name: "Industries" }]}
+        eyebrow={["Industry Explorer"]}
+        titleLead="AI Use Cases"
+        titleAccent="By Industry"
+        stats={[
+          { label: "Use Cases", value: totalUseCases },
+          { label: "Sectors", value: groups.filter((group) => group.slug).length },
+          { label: "Industries", value: industries.length },
+          { label: "Organization Appearances", value: totalCompanies },
+        ]}
+      >
+        <p>
+          Browse real-world AI deployments by industry, then jump into the full use case index for deeper filtering and source-level exploration.
+        </p>
+      </HubHero>
+
+      {industries.length > 0 ? (
+        <div className={`${bodyPad} hub-sharp space-y-8 py-8`} style={{ "--accent": "#43cc93" } as CSSProperties}>
+          <section className="hidden lg:block">
+            <HubHeading aside="Tile size = use cases">Sector map</HubHeading>
+            <div className="mt-4">
+              <SectorTreemap groups={groups} />
             </div>
+          </section>
+
+          <div className="gap-4 md:columns-2 xl:columns-3 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            {groups.map((group) => (
+              <SectorPanel key={group.name} group={group} />
+            ))}
           </div>
         </div>
-      </div>
-
-      <div className="mx-auto max-w-7xl px-4 py-5 pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
-        {industries.length > 0 ? (
-          <>
-            <IndustryUseCaseOverview industries={industries} />
-            <div className="space-y-8">
-              {sectorGroups.map(({ sector, members, useCaseCount }) => (
-                <section key={sector.slug}>
-                  <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 className="text-xl font-semibold text-[#f5f5f5]">
-                      <Link href={`/sectors/${sector.slug}`} className="transition-colors hover:text-[#43cc93]">
-                        {sector.name}
-                      </Link>
-                    </h2>
-                    <Link
-                      href={`/sectors/${sector.slug}`}
-                      className="text-sm font-medium text-[#43cc93] transition-colors hover:text-[#7ee2b5]"
-                    >
-                      {useCaseCount.toLocaleString()} use cases →
-                    </Link>
-                  </div>
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {members.map((industry) => (
-                      <IndustrySummaryCard key={industry.slug} industry={industry} />
-                    ))}
-                  </div>
-                </section>
-              ))}
-              {otherIndustries.length > 0 ? (
-                <section>
-                  <h2 className="mb-3 text-xl font-semibold text-[#f5f5f5]">Other</h2>
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                    {otherIndustries.map((industry) => (
-                      <IndustrySummaryCard key={industry.slug} industry={industry} />
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-            </div>
-          </>
-        ) : (
+      ) : (
+        <div className={`${bodyPad} py-8`}>
           <div className="rounded-xl border border-slate-800 bg-[#1a1a1a] px-5 py-12 text-center">
             <h2 className="text-xl font-semibold text-[#f5f5f5]">No industries yet</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
               Industry pages will appear once use cases include industry metadata.
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="mx-auto mt-8 max-w-7xl px-4 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]">
+      <div className={`${bodyPad} mt-8 pb-[max(1.25rem,env(safe-area-inset-bottom,0px))]`}>
         <AtlasSiteFooter latestDataUpdateCet={latestDataUpdateCet} layout="inline" />
       </div>
     </main>

@@ -78,3 +78,23 @@ const SECTOR_SEARCH_NAMES: Record<string, string> = {
 export function getSectorSearchName(gicsSector: string): string {
   return SECTOR_SEARCH_NAMES[gicsSector] ?? gicsSector
 }
+
+const SECTOR_ACCENTS: Record<string, string> = {
+  "Information Technology": "#38bdf8",
+  "Health Care": "#43cc93",
+  Financials: "#facc15",
+  Industrials: "#fb923c",
+  "Consumer Discretionary": "#f472b6",
+  "Communication Services": "#a78bfa",
+  Utilities: "#2dd4bf",
+  "Consumer Staples": "#a3e635",
+  Materials: "#e879f9",
+  Energy: "#f87171",
+  "Real Estate": "#818cf8",
+}
+
+export const DEFAULT_SECTOR_ACCENT = "#94a3b8"
+
+export function getSectorAccent(gicsSector: string): string {
+  return SECTOR_ACCENTS[gicsSector] ?? DEFAULT_SECTOR_ACCENT
+}

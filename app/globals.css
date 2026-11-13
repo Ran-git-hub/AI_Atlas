@@ -277,3 +277,76 @@ body::-webkit-scrollbar-thumb:hover {
   0%   { transform: translateX(100vw); }
   100% { transform: translateX(-100%); }
 }
+
+@keyframes hub-grow {
+  from { transform: scaleX(0); }
+}
+
+@keyframes hub-rise {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+.hub-grow {
+  transform-origin: left;
+  animation: hub-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hub-rise {
+  animation: hub-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-grow,
+  .hub-rise {
+    animation: none;
+  }
+}
+
+.hub-sharp * {
+  border-radius: 0 !important;
+}
+
+.hub-frame {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #141414;
+}
+
+.hub-frame::before,
+.hub-frame::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent, #43cc93);
+  pointer-events: none;
+}
+
+.hub-frame::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.hub-frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.hub-cells {
+  -webkit-mask-image: repeating-linear-gradient(to right, #000 0 5px, transparent 5px 7px);
+  mask-image: repeating-linear-gradient(to right, #000 0 5px, transparent 5px 7px);
+}
+
+.hub-ruler {
+  height: 7px;
+  background-image:
+    repeating-linear-gradient(to right, var(--accent, #43cc93) 0 1px, transparent 1px 110px),
+    repeating-linear-gradient(to right, rgba(255, 255, 255, 0.28) 0 1px, transparent 1px 11px);
+  background-size: 100% 7px, 100% 3px;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+}

@@ -39,7 +39,7 @@ export function NewsSourcesButton() {
         <DialogContent className="border-[#2f2f2f] bg-[#1c1c1c] text-[#f5f5f5] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-[#f5f5f5]">
-              News Sources
+              Media Sources
             </DialogTitle>
             <p className="text-sm text-[#8a8a8a]">
               AI Atlas curates updates from these 10 sources.

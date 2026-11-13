@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 export type AtlasView = "globe" | "use-cases" | "industries" | "blog" | "news"
 
 const VIEWS: Array<{ id: AtlasView; label: string; href: string }> = [
-  { id: "news", label: "News", href: "/news" },
+  { id: "news", label: "Signals", href: "/news" },
   { id: "globe", label: "Globe", href: "/" },
   { id: "use-cases", label: "Use Cases", href: "/use-cases" },
   { id: "industries", label: "Industries", href: "/industries" },

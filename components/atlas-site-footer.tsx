@@ -45,7 +45,7 @@ const FOOTER_COLUMNS: Array<{
   {
     title: "Updates",
     links: [
-      { label: "News", href: "/news" },
+      { label: "Signals", href: "/news" },
       { label: "Blog", href: "/blog" },
     ],
   },

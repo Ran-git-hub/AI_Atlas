@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { X, ExternalLink, MapPin, Building2, Calendar, Layers } from "lucide-react"
 import type { CompanyWithCoords, UseCaseWithCoords } from "@/lib/types"
 import { isUseCasePendingValidation, useCaseDisplayName } from "@/lib/types"
@@ -70,10 +70,20 @@ export function CompanyDetailPanel({
   const [logoError, setLogoError] = useState(false)
   const faviconUrl = getGoogleFaviconUrl(company.website_url)
 
-  useEffect(() => {
+  const [prevImageSource, setPrevImageSource] = useState({
+    id: company.id,
+    websiteUrl: company.website_url,
+    logoUrl: company.logo_url,
+  })
+  if (
+    prevImageSource.id !== company.id ||
+    prevImageSource.websiteUrl !== company.website_url ||
+    prevImageSource.logoUrl !== company.logo_url
+  ) {
+    setPrevImageSource({ id: company.id, websiteUrl: company.website_url, logoUrl: company.logo_url })
     setFaviconError(false)
     setLogoError(false)
-  }, [company.id, company.website_url, company.logo_url])
+  }
 
   const relatedUseCases = useMemo(
     () => relatedUseCasesForCompany(company, useCases),

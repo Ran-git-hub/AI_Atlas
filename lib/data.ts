@@ -798,9 +798,6 @@ export async function getUseCaseOgSummary(id: string): Promise<{
   }
 }
 
-/** Central Europe (legally CET in winter, CEST in summer). */
-const CENTRAL_EUROPE_TZ = "Europe/Berlin"
-
 function formatUtcMsAsCentralEurope(ms: number): string {
   return formatAtlasDateTime(ms)
 }

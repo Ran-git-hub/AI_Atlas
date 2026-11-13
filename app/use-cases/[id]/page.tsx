@@ -448,7 +448,6 @@ export default async function UseCaseDetailPage({ params }: UseCaseDetailPagePro
       style={{ colorScheme: "dark" }}
     >
       {structuredData.map((schema, index) => (
-        // eslint-disable-next-line react/no-danger
         <script key={index} {...jsonLdProps(schema)} />
       ))}
       <div className="border-b border-slate-800 bg-[#121212]">

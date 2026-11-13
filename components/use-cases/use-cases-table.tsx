@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   type ColumnDef,
@@ -145,13 +144,6 @@ function firstNonEmpty(...values: Array<string | null | undefined>): string {
     if (v) return v
   }
   return "—"
-}
-
-function isProbablyUrl(_key: string, value: string): boolean {
-  const v = value.trim()
-  if (!/^https?:\/\//i.test(v)) return false
-  if (v.includes("\n")) return false
-  return true
 }
 
 /** Default hidden when no `cols` query; order matches table columns for URL sync. */
@@ -538,7 +530,7 @@ export function UseCasesTable({
         throw err
       }
     },
-    [clearStatusOverride, setStatusOverride, toast],
+    [clearStatusOverride, setStatusOverride],
   )
 
   const [viewportWidth, setViewportWidth] = React.useState(1024)
@@ -881,7 +873,7 @@ export function UseCasesTable({
         },
       },
     ],
-    [nowMs, openDetail, tableDensity, titleColumnMinSize, titleColumnSize]
+    [nowMs, openDetail, setStatusOverride, showStatusColumn, tableDensity, titleColumnMinSize, titleColumnSize]
   )
 
   const statusFilteredRows = React.useMemo(() => {
@@ -893,6 +885,7 @@ export function UseCasesTable({
     return result
   }, [pendingOnly, statusFilter, rows])
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- known TanStack Table limitation (returns non-memoizable functions); React Compiler is not enabled in next.config.mjs, and skipping this component is the safe outcome if it is
   const table = useReactTable({
     data: statusFilteredRows,
     columns,
@@ -2068,10 +2061,11 @@ function StatusSelectCell({
 }) {
   const [currentValue, setCurrentValue] = React.useState(value)
   const [isSaving, setIsSaving] = React.useState(false)
-
-  React.useEffect(() => {
+  const [prevValue, setPrevValue] = React.useState(value)
+  if (prevValue !== value) {
+    setPrevValue(value)
     setCurrentValue(value)
-  }, [value])
+  }
 
   const handleChange = React.useCallback(
     async (next: string) => {
@@ -2108,7 +2102,7 @@ function StatusSelectCell({
         setIsSaving(false)
       }
     },
-    [currentValue, id, onChanged, toast],
+    [currentValue, id, onChanged],
   )
 
   return (

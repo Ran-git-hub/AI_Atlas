@@ -50,7 +50,6 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/ai-atlas-logo.png"
             alt="AI Atlas"

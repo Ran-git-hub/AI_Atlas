@@ -204,7 +204,7 @@ export function WeeklyOpsIssuesView({
         <Group title="How an issue is assembled">
           <Steps>
             <Step n="01" title="Every week's entries are collected">
-              Each week's <code>system_health.warnings</code>, <code>next_steps</code> and{" "}
+              Each week&apos;s <code>system_health.warnings</code>, <code>next_steps</code> and{" "}
               <code>carry_over</code> are read. A next step and the carry-over that continues it
               the following week are the same issue, not two.
             </Step>

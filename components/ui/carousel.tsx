@@ -95,6 +95,7 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial read of canScrollPrev/Next from the Embla instance, which only exists after mount; later updates come from its select/reInit events
     onSelect(api)
     api.on('reInit', onSelect)
     api.on('select', onSelect)

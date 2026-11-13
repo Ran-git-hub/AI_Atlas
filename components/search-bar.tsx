@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { Search, SlidersHorizontal, Globe, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -92,26 +92,24 @@ export function SearchBar({
 }: SearchBarProps) {
   const [listDismissed, setListDismissed] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [searchExpanded, setSearchExpanded] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
   const [recentHits, setRecentHits] = useState<UnifiedSearchHit[]>([])
   const [brokenCompanyImages, setBrokenCompanyImages] = useState<Record<string, string>>({})
   const rootRef = useRef<HTMLDivElement>(null)
-  const prevValueRef = useRef(value)
+  const [prevValue, setPrevValue] = useState(value)
+  const listboxId = useId()
 
   const trimmed = value.trim()
   const showList = trimmed.length > 0 && !listDismissed
   const showRecentList = inputFocused && trimmed.length === 0 && recentHits.length > 0
   const showIndustryFilter = false
 
-  useEffect(() => {
-    if (value !== prevValueRef.current) {
-      prevValueRef.current = value
-      if (value.trim().length > 0) {
-        setListDismissed(false)
-      }
+  if (value !== prevValue) {
+    setPrevValue(value)
+    if (value.trim().length > 0) {
+      setListDismissed(false)
     }
-  }, [value])
+  }
 
   useEffect(() => {
     try {
@@ -126,6 +124,7 @@ export function SearchBar({
           v.item &&
           (typeof v.item.id === "string" || typeof v.item.id === "number")
       )
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is read after mount so the server render (no recent hits) matches on hydration
       setRecentHits(valid.slice(0, MAX_RECENT_HITS))
     } catch {
       // Ignore malformed localStorage payloads.
@@ -141,7 +140,6 @@ export function SearchBar({
       if (trimmed.length > 0) {
         setListDismissed(true)
       }
-      setSearchExpanded(false)
       setInputFocused(false)
     }
     document.addEventListener("mousedown", onDocDown)
@@ -235,16 +233,13 @@ export function SearchBar({
                 onFocus={() => {
                   setInputFocused(true)
                   setListDismissed(false)
-                  setSearchExpanded(true)
                 }}
                 onClick={() => {
-                  setSearchExpanded(true)
                   if (trimmed.length > 0) setListDismissed(false)
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
                     setListDismissed(true)
-                    setSearchExpanded(false)
                     setInputFocused(false)
                     ;(e.target as HTMLInputElement).blur()
                   }
@@ -255,7 +250,9 @@ export function SearchBar({
                   trimmed ? "pr-20" : "pr-4",
                   showList || showRecentList ? "border-cyan-500/40 rounded-b-none border-b-0" : ""
                 )}
+                role="combobox"
                 aria-autocomplete="list"
+                aria-controls={listboxId}
                 aria-expanded={showList || showRecentList}
               />
               {trimmed ? (
@@ -275,6 +272,7 @@ export function SearchBar({
               {showList || showRecentList ? (
                 <div
                   className="absolute left-0 right-0 top-full z-[55] rounded-b-lg border border-t-0 border-cyan-500/30 bg-slate-900/95 backdrop-blur-md shadow-lg shadow-black/40"
+                  id={listboxId}
                   role="listbox"
                 >
                     <div
@@ -323,6 +321,7 @@ export function SearchBar({
                                 key={`recent-${hit.type}-${hit.item.id}`}
                                 type="button"
                                 role="option"
+                                aria-selected={false}
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => handleSelect(hit)}
                                 className={cn(
@@ -420,6 +419,7 @@ export function SearchBar({
                               key={`${hit.type}-${hit.item.id}`}
                               type="button"
                               role="option"
+                              aria-selected={false}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleSelect(hit)}
                               className={cn(

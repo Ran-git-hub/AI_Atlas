@@ -71,7 +71,6 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <div className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/ai-atlas-logo.png"
               alt="AI Atlas"

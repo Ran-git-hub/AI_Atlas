@@ -18,6 +18,12 @@ export default defineConfig([
       // optimizer, which is billed per source image and needs each host
       // allow-listed, so plain <img> is the deliberate choice.
       "@next/next/no-img-element": "off",
+      // A leading underscore marks a binding kept on purpose, such as the
+      // next/font loaders in app/layout.tsx that must be module-level consts.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { varsIgnorePattern: "^_", argsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
     },
   },
   globalIgnores([

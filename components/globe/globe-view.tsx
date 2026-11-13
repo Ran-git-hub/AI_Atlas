@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from "react"
 import dynamic from "next/dynamic"
 import * as THREE from "three"
+import type { GlobeMethods } from "react-globe.gl"
 import {
   companySearchHaystack,
   useCaseSearchHaystack,
@@ -265,10 +266,10 @@ export function GlobeView({
   selectedCompanyId = null,
   selectedUseCaseId = null,
 }: GlobeViewProps) {
-  const globeRef = useRef<any>(null)
+  const globeRef = useRef<GlobeMethods | undefined>(undefined)
   const globeContainerRef = useRef<HTMLDivElement>(null)
   const controlsListenersRef = useRef<{
-    controls: { removeEventListener: (ev: string, fn: () => void) => void }
+    controls: ReturnType<GlobeMethods["controls"]>
     onStart: () => void
     onEnd: () => void
     onChange?: () => void
@@ -290,12 +291,14 @@ export function GlobeView({
   const suppressAfterControlsUntilRef = useRef(0)
   const [isClient, setIsClient] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
-  const [geoJsonData, setGeoJsonData] = useState<{ features: any[] }>({ features: [] })
+  const [geoJsonData, setGeoJsonData] = useState<{ features: object[] }>({ features: [] })
   const [markersReady, setMarkersReady] = useState(false)
   const [isUserPaused, setIsUserPaused] = useState(false)
   const [cameraAltitude, setCameraAltitude] = useState(PRAGUE_VIEW.altitude)
   const [isMobileLikeInput, setIsMobileLikeInput] = useState(false)
-  const [isTouchCapable, setIsTouchCapable] = useState(false)
+  const [isTouchCapable] = useState(
+    () => typeof window !== "undefined" && (window.navigator?.maxTouchPoints ?? 0) > 0
+  )
   const isTouchCapableRef = useRef(false)
   const [mobileAutoRotateLocked, setMobileAutoRotateLocked] = useState(false)
   const [isMobileInteracting, setIsMobileInteracting] = useState(false)
@@ -368,7 +371,9 @@ export function GlobeView({
     try {
       const globe = globeRef.current
       const renderer =
-        typeof globe?.renderer === "function" ? globe.renderer() : globe?.renderer
+        typeof globe?.renderer === "function"
+          ? globe.renderer()
+          : (globe?.renderer as unknown as THREE.WebGLRenderer | undefined)
       if (!renderer?.setPixelRatio) return
       const nextDpr = isMobileLikeInput
         ? cameraAltitude < 1.75
@@ -751,6 +756,7 @@ export function GlobeView({
   }, [companies, useCases, isClient])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount flag: the "Loading globe..." placeholder must render for one commit before the WebGL globe mounts; useSyncExternalStore would skip it on this ssr:false client-only mount
     setIsClient(true)
   }, [])
 
@@ -788,10 +794,8 @@ export function GlobeView({
 
   useEffect(() => {
     if (!isClient) return
-    const next = (window.navigator?.maxTouchPoints ?? 0) > 0
-    isTouchCapableRef.current = next
-    setIsTouchCapable(next)
-  }, [isClient])
+    isTouchCapableRef.current = isTouchCapable
+  }, [isClient, isTouchCapable])
 
   useEffect(() => {
     if (!isClient) return
@@ -1372,7 +1376,7 @@ export function GlobeView({
           ? globeRef.current.scene()
           : null
       if (!scene?.traverse) return
-      scene.traverse((obj: any) => {
+      scene.traverse((obj: THREE.Object3D & { __globeObjType?: string; material?: THREE.PointsMaterial }) => {
         if (obj?.__globeObjType !== "particles") return
         const mat = obj.material
         if (!mat) return
@@ -1463,9 +1467,8 @@ export function GlobeView({
       suppressBlankClickUntilRef.current = Date.now() + 280
       pauseRotation()
       hideSharedTooltip()
-      const isCompany = d.kind === "company"
-      const { kind: _k, ...rest } = d
-      if (isCompany) {
+      const { kind, ...rest } = d
+      if (kind === "company") {
         const c = rest as CompanyWithCoords
         const orig = companies.find((co) => String(co.id) === String(c.id))
         onCompanyClick(orig ? { ...c, lat: orig.lat, lng: orig.lng } : c)
@@ -1606,7 +1609,7 @@ export function GlobeView({
         polygonLabel={
           isMobileLikeInput
             ? () => ""
-            : (d: any) => `
+            : (d: { properties?: { NAME?: string } }) => `
         <div style="
           background: rgba(2, 10, 24, 0.9);
           backdrop-filter: blur(8px);
@@ -1701,10 +1704,10 @@ export function GlobeView({
             pauseRotation()
           hideSharedTooltip()
             const {
-              kind: _k,
+              kind,
               ...rest
             } = d
-            if (isCompany) {
+            if (kind === "company") {
               const c = rest as CompanyWithCoords
               const orig = companies.find((co) => String(co.id) === String(c.id))
               onCompanyClick(

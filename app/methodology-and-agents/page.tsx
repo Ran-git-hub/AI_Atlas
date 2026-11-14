@@ -25,7 +25,7 @@ export const metadata = pageMetadata({
     type: "image/png",
     width: 1200,
     height: 630,
-    alt: "The multi-agent architecture behind AI Atlas: four pipeline stages fed by a shared reference layer, the discards that feed back into search, and a human review before anything is published",
+    alt: "Agents find it. Harnesses filter it. A human publishes it. Of about 11,400 candidates found, 1,718 passed validation and 700 were published on AI Atlas.",
   },
   // A written piece, not a landing page. LinkedIn's rich link card is built by
   // an "articleshare" pipeline that wants a type and a date; without them the

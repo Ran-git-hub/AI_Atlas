@@ -3,1725 +3,1026 @@
 import { useEffect, useRef } from "react"
 
 import "./methodology.css"
+import "./methodology-redesign.css"
+import { CANVAS_JS, DATA_JS } from "./methodology-data"
+import { MARKUP } from "./methodology-markup"
 
 /**
  * The methodology page body.
  *
- * Markup and behaviour are authored as one self-contained document
- * (`reports/daily-ai-push-pipeline-onepage.html`) because the page is a single
- * designed artefact — an interactive pan/zoom map, a scroll-spy nav and two SVG
- * charts sharing one palette. Re-expressing 79 KB of static markup as JSX would
- * buy nothing and risk transcription errors, so it is injected verbatim and the
- * behaviour runs once on mount.
+ * The page's thesis is a funnel (about 11,400 found, 1,718 validated, 700 published), so
+ * the page is that funnel: a fixed field of 1,140 dots - one per ten candidates - is
+ * searched, filtered, recorded and reviewed as the reader scrolls through the four
+ * stages, explains each later chapter beside its intro, and ends as the globe.
  *
- * Four things are handled deliberately:
- *  - the styles are a real stylesheet rather than an injected <style> string:
- *    rendering 43 KB of CSS through React made the server and client trees
- *    disagree and cost a hydration pass on every load;
- *  - every selector in it is scoped under `.mth`, so the document's
- *    element-level rules (h1, p, table, ...) cannot reach the rest of the app;
- *  - every DOM lookup in the behaviour is scoped to this component's root, so
- *    it cannot bind to the shared chrome around it;
- *  - the element helper is named `__el` because the canvas engine already has a
- *    `byId` of its own, and the shadowing broke every lookup inside it;
- *  - MARKUP has to be tag-balanced. One stray `</div>` closed this container
- *    early, so the server DOM put the rest of the page — and the footer — beside
- *    it instead of inside it, which React reported as a hydration mismatch.
+ * The markup is static (methodology-markup.ts) and server-rendered; everything here
+ * attaches behaviour to it on mount. Every DOM lookup is scoped to this component's
+ * root, and every selector in the stylesheet is scoped under .mx (the blocks that keep
+ * the earlier design sit in a nested .mth and use methodology.css).
  */
-const MARKUP = `<header class="topbar">
-  <div class="topbar-in">
-    <div class="steps" aria-label="Sections, in reading order">
-      <div class="ngrp solo">
-        <span class="glab"></span>
-        <div class="grow"><button class="navstep" data-go="ov">Overview</button></div>
-      </div>
-      <span class="tick joint"></span>
-      <div class="ngrp">
-        <span class="glab">The skills</span>
-        <div class="grow">
-          <button class="navstep" data-go="s1" style="--accent:#a78bfa"><i>01</i>Search</button>
-          <span class="tick"></span>
-          <button class="navstep" data-go="s2" style="--accent:#e8a33d"><i>02</i>Validate</button>
-          <span class="tick"></span>
-          <button class="navstep" data-go="s3" style="--accent:#43cc93"><i>03</i>Persist</button>
-          <span class="tick"></span>
-          <button class="navstep" data-go="s4" style="--accent:#22d3ee"><i>04</i>Report</button>
-        </div>
-      </div>
-      <span class="tick joint"></span>
-      <div class="ngrp">
-        <span class="glab">The harness around them</span>
-        <div class="grow">
-          <button class="navstep" data-go="bar">Quality bar</button>
-          <span class="tick"></span>
-          <button class="navstep" data-go="rules">Rules</button>
-          <span class="tick"></span>
-          <button class="navstep" data-go="res">Resilience</button>
-          <span class="tick"></span>
-          <button class="navstep" data-go="src">Knowledge</button>
-        </div>
-      </div>
-      <span class="tick joint"></span>
-      <div class="ngrp solo">
-        <span class="glab"></span>
-        <div class="grow"><button class="navstep" data-go="out">Results</button></div>
-      </div>
-    </div>
 
-  </div>
-</header>
-
-<div class="pagemain">
-
-<!-- ==================== THE FLOW ==================== -->
-<section class="sec" id="sec-ov">
-  <div class="hero">
-    <div class="hero-l">
-      <div class="sectitle"><b>Methodology &amp; Agents</b></div>
-      <h1>Agents find it. Harnesses filter it. <span class="fade">A human publishes it.</span></h1>
-      <p class="lede">AI Atlas records where AI is actually deployed in the real world &mdash; which company, which process, what changed, and what was measured.</p>
-      <p class="lede">Every day, agents search the open web and filter out <b>85%</b>: announcements, vendor brochures, roundups, anything with no named company or no measured outcome. A human reviewer reads the <b>15%</b> that survives and decides what is worth publishing &mdash; the last <b>6%</b>.</p>
-      <p class="lede">A repository of real AI deployments, for research, insight and inspiration.</p>
-    </div>
-
-    <div class="funnel">
-      <div class="fstep">
-        <div class="row"><span class="v" style="color:var(--violet)">~11,400</span><span class="l">candidates found in total</span></div>
-        <div class="bar" style="width:100%;background:var(--violet)"></div>
-      </div>
-      <div class="fstep">
-        <div class="row"><span class="v" style="color:var(--amber)">1,718</span><span class="l">passed the agents' daily validation</span></div>
-        <div class="bar" style="width:15.1%;background:var(--amber)"></div>
-      </div>
-      <div class="fstep">
-        <div class="row"><span class="v" style="color:var(--green)">700</span><span class="l">published after human-in-the-loop review</span></div>
-        <div class="bar" style="width:6.1%;background:var(--green)"></div>
-      </div>
-      <p class="fnote">Counted from 22 March 2026 to 15 September 2026.</p>
-    </div>
-  </div>
-
-  <div class="band">
-    <div class="band-h">
-      <h2>The multi-agent architecture</h2>
-      <span class="label">drag &middot; zoom &middot; select any node</span>
-    </div>
-    <div class="canvas-frame" id="cvFrame">
-      <svg id="cv" role="img" aria-label="Interactive map of the pipeline: sources, four stages, discard paths, the atlas, and review"></svg>
-      <div class="cv-tools">
-        <button class="cv-btn" id="cvOut" aria-label="Zoom out">&minus;</button>
-        <button class="cv-btn" id="cvIn" aria-label="Zoom in">+</button>
-        <button class="cv-btn" id="cvFit">Fit</button>
-      </div>
-      <div class="cv-hint"><span class="wide">DRAG TO PAN &middot; SCROLL TO ZOOM &middot; SELECT ANY NODE</span><span class="narrow">DRAG SIDEWAYS TO EXPLORE &middot; TAP ANY NODE</span></div>
-      <aside class="cv-panel" id="cvPanel" aria-live="polite">
-        <div class="cv-panel-h">
-          <div style="min-width:0">
-            <div class="r" id="cvRole">&mdash;</div>
-            <h3 id="cvTitle">&mdash;</h3>
-          </div>
-          <button class="cv-panel-x" id="cvClose" aria-label="Close">&times;</button>
-        </div>
-        <div class="cv-panel-b" id="cvBody"></div>
-      </aside>
-    </div>
-    <div class="cv-legend below">
-      <b>WHO OWNS IT</b>
-      <span><i class="own" style="border-color:#22d3ee"></i>Ops &middot; Hermes Agent</span>
-      <span><i class="own" style="border-color:#43cc93"></i>PM &middot; OpenClaw Agent</span>
-      <b class="gap">WHAT MOVES</b>
-      <span><i style="background:#a78bfa"></i>candidates</span>
-      <span><i style="background:#43cc93"></i>survivors</span>
-      <span><i style="background:#f2607a"></i>discarded</span>
-      <span><i style="background:#2a3a55"></i>reference &amp; feedback</span>
-    </div>
-  </div>
-
-  <div class="band">
-    <div class="band-h"><h2>The four principles the whole design rests on</h2><span class="label">what every other decision follows from</span></div>
-    <div class="cols4">
-      <div class="seq">
-        <span class="n">01</span>
-        <div class="seq-b">
-          <b>One job per stage, and a hard boundary around it</b>
-          <p class="lead">Every stage may do exactly one thing &mdash; and is forbidden from its neighbour's.</p>
-          <p class="body">Search can drop a link that is obviously wrong, but it never opens the article. Validate decides, and never writes. Persist writes, and never decides again. Report only reads. The lines are drawn where they are so that when something goes wrong, it is clear which stage did it. A stage that quietly does its neighbour's job hides its own mistakes.</p>
-        </div>
-      </div>
-      <div class="seq">
-        <span class="n">02</span>
-        <div class="seq-b">
-          <b>The pipeline may fail; the report may not</b>
-          <p class="lead">A day that finds nothing still says which kind of nothing it found.</p>
-          <p class="body">Every stage passes something on, even when that something is empty, and a stage with nothing to give does not stop the run. Nothing found means a tool broke. Nothing survived means the day's questions were badly aimed. Everything already on record means the queries have gone stale. If the pipeline simply went quiet, none of that could be told apart from a crash.</p>
-        </div>
-      </div>
-      <div class="seq">
-        <span class="n">03</span>
-        <div class="seq-b">
-          <b>When in doubt, reject</b>
-          <p class="lead">A missed case is recoverable. A false one is not.</p>
-          <p class="body">A case that gets missed today can be found again tomorrow. A vendor brochure filed as a real deployment sits in the data, and on the globe, until someone spots it. That trade is on purpose, and it is why more than eight in ten candidates are thrown out on a normal day.</p>
-        </div>
-      </div>
-      <div class="seq">
-        <span class="n">04</span>
-        <div class="seq-b">
-          <b>Deterministic checks verify the model's judgment</b>
-          <p class="lead">The model is trusted to judge. It is not trusted to be the last word.</p>
-          <p class="body">Reading the article and weighing it up is the part only the model can do. But it gets things wrong in the same ways over and over &mdash; it forgets to translate, it takes a vendor's own product page for a customer deployment. So everything it produces runs through plain mechanical checks before it is written down.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Where a human sits in the loop</h2><span class="label">nothing publishes itself</span></div>
-    <p class="body" style="max-width:92ch">The pipeline never publishes on its own authority. Everything it records arrives in an unreviewed state and waits for review.</p>
-    <div class="dl two" style="margin-top:20px">
-        <div>
-          <span class="what">Cases arrive labelled, not hidden</span>
-          <span class="why">They are visible in the product from the moment they are written, but carry a label saying they are not yet validated.</span>
-        </div>
-        <div>
-          <span class="what">A reviewer decides, never the pipeline</span>
-          <span class="why">Each case is approved or rejected by hand in the dashboard. Nothing the pipeline writes promotes itself.</span>
-        </div>
-        <div>
-          <span class="what">The report watches the queue</span>
-          <span class="why">It surfaces the size of the review backlog and hardens its wording as that backlog grows, so the system can say when review has fallen behind.</span>
-        </div>
-        <div>
-          <span class="what">Rejection is retirement, not deletion</span>
-          <span class="why">A rejected case is kept for history and its source is permanently off-limits, so the same bad article cannot come back next week.</span>
-        </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== STAGE 1 ==================== -->
-<section class="sec stage" id="sec-s1">
-  <div class="stepper" role="tablist" aria-label="The four stages">
-    <span class="cap">The skills</span>
-    <button class="step now" data-go="s1" style="--sc:var(--violet)"><span class="track"></span><span class="meta"><span class="num">01</span><span class="nm">Search</span></span></button>
-    <button class="step" data-go="s2" style="--sc:var(--amber)"><span class="track"></span><span class="meta"><span class="num">02</span><span class="nm">Validate</span></span></button>
-    <button class="step" data-go="s3" style="--sc:var(--green)"><span class="track"></span><span class="meta"><span class="num">03</span><span class="nm">Persist</span></span></button>
-    <button class="step" data-go="s4" style="--sc:var(--cyan)"><span class="track"></span><span class="meta"><span class="num">04</span><span class="nm">Report</span></span></button>
-  </div>
-  <div class="stagegrid">
-    <div class="rail">
-      <div class="rail-id">
-        <div class="stage-id">
-          <span class="big" style="color:var(--violet)">01</span>
-          <div class="txt">
-            <span class="of">Stage one of four</span>
-            <h1 class="sm">Search</h1>
-          </div>
-        </div>
-        <p class="lede" style="font-size:17px">Produces a list of links worth reading, and is deliberately kept ignorant of what those links say. A searcher that starts forming opinions about content will discard things the validator would have caught, on far less evidence.</p>
-      </div>
-      <div class="duty">
-        <div class="can">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8.4 6.2 11.6 13 4.8" stroke="#43cc93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="color:var(--green)">Responsible for</span>
-          </div>
-          <ul>
-            <li>Deciding which queries today should ask</li>
-            <li>Choosing which tool answers each one, and recovering when a tool goes quiet</li>
-            <li>Discarding links that structurally cannot be a case study</li>
-            <li>Removing duplicates and normalising what survives</li>
-          </ul>
-        </div>
-        <div class="cant">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4.4 4.4 11.6 11.6M11.6 4.4 4.4 11.6" stroke="#f2607a" stroke-width="1.7" stroke-linecap="round"/></svg>
-            <span style="color:var(--rose)">Forbidden from</span>
-          </div>
-          <ul>
-            <li>Opening an article and reading it</li>
-            <li>Treating a search snippet as if it were the article</li>
-            <li>Repairing a broken link or inventing a missing title</li>
-            <li>Improvising extra queries beyond what the day calls for</li>
-          </ul>
-        </div>
-      </div>
-      <div class="figs">
-        <div class="fig"><span class="v" style="color:var(--violet)">3</span><span class="l">query layers</span></div>
-        <div class="fig"><span class="v" style="color:var(--violet)">14</span><span class="l">searches a day</span></div>
-        <div class="fig"><span class="v" style="color:var(--violet)">2</span><span class="l">retries, then stop</span></div>
-      </div>
-    </div>
-
-    <div>
-      <div class="band-h" style="padding-bottom:6px"><h2>Design decisions</h2><span class="label">and what each one answers</span></div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--violet)">D1</span>
-        <div class="seq-b">
-          <b>Three query layers, aimed at three different blind spots</b>
-          <p class="body">Searching one way finds one kind of case. The layers exist so that no one kind of coverage can quietly collapse.</p>
-          <div class="tw"><table>
-            <thead><tr><th>Layer</th><th>Asks about</th><th>Guards against</th></tr></thead>
-            <tbody>
-              <tr><td><span class="pill p-v">Process</span></td><td>Specific business workflows &mdash; claims, fraud review, code review, contact centre</td><td>Missing the ordinary, unglamorous deployments that make up most real adoption</td></tr>
-              <tr><td><span class="pill p-i">Industry</span></td><td>A different sector each day of the week</td><td>The dataset skewing toward whichever industries publish most loudly</td></tr>
-              <tr><td><span class="pill p-ok">Geography</span></td><td>A rotating set of countries each day</td><td>An atlas that is really just a map of the United States</td></tr>
-            </tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--violet)">D2</span>
-        <div class="seq-b">
-          <b>Every query must name a process, a deployment, and a number</b>
-          <p class="body">A query that asks only about "AI" returns opinion. The shape that works asks for all three at once: a concrete business process, a word that means the thing is actually running, and a word that implies a measured outcome. That triple is the cheapest stand-in for the call the validator will later have to make properly &mdash; between something a company <em>announced</em> and something a company <em>does</em>. Queries that drop any leg of the triple have been measured at a zero survival rate.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--violet)">D3</span>
-        <div class="seq-b">
-          <b>Queries rotate daily out of a larger pool</b>
-          <p class="body">A fixed set of queries stops working after about three days: it keeps finding the same articles, which are by then already on record, and the run's entire output becomes duplicates. Rotation ensures the same question does not repeat for weeks. The choice comes from the date, so the same day always asks the same questions &mdash; which matters when you are trying to explain why a particular day found nothing.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--violet)">D4</span>
-        <div class="seq-b">
-          <b>Each layer has its own preferred search tool</b>
-          <p class="body">Originally every query tried the tools in one fixed order, falling through on failure. The effect was that the cheapest tool answered almost everything and the strongest semantic search was never reached at all &mdash; it went weeks without being called once. Assigning each layer a primary tool forces all of them into use, and a measured comparison showed that the starved tool produced several times more surviving candidates than the chain it had been buried under.</p>
-        </div>
-      </div>
-
-      <div class="seq" style="border-bottom:1px solid var(--hair)">
-        <span class="n" style="color:var(--violet)">D5</span>
-        <div class="seq-b">
-          <b>Fall back on silence, not only on errors</b>
-          <p class="body">The failure that shaped this rule was a tool hitting its weekly quota and returning that as a successful response containing zero results. Nothing crashed, nothing was logged as broken, and the day simply recorded that the world had produced no AI deployments. Empty is now treated as a failure signal in its own right, alongside rate limits, timeouts and unparseable responses. A rerun through a different tool recovered twenty candidates and a real case that would otherwise have been lost silently.</p>
-          <p class="body">The retry budget stops at two attempts per query. Beyond that the query is abandoned and recorded as abandoned &mdash; a run that takes all day to fail is worse than one that reports a gap.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== STAGE 2 ==================== -->
-<section class="sec stage" id="sec-s2">
-  <div class="stepper" role="tablist" aria-label="The four stages">
-    <span class="cap">The skills</span>
-    <button class="step done" data-go="s1" style="--sc:var(--violet)"><span class="track"></span><span class="meta"><span class="num">01</span><span class="nm">Search</span></span></button>
-    <button class="step now" data-go="s2" style="--sc:var(--amber)"><span class="track"></span><span class="meta"><span class="num">02</span><span class="nm">Validate</span></span></button>
-    <button class="step" data-go="s3" style="--sc:var(--green)"><span class="track"></span><span class="meta"><span class="num">03</span><span class="nm">Persist</span></span></button>
-    <button class="step" data-go="s4" style="--sc:var(--cyan)"><span class="track"></span><span class="meta"><span class="num">04</span><span class="nm">Report</span></span></button>
-  </div>
-  <div class="stagegrid">
-    <div class="rail">
-      <div class="rail-id">
-        <div class="stage-id">
-          <span class="big" style="color:var(--amber)">02</span>
-          <div class="txt">
-            <span class="of">Stage two of four</span>
-            <h1 class="sm">Validate</h1>
-          </div>
-        </div>
-        <p class="lede" style="font-size:17px">The stage the whole pipeline exists to protect. Everything upstream is cheap and everything downstream is mechanical. This is where judgment happens, and it is adversarial by design: every candidate is marketing until the article proves otherwise.</p>
-      </div>
-      <div class="duty">
-        <div class="can">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8.4 6.2 11.6 13 4.8" stroke="#43cc93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="color:var(--green)">Responsible for</span>
-          </div>
-          <ul>
-            <li>Actually fetching and reading each article</li>
-            <li>Deciding whether it describes a deployment at all</li>
-            <li>Extracting company, place, industry and outcome, in English</li>
-            <li>Recording <em>why</em> each rejection was rejected</li>
-          </ul>
-        </div>
-        <div class="cant">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4.4 4.4 11.6 11.6M11.6 4.4 4.4 11.6" stroke="#f2607a" stroke-width="1.7" stroke-linecap="round"/></svg>
-            <span style="color:var(--rose)">Forbidden from</span>
-          </div>
-          <ul>
-            <li>Writing anything to the database</li>
-            <li>Inventing a fact the article does not contain</li>
-            <li>Keeping a case whose company cannot be identified</li>
-            <li>Rejecting a source for the language it is written in</li>
-          </ul>
-        </div>
-      </div>
-      <div class="figs">
-        <div class="fig"><span class="v" style="color:var(--amber)">10</span><span class="l">rules, all must pass</span></div>
-        <div class="fig"><span class="v" style="color:var(--rose)">85%</span><span class="l">rejected at validation</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">2</span><span class="l">mechanical checks on its output</span></div>
-      </div>
-    </div>
-
-    <div>
-      <div class="band-h" style="padding-bottom:6px"><h2>Design decisions</h2><span class="label">and what each one answers</span></div>
-
-      <div class="seq">
-        <span class="n warm">D1</span>
-        <div class="seq-b">
-          <b>Language is a translation problem, never a quality signal</b>
-          <p class="body">A Chinese power-grid deployment and a Japanese bank rollout are first-class cases. The source may be in any language. The output must be English, so a non-English article is translated, not discarded. A machine check enforces that, because the failure runs both ways: told "output must be English", a model starts throwing away perfectly good foreign-language sources; told "translate everything", it sometimes leaves the original text in place. Both have happened.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n warm">D2</span>
-        <div class="seq-b">
-          <b>The hardest filter is deployment versus announcement</b>
-          <p class="body">Most of what the web publishes about enterprise AI is a press release about intent. It shares almost every word with a real case study &mdash; the same company names, the same "AI", the same "deployed". The distinction comes down to verb tense.</p>
-          <div class="split">
-            <div>
-              <span class="label" style="color:var(--rose)">Reject patterns</span>
-              <p style="color:#98a9c0">will enable &middot; is set to &middot; announces a partnership &middot; launches &middot; no metric yet</p>
-            </div>
-            <div>
-              <span class="label" style="color:var(--green)">Accept patterns</span>
-              <p style="color:var(--bright)">deployed at &middot; in production &middot; reduced review time 40% &middot; saved 6 hours per case</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n warm">D3</span>
-        <div class="seq-b">
-          <b>Scale is not a use case</b>
-          <p class="body">"Two hundred thousand employees now have access to an AI assistant" is a real, verifiable, well-sourced fact, and it says nothing about how anyone's work changed. The bar says so explicitly: headcount announcements are not use cases and mean nothing for the atlas. The same company becomes acceptable the moment the article names a process &mdash; claims handling, document review, fraud triage &mdash; and what changed about it.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n warm">D4</span>
-        <div class="seq-b">
-          <b>A named company, or nothing at all</b>
-          <p class="body">Anonymous case studies &mdash; "a leading European insurer" &mdash; are dropped entirely rather than recorded with a blank. A model will be tempted to invent a plausible name, and one fabricated company would undermine every other record in the dataset. Consortiums, alliances, initiatives and project names are likewise not companies. The atlas is a map of who is doing this, and a point on it that names nobody is worse than an empty space.</p>
-        </div>
-      </div>
-
-
-      <div class="seq" style="border-bottom:1px solid var(--hair)">
-        <span class="n warm">D5</span>
-        <div class="seq-b">
-          <b>The model's output is checked by something that cannot be persuaded</b>
-          <p class="body">After the validator finishes, mechanical checks run over its output looking for the specific ways it is known to fail: untranslated text left in place, vendor press domains accepted as sources, announcement phrasing, roundups and listicles, missing geography. Anything they catch is moved into the rejected pile before persistence sees it. These exist because on two separate days the validator was confident and wrong &mdash; once shipping untranslated records, once shipping seventeen vendor pages. They are not optional, and they do not get skipped when the output "looks fine" &mdash; looking fine is exactly the failure mode.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-<!-- ==================== STAGE 3 ==================== -->
-<section class="sec stage" id="sec-s3">
-  <div class="stepper" role="tablist" aria-label="The four stages">
-    <span class="cap">The skills</span>
-    <button class="step done" data-go="s1" style="--sc:var(--violet)"><span class="track"></span><span class="meta"><span class="num">01</span><span class="nm">Search</span></span></button>
-    <button class="step done" data-go="s2" style="--sc:var(--amber)"><span class="track"></span><span class="meta"><span class="num">02</span><span class="nm">Validate</span></span></button>
-    <button class="step now" data-go="s3" style="--sc:var(--green)"><span class="track"></span><span class="meta"><span class="num">03</span><span class="nm">Persist</span></span></button>
-    <button class="step" data-go="s4" style="--sc:var(--cyan)"><span class="track"></span><span class="meta"><span class="num">04</span><span class="nm">Report</span></span></button>
-  </div>
-  <div class="stagegrid">
-    <div class="rail">
-      <div class="rail-id">
-        <div class="stage-id">
-          <span class="big" style="color:var(--green)">03</span>
-          <div class="txt">
-            <span class="of">Stage three of four</span>
-            <h1 class="sm">Persist</h1>
-          </div>
-        </div>
-        <p class="lede" style="font-size:17px">By this point every judgment about the case has been made. This stage is deliberately mechanical. Its only intelligence is about identity: has this article already been recorded, and does everything the case depends on actually resolve?</p>
-      </div>
-      <div class="duty">
-        <div class="can">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8.4 6.2 11.6 13 4.8" stroke="#43cc93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="color:var(--green)">Responsible for</span>
-          </div>
-          <ul>
-            <li>Recognising an article the atlas has already seen</li>
-            <li>Storing the case whole &mdash; its text, not just a link to it</li>
-            <li>Writing it down in a state that awaits review</li>
-            <li>Handing reporting an accurate account of what it did</li>
-          </ul>
-        </div>
-        <div class="cant">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4.4 4.4 11.6 11.6M11.6 4.4 4.4 11.6" stroke="#f2607a" stroke-width="1.7" stroke-linecap="round"/></svg>
-            <span style="color:var(--rose)">Forbidden from</span>
-          </div>
-          <ul>
-            <li>Reconsidering whether a case is good</li>
-            <li>Promoting anything to published on its own authority</li>
-            <li>Halting the run because one record failed to write</li>
-          </ul>
-        </div>
-      </div>
-      <div class="figs">
-        <div class="fig"><span class="v" style="color:var(--green)">4</span><span class="l">things must resolve before a case is written</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">2</span><span class="l">ways to be already known</span></div>
-        <div class="fig"><span class="v" style="color:var(--amber)">0</span><span class="l">auto-published</span></div>
-      </div>
-    </div>
-
-    <div>
-      <div class="band-h" style="padding-bottom:6px"><h2>Design decisions</h2><span class="label">and what each one answers</span></div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--green)">D1</span>
-        <div class="seq-b">
-          <b>Deduplication ignores whether the earlier record was any good</b>
-          <p class="body">If an article is already on record it is skipped &mdash; even when a reviewer read that earlier record and retired it. That is counter-intuitive but deliberate: retired means someone judged this source invalid. Re-ingesting it would overrule that decision automatically, every week, forever. Reviving a retired case is a manual act, never an automatic one.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--green)">D2</span>
-        <div class="seq-b">
-          <b>A case is stored whole, and keeps a pointer to its source</b>
-          <p class="body">The record keeps the deployment's full text &mdash; five hundred characters at minimum &mdash; rather than a link and a headline. Articles rot: they get retracted, paywalled, restructured, or quietly rewritten to say something softer. A case that lives only as a URL is a case that can evaporate without anyone touching the database.</p>
-          <p class="body">It also makes a specific repair possible. When the article turns out to be poor but the deployment behind it is worth keeping, there is a set procedure: find a better source and attach it, rather than throw the case away and hope the same deployment turns up again.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--green)">D3</span>
-        <div class="seq-b">
-          <b>A case exists only once everything it points at resolves</b>
-          <p class="body">A use case is not a standalone note. It carries a deployer, a place, an industry and a source, and each has to resolve to something real before the case can be written &mdash; a named organisation, coordinates that put it somewhere on the globe, an industry from the closed vocabulary. A field that does not resolve sends the case back. It is never filled with a blank.</p>
-          <p class="body">A retired case is never revived automatically. It was retired because that article was judged bad, and nothing about a later day makes it good.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n" style="color:var(--green)">D4</span>
-        <div class="seq-b">
-          <b>New cases arrive unreviewed, on purpose</b>
-          <p class="body">A case is written in a state that means "awaiting review". It is visible in the product, but labelled as such. That is a deliberate trade: showing it unverified is more useful than hiding it, as long as nobody can mistake it for verified. The pipeline never promotes its own work.</p>
-        </div>
-      </div>
-
-      <div class="seq" style="border-bottom:1px solid var(--hair)">
-        <span class="n" style="color:var(--green)">D5</span>
-        <div class="seq-b">
-          <b>One bad case never takes down the day</b>
-          <p class="body">A malformed field is corrected and retried. A network failure is retried once. If a case still cannot be written, it is skipped and recorded as skipped, and the run continues with the rest. The stage always hands something onward, even when it wrote nothing at all &mdash; because the alternative is a day that ends in silence, and silence is the one outcome the design does not permit.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== STAGE 4 ==================== -->
-<section class="sec stage" id="sec-s4">
-  <div class="stepper" role="tablist" aria-label="The four stages">
-    <span class="cap">The skills</span>
-    <button class="step done" data-go="s1" style="--sc:var(--violet)"><span class="track"></span><span class="meta"><span class="num">01</span><span class="nm">Search</span></span></button>
-    <button class="step done" data-go="s2" style="--sc:var(--amber)"><span class="track"></span><span class="meta"><span class="num">02</span><span class="nm">Validate</span></span></button>
-    <button class="step done" data-go="s3" style="--sc:var(--green)"><span class="track"></span><span class="meta"><span class="num">03</span><span class="nm">Persist</span></span></button>
-    <button class="step now" data-go="s4" style="--sc:var(--cyan)"><span class="track"></span><span class="meta"><span class="num">04</span><span class="nm">Report</span></span></button>
-  </div>
-  <div class="stagegrid">
-    <div class="rail">
-      <div class="rail-id">
-        <div class="stage-id">
-          <span class="big" style="color:var(--cyan)">04</span>
-          <div class="txt">
-            <span class="of">Stage four of four</span>
-            <h1 class="sm">Report</h1>
-          </div>
-        </div>
-        <p class="lede" style="font-size:17px">The pipeline's contract with its reviewer. The least sophisticated stage and the least optional one: a day that finds nothing still ends with a message, because an absent message means something broke and nobody knows what.</p>
-      </div>
-      <div class="duty">
-        <div class="can">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M3 8.4 6.2 11.6 13 4.8" stroke="#43cc93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span style="color:var(--green)">Responsible for</span>
-          </div>
-          <ul>
-            <li>Summarising the day: added, already known, failed</li>
-            <li>Showing which tools did the work, so a quiet tool is visible early</li>
-            <li>Listing each new case in a form a reviewer can act on</li>
-            <li>Surfacing the review backlog, and escalating as it grows</li>
-          </ul>
-        </div>
-        <div class="cant">
-          <div class="hd">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4.4 4.4 11.6 11.6M11.6 4.4 4.4 11.6" stroke="#f2607a" stroke-width="1.7" stroke-linecap="round"/></svg>
-            <span style="color:var(--rose)">Forbidden from</span>
-          </div>
-          <ul>
-            <li>Re-opening any article</li>
-            <li>Re-checking content or re-validating a case</li>
-            <li>Recomputing numbers the earlier stages established</li>
-          </ul>
-          <p class="body" style="font-size:14px;margin-top:4px">The one exception is a counts-only look at the database, just to say how large the review queue has become.</p>
-        </div>
-      </div>
-      <div class="figs">
-        <div class="fig"><span class="v" style="color:var(--cyan)">1</span><span class="l">message a day, always</span></div>
-        <div class="fig"><span class="v" style="color:var(--amber)">50</span><span class="l">pending before it warns</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">0</span><span class="l">articles re-opened</span></div>
-      </div>
-    </div>
-
-    <div>
-      <div class="band-h" style="padding-bottom:6px"><h2>Design decisions</h2><span class="label">and what each one answers</span></div>
-
-      <div class="seq">
-        <span class="n">D1</span>
-        <div class="seq-b">
-          <b>A zero day still gets a report, and says which zero it was</b>
-          <p class="body">A day can produce nothing in several different ways, and each calls for a different fix. Nothing was searched means a tool is broken. Nothing survived validation means the day's questions were poorly aimed. Everything was already on record means the queries have saturated and need rotating. Collapsing all three into "no results" would throw away the only signal that says what to fix.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n">D2</span>
-        <div class="seq-b">
-          <b>The report says when review has fallen behind</b>
-          <p class="body">Because everything the pipeline records waits for review, the review queue is a real bottleneck &mdash; and one the pipeline can see but not fix. So the daily message reports the backlog and changes its tone as it grows, from a note to a warning.</p>
-        </div>
-      </div>
-
-      <div class="seq">
-        <span class="n">D3</span>
-        <div class="seq-b">
-          <b>A run is counted only once the message actually lands</b>
-          <p class="body">The day's metrics are archived after delivery is confirmed, never before. This makes the metrics history mean something precise: every line in it is a run that finished and got reported. A run that produced cases but failed to report leaves no line. That is correct: from the reviewer's point of view that day did not happen, and the gap says so honestly.</p>
-        </div>
-      </div>
-
-      <div class="seq" style="border-bottom:1px solid var(--hair)">
-        <span class="n">D4</span>
-        <div class="seq-b">
-          <b>Reporting reads the same learnings the searcher does</b>
-          <p class="body">The observations at the end of each report are written against the running record of what has and has not been working, not off the day in isolation. That shared reference is what turns a daily message into a feedback loop: patterns noticed in reports become notes, notes become retired queries and new rules, and those rules change what tomorrow's search asks.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== QUALITY BAR ==================== -->
-<section class="sec" id="sec-bar">
-  <div class="hero side">
-    <div class="hero-l">
-      <div class="sectitle"><span class="grp">The harness around them:</span><b>Quality bar</b></div>
-      <h1>What counts as a use case, and what only<span class="fade"> looks like one</span></h1>
-      <p class="lede">Nearly every design decision in the pipeline is downstream of this definition. It is worth stating plainly, because most of what the web publishes about enterprise AI fails it.</p>
-    </div>
-    <div class="funnel">
-      <span class="label">The hard numbers</span>
-      <div class="figs" style="border-top:0;padding-top:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px">
-        <div class="fig"><span class="v" style="color:var(--rose)">5</span><span class="l">families of rejection</span></div>
-        <div class="fig"><span class="v" style="color:var(--amber)">3</span><span class="l">tests an advertorial must pass</span></div>
-        <div class="fig"><span class="v" style="color:var(--violet)">17</span><span class="l">rules, run by hand</span></div>
-      </div>
-    </div>
-      </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Where the bar sits, and why</h2></div>
-    <p class="body" style="max-width:80ch;font-size:16.5px;padding-top:18px;border-top:1px solid var(--hair)">The atlas exists to answer a question that is otherwise very hard to answer honestly: where is AI actually being used, and to do what. Announcements, headcount figures and market reports are abundant and answer none of that. The bar is not conservative by accident &mdash; it is what makes the remaining tenth worth anything.</p>
-    <span class="label" style="display:block;margin-top:26px">A case qualifies when</span>
-      <ul class="list" style="gap:11px;font-size:15.2px;padding-left:0;list-style:none">
-        <li><b>A named company</b> &mdash; a real business entity, not a consortium or a project</li>
-        <li><b>Actually running</b>, not planned or announced</li>
-        <li>It changes a <b>specific process</b> &mdash; claims, inspection, underwriting, triage</li>
-        <li><b>Something was measured</b> &mdash; a percentage, a time, a cost, a rate</li>
-        <li>A <b>substantive article</b> about the deployment, not a product page</li>
-      </ul>
-      <p class="fnote" style="max-width:80ch;margin-top:16px">A vendor's own writing counts only if it names the customer and reports real numbers. Otherwise it is a brochure with a case study's grammar.</p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>What the bar rejects</h2></div>
-    <p class="body" style="padding-bottom:18px">Every rejected candidate is recorded with a reason, and those reasons cluster into five recognisable families. Knowing which family dominates on a given day is what tells you whether the problem is the queries, the sources, or the bar.</p>
-    <div class="recsplit"><span>The five families of rejection</span></div>
-    <div class="rex">
-      <div class="rex-nav" id="rexNav"></div>
-      <div class="rex-p" id="rexPanel"></div>
-    </div>
-  
-    <div class="recsplit"><span>Telling a deployment from an advertorial</span></div>
-    <p class="body" style="font-size:16.5px;max-width:82ch">A separate rule set, applied by hand over records already stored, decides whether an article that passed every daily gate is reporting a deployment or selling one.</p>
-    <p class="body" style="max-width:82ch;margin:14px 0 10px">The standard fits in one line: <em>technical detail is acceptable, pure hype is not</em> &mdash; a named tool, platform, model or implementation step, not &ldquo;improved efficiency&rdquo;. One line proved too loose, so it became three tests that must all pass.</p>
-    
-    <div class="dims">
-      <div class="dim"><span class="dn">AI technology</span><span class="dq">Is a specific model, algorithm or tool named?</span><div class="ex ok"><span class="h">Qualifies</span>“a bespoke CNN model” &middot; “Azure OpenAI” &middot; “a time-series LLM”</div><div class="ex no"><span class="h">Too vague</span>“uses AI” &middot; “AI-driven” &middot; “advanced algorithms”</div></div>
-      <div class="dim"><span class="dn">Deployment scenario</span><span class="dq">Which line, which process, which task?</span><div class="ex ok"><span class="h">Qualifies</span>“overhead conveyor line, clip and clamp detection” &middot; “claims processing at a named hospital”</div><div class="ex no"><span class="h">Too vague</span>“improving efficiency” &middot; “optimising operations” &middot; “transforming X”</div></div>
-      <div class="dim"><span class="dn">Anchored numbers</span><span class="dq">Is the figure tied to that scenario?</span><div class="ex ok"><span class="h">Qualifies</span>“30 ms processing” &middot; “86% accuracy” &middot; “20 minutes down to 10 seconds”</div><div class="ex no"><span class="h">Too vague</span>“significantly improved” &middot; “high accuracy” &middot; a bare “N% better”</div></div>
-    </div>
-    <p class="body" style="max-width:82ch;margin-top:16px">Few numbers, all anchored, beat many that float. The template it exists to catch satisfies none of the three: &ldquo;X deployed AI to revolutionise Y. The system uses advanced computer vision to detect defects with high accuracy, improving quality and reducing costs.&rdquo;</p>
-    
-    <div class="recsplit"><span>The seventeen rules</span></div>
-    <p class="recfoot" style="margin:0 0 12px">one pre-check &middot; thirteen verdicts &middot; one disposition &middot; two audits</p>
-    <div class="triage">
-
-      <div class="tbar" style="--tc:#22d3ee">
-        <div class="tlab"><i>Runs first</i><code>R11</code></div>
-        <div class="tb">
-          <b>URL health check</b>
-          <p>Mandatory before R1&ndash;R10 are evaluated at all. There is no point judging an article that will not load, and every later rule assumes the page in front of it is the page on record.</p>
-        </div>
-      </div>
-
-      <div class="tflow"><span class="line"></span><span>then one verdict, from thirteen</span></div>
-
-      <div class="tgrid">
-      <div class="tcol" style="--tc:#f2607a">
-        <div class="th"><b>Reject</b><em>7</em></div>
-        <div class="tr"><code>R1</code><span><b>Blocklisted source</b> &mdash; subscription walls, unknown aggregators with no editorial team, design portfolios, tool-marketing sites running “case studies” beside tutorials</span></div>
-        <div class="tr"><code>R2</code><span><b>Paid native advertising</b> &mdash; a sponsored or brand-studio label, or the vendor speaking inside the article. Numbers do not redeem it</span></div>
-        <div class="tr"><code>R3</code><span><b>Pure hype</b> &mdash; business outcomes only &mdash; no tool, platform, method or stack named anywhere</span></div>
-        <div class="tr"><code>R8</code><span><b>Synthetic composite</b> &mdash; a customer assembled from several, or invented outright; judged by hand in the audit</span></div>
-        <div class="tr"><code>R10</code><span><b>Partnership or MOU</b> &mdash; no deployment in the past tense anywhere in the piece</span></div>
-        <div class="tr"><code>R12</code><span><b>Survey or market analysis</b> &mdash; research findings wearing a case study's headline</span></div>
-        <div class="tr"><code>R13</code><span><b>Not about AI</b> &mdash; the story turns out to be about something else entirely</span></div>
-      </div>
-      <div class="tcol" style="--tc:#43cc93">
-        <div class="th"><b>Accept</b><em>4</em></div>
-        <div class="tr"><code>R4</code><span><b>Vendor blog with substance</b> &mdash; real technical detail, and the customer is named</span></div>
-        <div class="tr"><code>R5</code><span><b>Built and run in-house</b> &mdash; a large organisation describing its own system</span></div>
-        <div class="tr"><code>R6</code><span><b>Independent media</b> &mdash; reporting with technical detail</span></div>
-        <div class="tr"><code>R7</code><span><b>Public sector or academic</b> &mdash; government, university or non-profit deployments</span></div>
-      </div>
-      <div class="tcol" style="--tc:#e8a33d">
-        <div class="th"><b>Downgrade</b><em>2</em></div>
-        <div class="tr"><code>R9</code><span><b>Anonymous customer</b> &mdash; the vendor is the only source &mdash; kept, confidence reduced</span></div>
-        <div class="tr"><code>R14</code><span><b>Vendor self-publishing</b> &mdash; high risk by default, with written exceptions rather than case-by-case argument</span></div>
-      </div>
-      </div>
-
-      <div class="tflow"><span class="line"></span><span>and a rejection has somewhere to go</span></div>
-
-      <div class="tbar" style="--tc:#a78bfa">
-        <div class="tlab"><i>Disposition</i><code>R15</code></div>
-        <div class="tb">
-          <b>Archived, never deleted</b>
-          <p>An advertorial, a dead source or a fabricated record is retired rather than removed. The history stays auditable, and the URL is permanently blocked from re-entering &mdash; which is what stops the same bad article arriving again next week.</p>
-        </div>
-      </div>
-
-      <div class="tflow" style="padding-top:26px"><span>a separate loop &middot; run against stored cases, not candidates</span></div>
-
-      <div class="taudits">
-        <div class="taudit">
-          <div class="h"><code>R16</code><b>Content drift</b></div>
-          <p>What is stored no longer matches what the source says &mdash; the article was edited, softened or replaced after the case was recorded.</p>
-        </div>
-        <div class="taudit">
-          <div class="h"><code>R17</code><b>URL now points elsewhere</b></div>
-          <p>The link still resolves, but to a different article than the one the case was built from. Alive is not the same as correct.</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ==================== THE RULES ==================== -->
-<section class="sec" id="sec-rules">
-  <div class="hero side">
-    <div class="hero-l">
-      <div class="sectitle"><span class="grp">The harness around them:</span><b>Rules</b></div>
-      <h1>A standard agents can follow is a standard<span class="fade"> written as thresholds</span></h1>
-      <p class="lede">"Good quality" is not executable. Every judgment here had to be turned into something with a number, a list, or a yes-or-no test attached. Without that, each day's run applies a slightly different bar, and the dataset drifts without anyone being able to say when.</p>
-    </div>
-    <div class="funnel">
-      <span class="label">The hard numbers</span>
-      <div class="figs" style="border-top:0;padding-top:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px 20px">
-        <div class="fig"><span class="v" style="color:var(--amber)">14</span><span class="l">fields a record carries</span></div>
-        <div class="fig"><span class="v" style="color:var(--amber)">4</span><span class="l">judgements no field can carry</span></div>
-        <div class="fig"><span class="v" style="color:var(--violet)">3</span><span class="l">states the database allows</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">76</span><span class="l">industry values allowed</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Why it is written this way</h2><span class="label">the point of the whole exercise</span></div>
-    <p class="body" style="font-size:16.5px;max-width:82ch">A skill is only as reliable as the loosest thing in it. Tell a model to "reject low-quality content" and it will agree, then apply a different standard on Tuesday than it did on Monday, and nothing on record proves it drifted. Tell it that content is at least five hundred characters, that a summary is at least two hundred, that an industry must come from a fixed list of seventy-six values, that a coordinate is never zero &mdash; and every run applies the same bar, every rejection carries a reason code, and an argument becomes a question about a rule rather than about taste.</p>
-    <p class="body" style="max-width:82ch;margin-top:14px">That is the trade this project made everywhere. The rules below were not written up afterwards. They are the pipeline. Each one exists because something got through without it.</p>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>What a record must be</h2><span class="label">fourteen fields &middot; four judgements</span></div>
-    <p class="body" style="max-width:82ch;margin-bottom:20px">A candidate is not scored. It is admitted or rejected. Most of the rows below only check that a field is filled and within its limit. The last four decide whether the thing is a deployment at all. Every rejection carries a reason code, which is what makes a bad day diagnosable rather than just disappointing.</p>
-    <div class="rec">
-      <div class="rh"><span>Field</span><span>Constraint</span><span>The rule</span></div>
-      <div class="rr"><code class="fn">title</code><span class="ct">English</span><span class="rw">A brief name for the AI application &mdash; not the article headline verbatim.</span></div>
-      <div class="rr"><code class="fn">summary</code><span class="ct hard">200+ chars</span><span class="rw">Describes the deployment, not the organisation behind it.</span></div>
-      <div class="rr"><code class="fn">content</code><span class="ct hard">500+ chars</span><span class="rw">A real use-case description, never marketing copy. A non-English source is translated, never discarded.</span></div>
-      <div class="rr"><code class="fn">URL</code><span class="ct hard">specific article</span><span class="rw">A post, release or case study. Never a homepage, product or pricing page, never LinkedIn, never an academic repository.</span></div>
-      <div class="rr"><code class="fn">company_id</code><span class="ct no">must resolve</span><span class="rw">An anonymous deployment drops the whole case. Never null, never a generated name, never a consortium standing in for a business.</span></div>
-      <div class="rr"><code class="fn">industry</code><span class="ct hard">1 of 76</span><span class="rw">Chosen by the deploying organisation's primary business, not by what the AI does.</span></div>
-      <div class="rr"><code class="fn">published_at</code><span class="ct">ISO-8601</span><span class="rw">The article's own publication date, read from the page rather than assumed.</span></div>
-      <div class="rr"><code class="fn">country</code><span class="ct">standardised</span><span class="rw">The canonical country name, not whatever spelling the article used.</span></div>
-      <div class="rr"><code class="fn">city</code><span class="ct hard">mandatory</span><span class="rw">Where the deployment actually is.</span></div>
-      <div class="rr"><code class="fn">continent</code><span class="ct">derived</span><span class="rw">Checked for consistency with the country, not assumed.</span></div>
-      <div class="rr"><code class="fn">latitude / longitude</code><span class="ct no">never 0 &middot; 999 &middot; null</span><span class="rw">Looked up from the real city. On a globe a placeholder is not a missing value, it is a visible point in the wrong place.</span></div>
-      <div class="rr"><code class="fn">type</code><span class="ct">enum</span><span class="rw">Deployment &mdash; in real operation, with metrics. Experiment &mdash; a pilot. Research &mdash; academic or R&amp;D.</span></div>
-      <div class="rr"><code class="fn">source_name</code><span class="ct">enum</span><span class="rw">Media, company website, research report or analyst firm.</span></div>
-      <div class="rr"><code class="fn">status</code><span class="ct hard">pending</span><span class="rw">Always pending on insert. Only a human reviewer moves it from there.</span></div>
-      <div class="rr"><b class="gn">Contamination</b><span class="ct no">judgement</span><span class="rw">Text that is mostly navigation, CTA, footer or cookie banner. Text that opens with a document tag fails immediately. PDFs are allowed; raw extraction artifacts are not.</span></div>
-      <div class="rr"><b class="gn">Generic description</b><span class="ct no">judgement</span><span class="rw">Boilerplate with no named deployment &mdash; &ldquo;leading provider of AI-powered solutions&rdquo;.</span></div>
-      <div class="rr"><b class="gn">Deployment vs news</b><span class="ct no">judgement</span><span class="rw">Future tense, partnership announcements, launches, government initiatives &mdash; anything with no measured outcome yet.</span></div>
-      <div class="rr"><b class="gn">Scale announcement</b><span class="ct no">judgement</span><span class="rw">All four at once: the claim is a headcount, no business process is named, the tool is a general-purpose assistant, no operational metric is given.</span></div>
-    </div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Three states, enforced by the database</h2><span class="label">not a convention &mdash; a constraint</span></div>
-    <p class="body" style="max-width:82ch;margin-bottom:10px">The record state is not a string anyone can invent. The database itself allows exactly three values, so a wrong one cannot be written even by mistake.</p>
-    <div class="states">
-      <div class="state" style="--sc:#43cc93"><span class="sn">published</span><span class="sm">Reviewed and approved</span><span class="sd">Rendered normally, everywhere in the product.</span></div>
-      <div class="state" style="--sc:#e8a33d"><span class="sn">pending</span><span class="sm">Written by the pipeline, not yet reviewed</span><span class="sd">Rendered, but labelled <em style="font-style:normal;color:#e6edf7">To be validated</em> &mdash; visible is more useful than hidden, as long as nobody can mistake it for verified.</span></div>
-      <div class="state" style="--sc:#f2607a"><span class="sn">archived</span><span class="sm">Retired, kept for history and audit</span><span class="sd">Excluded from every frontend surface, and its URL is permanently blocked from re-entering.</span></div>
-    </div>
-    <p class="body" style="max-width:82ch;margin-top:14px">Extending that set is explicitly a two-part change: the constraint and the display logic move together, or the product shows a state it does not understand.</p>
-  </div>
-
-
-</section>
-
-
-<!-- ==================== RESILIENCE ==================== -->
-<section class="sec" id="sec-res">
-  <div class="hero side">
-    <div class="hero-l">
-      <div class="sectitle"><span class="grp">The harness around them:</span><b>Resilience</b></div>
-      <h1>Designed around the assumption that things go wrong<span class="fade"> quietly</span></h1>
-      <p class="lede">The pipeline's failure handling was not designed in advance. Almost every rule in it is the scar tissue of a day that went wrong in a way nobody noticed &mdash; and every one of those days produced plausible output. Nothing crashed, nothing threw, and the run reported success. That is the hazard of a pipeline built on a language model and a set of external services: <em>the default failure mode is not an error, it is a confident, well-formed, wrong result.</em> So the theme is not "retry harder" but "make the failure visible". The design spends far more on detecting silent failure &mdash; empty-as-error, mechanical checks, per-tool statistics, recorded reasons &mdash; than on recovering from loud failure, which was never the real risk.</p>
-    </div>
-    <div class="funnel">
-      <span class="label">Three standing rules</span>
-      <div class="dl">
-        <div>
-          <span class="what">Fail forward, never halt</span>
-          <span class="why">A stage that cannot do its job produces an empty result and the run continues. Halting would mean no report.</span>
-        </div>
-        <div>
-          <span class="what">Treat emptiness as suspicious</span>
-          <span class="why">A zero result from a tool is handled as a failure, not as an answer.</span>
-        </div>
-        <div>
-          <span class="what">Record why, not just what</span>
-          <span class="why">Counts tell you a day was bad. Reasons tell you whether to change the queries, the sources, or nothing at all.</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Incidents that became rules</h2><span class="label">each one failed quietly first</span></div>
-    <div class="tw"><table>
-      <thead><tr><th style="width:31%">What happened</th><th style="width:33%">Why it went unnoticed</th><th>The rule it produced</th></tr></thead>
-      <tbody>
-        <tr><td>The same fixed queries ran for days and eventually returned nothing but articles already on record</td><td>The run looked healthy &mdash; searches succeeded, candidates arrived, they were simply all duplicates</td><td>Queries rotate daily out of a much larger pool, so a question is not repeated for weeks</td></tr>
-        <tr><td>A search tool hit its weekly quota and returned an empty success</td><td>Nothing errored. The day was recorded as a day with no AI deployments in the world</td><td>Empty results trigger a fallback to a different tool, and the substitution is recorded</td></tr>
-        <tr><td>The strongest search tool went weeks without being called</td><td>A global fallback order meant the first tool almost always succeeded first</td><td>Each query layer has its own primary tool, so all of them stay in use and stay measurable</td></tr>
-        <tr><td>Untranslated records reached the dataset</td><td>The validator was confident it had translated them</td><td>A mechanical check scans the output for untranslated text before anything is written</td></tr>
-        <tr><td>Seventeen vendor pages were recorded as deployments in one day</td><td>Each one individually read like a case study</td><td>A second mechanical check screens for vendor domains, announcement phrasing and roundups</td></tr>
-        <tr><td>The review backlog was reported as far smaller than it was</td><td>The count silently stopped at the first page of results</td><td>Backlog figures are counted at the source rather than tallied from a fetched list</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-
-</section>
-
-<!-- ==================== KNOWLEDGE ==================== -->
-<section class="sec" id="sec-src">
-  <div class="hero side">
-    <div class="hero-l">
-      <div class="sectitle"><span class="grp">The harness around them:</span><b>Knowledge</b></div>
-      <h1>Who owns which<span class="fade"> decision</span></h1>
-      <p class="lede">The pipeline's behaviour is not spread across code &mdash; it is written down in a set of documents, each of which is authoritative for one kind of decision. Select any of them to see what it decides and who reads it.</p>
-    </div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Stage definitions</h2><span class="label">one per stage</span></div>
-    <div class="srcs" id="srcStages"></div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Shared standards</h2><span class="label">read by more than one stage</span></div>
-    <div class="srcs" id="srcShared"></div>
-  </div>
-
-  <div class="band rowh">
-    <div class="band-h"><h2>Product &amp; codebase</h2><span class="label">the side that is built, not run</span></div>
-    <div class="srcs" id="srcBuild"></div>
-  </div>
-
-  
-</section>
-
-<!-- ==================== RESULTS ==================== -->
-<section class="sec" id="sec-out">
-  <div class="hero side">
-    <div class="hero-l">
-      <div class="sectitle"><b>Results</b></div>
-      <h1>Six months of use cases, and two<span class="fade"> filters</span></h1>
-      <p class="lede">April through early September, read from the database itself and from the pipeline's own run log. Two things are worth separating: what the pipeline discards before writing a case down, and what review discards afterwards. Both are large, and only the first was designed.</p>
-    </div>
-    <div class="funnel">
-      <span class="label">Use cases in the database</span>
-      <div class="figs" style="gap:26px 34px">
-        <div class="fig"><span class="v" style="color:var(--violet)">1,718</span><span class="l">recorded all-time</span></div>
-        <div class="fig"><span class="v" style="color:var(--cyan)">1,560</span><span class="l">recorded since April</span></div>
-        <div class="fig"><span class="v" style="color:var(--green)">700</span><span class="l">published after human-in-the-loop review</span></div>
-        <div class="fig"><span class="v" style="color:var(--amber)">0</span><span class="l">awaiting review</span></div>
-      </div>
-      <p class="fnote">Counted at the source on 15 September 2026.</p>
-    </div>
-  </div>
-
-  <div class="band">
-    <div class="band-h"><h2>Use cases recorded, April to September</h2><span class="label">from the database</span></div>
-    <div class="chart-wrap"><svg class="chart" id="monthly" viewBox="0 0 900 320" role="img" aria-label="Use cases recorded each month from April to September 2026"></svg></div>
-    <div class="legend">
-      <span><i style="background:#43cc93"></i>Published after review</span>
-      <span><i style="background:#f2607a"></i>Archived after review</span>
-    </div>
-  </div>
-
-
-
-</section>
-
-  <div class="closing">
-    <p>Everything that survives all of this ends up on one map.</p>
-    <a href="/">Explore AI Atlas <span>&rarr;</span></a>
-  </div>
-
-</div>
-
-
-
-<button class="totop" id="toTop" aria-label="Back to top">↑</button>
-<div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
-  <div class="drawer-h">
-    <div style="min-width:0">
-      <p id="drawerRole">&mdash;</p>
-      <h2 id="drawerTitle">&mdash;</h2>
-    </div>
-    <button class="drawer-x" id="drawerX" aria-label="Close">&times;</button>
-  </div>
-  <div class="drawer-b scroll" id="drawerBody"></div>
-</aside>`
-
-const BEHAVIOUR = `
-/* ---------- one page: nav follows the scroll ---------- */
-const chrome=ROOT.querySelector('.topbar');
-const atlas=document.getElementById('atlas-chrome');
-const setChrome=()=>{
-  const a=atlas?atlas.offsetHeight:0;
-  document.documentElement.style.setProperty('--atlas-chrome',a+'px');
-  document.documentElement.style.setProperty('--chrome',(a+chrome.offsetHeight)+'px');
-};
-setChrome(); window.addEventListener('resize',setChrome);
-const navs=[...ROOT.querySelectorAll('[data-go]')];
-/* every stage stepper repeats s1-s4, so dedupe and order by document position —
-   otherwise the last entry always wins and the spy sticks on the final stage */
-const SECS=[...new Set(navs.map(n=>n.dataset.go))]
-  .filter(id=>__el('sec-'+id))
-  .sort((a,b)=>__el('sec-'+a).offsetTop-__el('sec-'+b).offsetTop);
-function go(id){
-  const el=__el('sec-'+id);
-  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
-}
-navs.forEach(n=>n.addEventListener('click',()=>go(n.dataset.go)));
-
-const toTop=__el('toTop');
-toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-let current=null;
-const rowSteps=[...ROOT.querySelectorAll('.steps .navstep')];
-const rowTicks=[...ROOT.querySelectorAll('.steps .tick')];
-function mark(id){
-  if(id===current)return;
-  current=id;
-  navs.forEach(n=>{
-    if(n.dataset.go===id)n.setAttribute('aria-current','true');
-    else n.removeAttribute('aria-current');
-  });
-  /* the connectors fill in behind the reader, so position and progress are
-     one device rather than two cyan lines competing on the same baseline */
-  const at=SECS.indexOf(id);
-  rowTicks.forEach((t,i)=>t.classList.toggle('done',i<at));
-  rowSteps.forEach(b=>{
-    const j=SECS.indexOf(b.dataset.go);
-    b.classList.toggle('done',j>-1&&j<at);
-  });
-  /* the nav row scrolls sideways, and on a phone only about three of the eight
-     entries fit \u2014 without this the reader never sees where they are */
-  const row=ROOT.querySelector('.steps');
-  const cur=rowSteps.find(b=>b.dataset.go===id);
-  if(row&&cur&&row.scrollWidth>row.clientWidth+4){
-    row.scrollTo({left:Math.max(0,cur.offsetLeft-(row.clientWidth-cur.offsetWidth)/2),behavior:'smooth'});
-  }
-}
-function onScroll(){
-  const doc=document.documentElement;
-  const y=window.scrollY;
-  toTop.classList.toggle('on',y>900);
-  /* the section that owns the top third of the viewport is the one you are reading */
-  const line=y+doc.clientHeight*0.32;
-  /* the overview has no nav entry of its own, so nothing is marked until the
-     reader actually reaches the first section that does */
-  let found=null;
-  for(const id of SECS){
-    const el=__el('sec-'+id);
-    if(el&&el.offsetTop<=line)found=id;
-  }
-  mark(found);
-}
-window.addEventListener('scroll',onScroll,{passive:true});
-window.addEventListener('resize',onScroll);
-onScroll();
-/* ================= interactive pipeline canvas ================= */
-(function(){
-const NS='http://www.w3.org/2000/svg';
-const WORLD={w:1620,h:1040};
-const REDUCED=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-const OWNERS={
- hermes:{name:'AI-Atlas Ops \u00b7 Hermes Agent',  c:'#22d3ee'},
- pm    :{name:'AI-Atlas PM \u00b7 OpenClaw Agent', c:'#43cc93'}
-};
-
-/* two bands say who is accountable. The PM band appears twice \u2014 once for the
-   standard it sets, once for the dataset and the jobs around it \u2014 because the
-   things it owns sit at opposite ends of the flow. Nodes outside a band are
-   inputs, outcomes, or the human in the loop. */
-const LANES=[
- {own:'hermes', x:224, y:40,  w:1100, h:560, label:'AI-ATLAS OPS \u00b7 HERMES AGENT',  sub:'runs the daily pipeline'},
- {own:'pm',     x:224, y:650, w:1100, h:350, label:'AI-ATLAS PM \u00b7 OPENCLAW AGENT', sub:'sets the standard, owns the dataset and the jobs around it'}
-];
-
-const NODES=[
- {id:'web', x:24, y:229, w:172, h:82,  kind:'io',   title:'The open web',
-  role:'Where evidence lives', line:'News and case studies',
-  panel:{lead:'Everything the pipeline knows comes from public writing about AI deployments. That writing is overwhelmingly promotional, which is the single fact the rest of the design is built around.',
-         secs:[['What arrives from here','Links to articles that look, from a search result, like they might describe a deployment. The great majority are marketing pages, announcements and roundups wearing the grammar of a case study.'],
-               ['Why it is drawn as a source, not a stage','Nothing here is under the pipeline\u2019s control. The design cannot improve the web; it can only decide what to ask it and what to believe.']]}},
-
- {id:'k2', x:250, y:700, w:206, h:64, kind:'know', title:'The quality bar', own:'pm',
-  role:'The standard', line:'What counts as a use case',
-  panel:{lead:'The definition every other decision is downstream of.',
-         secs:[['A case qualifies when','A named company is doing it, it is actually running, it changes a specific business process, something was measured, and the source is a substantive article rather than a product page.'],
-               ['Scale is not a use case','\u201cEveryone now has access to an assistant\u201d is verifiable and empty. The bar is set explicitly: headcount announcements carry no meaning for the atlas.'],
-               ['Who answers to it','The validating stage, on the day. The quality check, on everything already stored. Neither gets to renegotiate it, which is why it is set outside the pipeline rather than inside it.']]}},
-
- {id:'k3', x:530, y:700, w:206, h:64, kind:'know', title:'Data standard', own:'pm',
-  role:'The standard', line:'Fields, states, vocabulary',
-  panel:{lead:'The shared contract that the validating stage, the recording stage and the quality check all answer to.',
-         secs:[['Why it is shared','Several jobs write and check against the same shape. Keeping the rules in one place is what stops them drifting apart \u2014 which is exactly how a dataset develops inconsistencies only visible years later.'],
-               ['A worked example','Coordinates must be genuinely looked up; placeholders are prohibited. On a globe a placeholder is not a missing value, it is a visible point in the wrong place.']]}},
-
- {id:'k1', x:250, y:80, w:206, h:64, kind:'know', title:'Query design', own:'hermes',
-  role:'Reference', line:'Layers, rotation, retired',
-  panel:{lead:'Owns what gets asked: the three layers, the daily rotation, the shape a query must have, and which tool answers which layer.',
-         secs:[['Why queries rotate','A fixed set stops working after a few days. It keeps finding the same articles, which are by then already on record, and the day\u2019s entire output becomes duplicates.'],
-               ['What it remembers','Queries measured at a zero survival rate are retired by name. Framework-name queries return tutorials; buzzword queries return vendor concept pages.']]}},
-
- {id:'k4', x:670, y:80, w:206, h:64, kind:'know', title:'Learnings record', own:'hermes',
-  role:'Reference', line:'Feeds every stage of the run',
-  panel:{lead:'The pipeline\u2019s memory. Every stage reads it, and what each stage learns goes back into it \u2014 which is what stops the same mistake being rediscovered every few months.',
-         secs:[['What each stage takes from it','Searching takes which queries and which tools are still productive. Validating takes the failure modes it has been caught by before. Recording takes the identity traps that produced duplicates. Reporting takes what is worth saying about a day at all.'],
-               ['What it holds','Multi-day comparisons of how the search tools convert, named queries with long zero streaks, and structural problems such as an entire language path broken by malformed responses.'],
-               ['Why it is drawn touching all four','It was written as the memory of one stage and turned out to be the memory of the run. Keeping it attached to a single stage is what let the same lesson be relearned elsewhere.']]}},
-
- {id:'qc', x:250, y:450, w:206, h:86, kind:'job', title:'Quality check', own:'hermes',
-  role:'Every day', line:'Run over everything stored',
-  panel:{lead:'This job has no standard of its own. It is the quality bar and the data standard turned into checks and pointed at everything already stored \u2014 which is why it is drawn hanging off them rather than off the pipeline.',
-         secs:[['Why it exists at all','The daily stages only ever see one day. Damage that accumulates \u2014 a deployer that stopped resolving, a vocabulary that drifted, a field that was thin from the start \u2014 only shows up when the whole dataset is read at once.'],
-               ['What it checks','Exactly what the two standards specify: the fields the data standard requires and the shape it requires them in, and the substance the quality bar demands. Nothing it looks for is invented here.'],
-               ['Dump first, then go offline','The stored cases are pulled to a local file in a single read; every check after that runs against it with no further queries. Only an actual repair goes back to the database, one case at a time \u2014 an audit that queries live data as it goes is not reproducible.'],
-               ['Repairs may fetch, never invent','A thin field is rebuilt from the source material, and a case with a poor article can be re-attached to a better one. The prohibition on fabricating facts is untouched, and every correction is backed up before it is written.']]}},
-
- {id:'s1', x:250, y:220, w:206, h:100, kind:'step', go:'s1', accent:'#a78bfa', own:'hermes',
-  eyebrow:'STAGE 1', title:'Search', line:'Casts the day\u2019s net',
-  panel:{lead:'Produces a list of links worth reading, and is deliberately kept ignorant of what those links say.',
-         secs:[['Its one job','Decide what to ask, choose which tool answers, discard links that structurally cannot be a case study, and hand the survivors on.'],
-               ['Its hard boundary','It never opens an article. A search snippet is truncated, sometimes from the wrong page, and consistently more flattering than the page itself \u2014 so it is never treated as evidence.'],
-               ['The decision that shapes it most','Three query layers aimed at three different blind spots: business process, industry, and geography. Searching one way finds one kind of case.'],
-               ['What it is told to avoid','Everything already discarded is excluded before the day starts. A source retired once does not come back through the front door.']]}},
-
- {id:'s2', x:530, y:220, w:206, h:100, kind:'step', go:'s2', accent:'#e8a33d', own:'hermes',
-  eyebrow:'STAGE 2', title:'Validate', line:'Judges against the bar',
-  panel:{lead:'The only stage where judgment happens, and the only place a wrong decision has lasting consequences. Its posture is adversarial: every candidate is marketing until the article proves otherwise.',
-         secs:[['Its one job','Read the article, decide whether it describes something a company runs, extract the facts, and record why every rejection was rejected.'],
-               ['Its hard boundary','It never writes anything down. It produces a judgment and hands it on.'],
-               ['The hardest call it makes','Deployment versus announcement. Both share nearly every word \u2014 the same company names, the same \u201cAI\u201d, the same \u201cdeployed\u201d. The distinction is tense: will enable, versus reduced.'],
-               ['Why machines check it afterwards','On two separate days it was confident and wrong. Deterministic checks now scan its output for its known failure modes before anything is stored.']]}},
-
- {id:'s3', x:810, y:220, w:206, h:100, kind:'step', go:'s3', accent:'#43cc93', own:'hermes',
-  eyebrow:'STAGE 3', title:'Persist', line:'Records each survivor',
-  panel:{lead:'By this point every judgment has been made. This stage is deliberately mechanical \u2014 its only intelligence is about identity.',
-         secs:[['Its one job','Recognise an article the atlas has already seen, store the case whole rather than as a link, and write it down awaiting review.'],
-               ['What counts as already seen','Anything previously recorded, and anything a reviewer has archived. An archived case is a decision that this source is not worth carrying; re-ingesting it would overrule that decision automatically, every week, forever.'],
-               ['Its hard boundary','It never reconsiders whether a case is good, and never promotes anything to published on its own authority.'],
-               ['The subtle decision','The case keeps its full text, not just a URL. Articles get retracted, paywalled and quietly rewritten \u2014 a case that lives only as a link can evaporate without anyone touching the database.']]}},
-
- {id:'s4', x:1090, y:220, w:206, h:100, kind:'step', go:'s4', accent:'#22d3ee', own:'hermes',
-  eyebrow:'STAGE 4', title:'Report', line:'Says what happened',
-  panel:{lead:'The pipeline\u2019s contract with whoever is reading it. The least sophisticated stage and the least optional one.',
-         secs:[['Its one job','Summarise the day, show which tools did the work, list the new cases, and surface how large the review queue has grown.'],
-               ['Its hard boundary','Strictly read-only. It re-opens nothing and re-derives nothing \u2014 it reports what happened, it does not audit it.'],
-               ['Why a zero day still gets a message','There are several ways to find nothing, and they call for different fixes. Nothing searched means a tool broke. Nothing survived means the questions were badly aimed. All already known means the queries have saturated.']]}},
-
- {id:'rej', x:530, y:450, w:206, h:86, kind:'sink', title:'Discarded',
-  role:'Most of what a day finds', line:'Recorded with a reason',
-  panel:{lead:'The largest single flow in the whole system, and the one that makes the rest worth anything.',
-         secs:[['The five families','Wrong kind of page, announcement rather than operation, no process and no number, nobody identifiable, or a value outside a controlled vocabulary.'],
-               ['Why every rejection carries a reason','Counts alone tell you a day was bad. Reasons tell you whether to change the queries, the sources, or nothing at all. A day dominated by vendor marketing is healthy; a day dominated by unverifiable companies means the queries drifted toward aggregators.'],
-               ['It feeds back into the search','What has been discarded is excluded from later searches \u2014 a retired URL, and in the worse cases a whole domain, is never asked for again. The discard pile is the reason the same bad source does not cost anything twice.'],
-               ['The asymmetry behind it','A case that should have been captured can be found again tomorrow. A brochure recorded as a deployment sits in the dataset until someone notices.']]}},
-
- {id:'dup', x:810, y:450, w:206, h:86, kind:'sink', title:'Already known',
-  role:'Seen before, or archived', line:'Skipped, never re-ingested',
-  panel:{lead:'An article the atlas has already recorded is skipped \u2014 and so is one a reviewer has archived.',
-         secs:[['Two ways to be already known','The straightforward one is a case that is already on record. The other is a case that was recorded, reviewed, and archived: the reviewer\u2019s decision is kept as part of what the pipeline knows, so the same source cannot walk back in.'],
-               ['Why archived still counts as seen','Archived means a human reviewer looked at that source and judged it not worth carrying. Re-ingesting it would mean automatically overruling that judgment on a schedule.'],
-               ['Never revived automatically','An archived case stays archived. Nothing about a later day makes a source that was judged bad good again \u2014 reviving one is a manual act.']]}},
-
- {id:'ran', x:1380, y:220, w:206, h:100, kind:'human', title:'Review', accent:'#e8a33d',
-  role:'Human in the loop', line:'A human decides, every time',
-  panel:{lead:'The one box on this canvas that is not an agent. Nothing the pipeline records reaches the public site on its own authority \u2014 every case waits here until a human reviewer has read it and decided.',
-         secs:[['Why it is a human','Every judgment before this point was made by a model working from an article. This is where that work is checked by someone accountable for it, and it is the reason the atlas can be described as reviewed rather than generated.'],
-               ['What it decides','One of two things, and never nothing: the case is published, or it is archived. A case that has not been decided is still in the queue, and the daily report says how long that queue has grown.'],
-               ['What it cannot be automated into','The gate could be made faster, but not removed. An agent approving its own output is not review, and the whole design of the four stages \u2014 each forbidden from its neighbour\u2019s job \u2014 exists so that this last check has something honest to check.']]}},
-
- {id:'pub', x:1380, y:400, w:206, h:86, kind:'sink', tint:'#43cc93', title:'Published',
-  role:'Approved by a reviewer', line:'Visible as part of the atlas',
-  panel:{lead:'A case a human reviewer has read and approved. Only from here does it count as part of the atlas proper.',
-         secs:[['What changes','It stops carrying the not-yet-validated label and is rendered as a verified record everywhere in the product.'],
-               ['Why the step is explicit','Recording and publishing are deliberately two different acts. The pipeline can be trusted to write something down; it is not trusted to decide that the public should see it.']]}},
-
- {id:'arc', x:1380, y:550, w:206, h:86, kind:'sink', tint:'#f2607a', title:'Archived',
-  role:'Retired by a reviewer', line:'Kept, hidden, remembered',
-  panel:{lead:'A case a human reviewer has read and judged not worth carrying. It is retired rather than deleted, and the decision is kept where the pipeline can use it.',
-         secs:[['Why not deleted','The history stays auditable. A record that simply vanishes leaves no way to answer why something is no longer there, or whether it was ever there at all.'],
-               ['It feeds the deduplication','Archived cases are part of what the recording stage treats as already seen. Without that, a source a reviewer rejected would be found again, judged again, and written again \u2014 and the reviewer would have to make the same decision every week.'],
-               ['Where it is visible','Nowhere on the public site. It is excluded from every frontend surface, and its URL is blocked from re-entering.']]}},
-
- {id:'atlas', x:1090, y:689, w:206, h:86, kind:'core', logo:'/ai-atlas-logo.png', title:'AI Atlas', own:'pm',
-  role:'The dataset behind the site', line:'Every recorded use case',
-  panel:{lead:'What the whole pipeline exists to fill: a map of where AI is actually deployed, and to do what.',
-         secs:[['What arrives unreviewed','New cases are visible in the product but labelled as not yet validated \u2014 a deliberate trade. Showing them is more useful than hiding them, as long as nobody can mistake them for verified.'],
-               ['What is owned at this level','Everything in this band: the standard the pipeline is held to, the dataset itself, and the standing work around it \u2014 the weekly report on whether the system is working, the weekly backup, and the advertorial audit.'],
-               ['What it hands on','Everything it knows about itself \u2014 the standard, the learnings, the open issues, the current state of the data \u2014 goes to the coding agents that build and deploy the product around it.']]}},
-
- {id:'audit', x:250, y:860, w:206, h:86, kind:'job', title:'Advertorial audit', own:'pm',
-  role:'Manual, ad hoc', line:'Reviewed in batches',
-  panel:{lead:'The judgment the daily gates cannot make: whether an article that passed everything else is reporting a deployment or selling one. Deliberately manual, run in review batches rather than on a schedule.',
-         secs:[['The standard','Technical detail is acceptable, pure hype is not \u2014 where technical detail means a named tool, platform, model, architecture or implementation step, not \u201cimproved efficiency\u201d.'],
-               ['Three dimensions, all required','A specific model or tool; a specific line, process or task; and numbers anchored to that scenario. Few anchored figures beat many floating ones.'],
-               ['Disposition','An advertorial is archived, never deleted \u2014 the history stays auditable and the URL stays permanently blocked from re-entering.']]}},
-
- {id:'weekly', x:530, y:860, w:206, h:86, kind:'job', title:'Weekly ops report', own:'pm',
-  role:'Every Monday', line:'Is the system working?',
-  panel:{lead:'The daily message answers what was found. This answers whether the system is working \u2014 and it is kept for the people running it rather than published. The public half of the old weekly report is now the industry deep dive.',
-         secs:[['Computes','Funnel conversion, which industries are accumulating, the status breakdown, tool usage against last week, query performance, outstanding quality issues, a system-health call, and next steps.'],
-               ['Its start time is set by the job before it','It waits for Sunday\u2019s pipeline, which routinely crosses midnight. The gap between them is a deliberate buffer rather than a round number.'],
-               ['Zero-data weeks are checked first','A week where the pipeline was offline gets a report that says so, rather than a normal-looking one full of zeros.']]}},
-
- {id:'deep', x:810, y:860, w:206, h:86, kind:'job', title:'Industry deep dive', own:'pm',
-  role:'Writes up one industry', line:'From its published cases',
-  panel:{lead:'The public half of what used to be the weekly report. Each piece takes one industry and sets out how AI is actually deployed in it, written from the cases in the atlas. It does not yet run on a fixed schedule.',
-         secs:[['Why industry','The data has no topic dimension, but every case carries a standard industry. Around twenty industries hold enough published cases to support a piece of their own.'],
-               ['What it may cite','Only published cases, and only from the industry it is about. A piece that cites an unpublished case, a case from another industry, or an industry outside the standard list is refused rather than published.'],
-               ['Why cases, not news','News linked to the companies in an industry is too thin to carry a piece; the recorded cases are the evidence base.']]}},
-
- {id:'backup', x:1090, y:860, w:206, h:86, kind:'job', title:'Weekly backup', own:'pm',
-  role:'Every Sunday', line:'Four tables, dated files',
-  panel:{lead:'The plainest job in the system, and the only thing between an operator mistake and permanent loss.',
-         secs:[['What it taught','A database was damaged days after the newest backup was taken, and the missing ingest was recovered instead from the pipeline\u2019s own intermediate handoff files \u2014 which nobody had thought of as a backup. They are now treated as part of the recovery surface.'],
-               ['Open issue','It requests every row in one call with no pagination, and the database returns only the first page. Nothing errors \u2014 the files are valid and have been growing weekly, while quietly holding less than the whole.']]}},
-
- /* a reference card, like the quality bar and the data standard beside it */
- {id:'kb', x:810, y:700, w:206, h:64, kind:'know', title:'Knowledge base', own:'pm',
-  role:'Standing reference', line:'Runbooks, lessons, specs',
-  panel:{lead:'The standing record of what this system is and what it has already got wrong \u2014 kept outside the code, so that a lesson survives the session that learned it.',
-         secs:[['What it holds','A map of the codebase, runbooks for the operations that are easy to get wrong, postmortems with the rule each one produced, the data quality reports, and the product spec.'],
-               ['Who reads it','The coding agents, before touching anything. Which files to read before which kind of change is itself written down, so the reading is not left to judgement.'],
-               ['Why it is not memory','An agent\u2019s memory ends with its session. A finding that cost a day to reach is worth more than that, so it is written to a file that the next session is told to open.']]}},
-
- {id:'ccx', x:1380, y:860, w:206, h:86, kind:'io', title:'Claude Code \u00b7 Codex',
-  role:'Coding & deployment', line:'Builds and ships the product',
-  panel:{lead:'The coding agents receive everything the atlas knows about itself, and are responsible for writing and deploying the product that the data is read through.',
-         secs:[['What they receive','The full context held at the atlas level: the data standard, the quality bar, what the pipeline has learned, the open issues, and the current state of the dataset.'],
-               ['What they are responsible for','The application code and its deployment. They build the surface the atlas is read through.'],
-               ['What they never decide','What goes into the atlas, and what gets published out of it. The boundary between building the product and judging the data is the same boundary the four stages are drawn along.']]}}
-];
-
-const EDGES=[
- {a:'web', as:'r', b:'s1', bs:'l', flow:7, tone:'violet'},
- {a:'s1',  as:'r', b:'s2', bs:'l', flow:7, tone:'violet'},
- {a:'s2',  as:'b', b:'rej',bs:'t', flow:7, tone:'bad',    cls:'bad'},
- {a:'s2',  as:'r', b:'s3', bs:'l', flow:2, tone:'good',   cls:'good'},
- {a:'s3',  as:'b', b:'dup',bs:'t', flow:1, tone:'warn',   cls:'warn'},
- {a:'s3',  as:'r', b:'s4', bs:'l', flow:2, tone:'good',   cls:'good'},
- /* held high until it is past "already known", then dropped into the atlas */
- {a:'s3',  as:'b', b:'atlas',bs:'t', flow:2, tone:'good', cls:'good', cy:[370,520]},
- {a:'s4',  as:'r', b:'ran',bs:'l', flow:2, tone:'good'},
- /* the human gate, and its two possible decisions */
- {a:'ran', as:'b', b:'pub', bs:'t', flow:2, tone:'good', cls:'good'},
- {a:'ran', as:'b', b:'arc', bs:'t', flow:0, cls:'bad', cp:[1310,320,1310,550]},
- /* an archived case is one of the things stage 3 treats as already seen */
- {a:'arc', as:'l', b:'dup', bs:'r', flow:0, cls:'feedback', label:'archived, never re-ingested'},
- /* both decisions are written back to the same dataset, so the review gate
-    returns to the atlas rather than ending at two loose outcomes */
- {a:'pub', as:'l', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1280,470,1330,732]},
- {a:'arc', as:'b', b:'atlas', bs:'r', flow:0, cls:'feedback', cp:[1483,706,1392,748], label:'status synced'},
- /* the other way to be already known: the case is simply on record */
- {a:'atlas', as:'t', b:'dup', bs:'b', flow:0, cls:'feedback', cp:[1193,600,913,620], label:'already on record'},
- /* the audit's only outcome: an advertorial is archived, never deleted. No label —
-    labels sit at the anchor midpoint, which for this route is nowhere near the line.
-    Routed underneath everything and up the outer right edge, so it shares no
-    corridor with another edge */
- {a:'audit', as:'b', b:'arc', bs:'r', flow:0, cls:'feedback',
-  d:'M353 946 C 353 985, 400 985, 480 985 L 1560 985 C 1604 985, 1604 960, 1604 900 L 1604 640 C 1604 605, 1600 593, 1586 593'},
- /* what is already on record is also kept out of the judging, not only of the writing */
- {a:'dup', as:'l', b:'s2', bs:'b', flow:0, cls:'feedback', cp:[790,400,700,330], label:'excluded at validation'},
- /* what has been discarded is kept out of what gets asked for next */
- {a:'rej', as:'l', b:'s1', bs:'b', flow:0, cls:'feedback', back:true, label:'excluded from later searches'},
- {a:'k1',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
- /* queries the learnings record shows at zero survival are retired by name */
- {a:'k1',  as:'r', b:'k4', bs:'l', flow:0, cls:'know'},
- /* the learnings record is the memory of the whole run, not of one stage */
- {a:'k4',  as:'b', b:'s1', bs:'t', flow:0, cls:'know'},
- {a:'k4',  as:'b', b:'s2', bs:'t', flow:0, cls:'know'},
- {a:'k4',  as:'b', b:'s3', bs:'t', flow:0, cls:'know'},
- {a:'k4',  as:'b', b:'s4', bs:'t', flow:0, cls:'know'},
- /* the standard reaches up into the pipeline through the gaps between stages */
- {a:'k2',  as:'r', b:'s2', bs:'l', flow:0, cls:'know'},
- {a:'k3',  as:'r', b:'s3', bs:'l', flow:0, cls:'know'},
- /* the validator reads the data standard first, as well as the quality bar; routed
-    up the gap between Discarded and Already known */
- {a:'k3',  as:'t', b:'s2', bs:'b', flow:0, cls:'know',
-  d:'M700 700 C 700 650, 773 640, 773 590 L 773 410 C 773 360, 712 350, 700 320'},
- /* the dashboard measures the stored data against the standard that defines it */
- /* passes over the knowledge base, which now sits between the two */
- {a:'k3',  as:'r', b:'atlas', bs:'l', flow:0, cls:'know', label:'quality dashboard', lx:960, ly:676,
-  d:'M736 716 C 770 690, 790 682, 830 682 L 1050 682 C 1075 682, 1085 695, 1090 712'},
- /* the deep dive is written from the atlas's published cases */
- {a:'atlas', as:'b', b:'deep', bs:'t', flow:0, cls:'feedback'},
- /* the weekly report scores the week's published cases against the same standard */
- {a:'k3',  as:'b', b:'weekly', bs:'t', flow:0, cls:'know'},
- /* the audit judges stored records against both standards, so it reads from each */
- {a:'k2',  as:'b', b:'audit', bs:'t', flow:0, cls:'know'},
- {a:'k3',  as:'b', b:'audit', bs:'r', flow:0, cls:'know', cp:[600,800,500,890]},
- /* the quality check is nothing but those two standards, run over stored cases */
- {a:'k2',  as:'t', b:'qc', bs:'b', flow:0, cls:'know'},
- {a:'k3',  as:'l', b:'qc', bs:'r', flow:0, cls:'know'},
- /* what the check finds wrong in stored cases is what validation learns to catch */
- {a:'qc',  as:'r', b:'s2', bs:'l', flow:0, cls:'feedback', cp:[505,470,505,300]},
- {a:'atlas', as:'t', b:'qc',     bs:'b', flow:0, cls:'feedback', cy:[623,623]},
- {a:'atlas', as:'b', b:'audit',  bs:'t', flow:0, cls:'feedback'},
- {a:'atlas', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback'},
- {a:'atlas', as:'b', b:'backup', bs:'t', flow:0, cls:'feedback'},
- /* the weekly report answers whether the system is working, which is a question
-    about the funnel — it reads the rejection rate and the top rejection reason */
- {a:'rej', as:'b', b:'weekly', bs:'t', flow:0, cls:'feedback', cp:[440,620,440,800]},
- /* what the human finds at the gate is what the pipeline learns to catch */
- {a:'ran', as:'t', b:'k4', bs:'r', flow:0, cls:'feedback', cp:[1483,150,1000,112]},
- /* the dataset's own state and its failures are written up rather than remembered */
- {a:'atlas', as:'l', b:'kb',  bs:'r', flow:0, cls:'know'},
- /* the pipeline's own memory is reviewed and written up at the atlas level */
- {a:'k4', as:'r', b:'kb', bs:'t', flow:0, cls:'know',
-  d:'M876 112 C 1053 112, 1053 140, 1053 200 L 1053 640 C 1053 680, 913 676, 913 700'},
- /* no label: the gap is 84px and the node's own subtitle already says it */
- {a:'kb',    as:'b', b:'ccx', bs:'l', flow:0, cls:'know',
-  d:'M960 764 C 960 810, 1000 840, 1060 840 L 1320 840 C 1350 840, 1360 903, 1380 903'},
- {a:'atlas', as:'b', b:'ccx',    bs:'t', flow:0, cls:'know', label:'what the product renders'}
-];
-const byId={}; NODES.forEach(n=>byId[n.id]=n);
-function anchor(n,s){
-  if(s==='l')return[n.x,n.y+n.h/2];
-  if(s==='r')return[n.x+n.w,n.y+n.h/2];
-  if(s==='t')return[n.x+n.w/2,n.y];
-  return[n.x+n.w/2,n.y+n.h];
-}
-function pathFor(e){
-  const A=byId[e.a],B=byId[e.b];
-  const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
-  /* a written-out path, for the one edge that has to turn a corner: a single
-     cubic cannot both clear the stage row and stay in the 84px corridor */
-  if(e.d)return e.d;
-  if(e.back){
-    /* leaves leftward and climbs back into the stage it feeds */
-    return 'M'+x1+' '+y1+' C '+(x1-70)+' '+(y1-30)+', '+x2+' '+(y2+60)+', '+x2+' '+y2;
-  }
-  if(e.cp){
-    /* absolute control points, for edges that have to thread a gap */
-    return 'M'+x1+' '+y1+' C '+e.cp[0]+' '+e.cp[1]+', '+e.cp[2]+' '+e.cp[3]+', '+x2+' '+y2;
-  }
-  if(e.cy){
-    /* explicit control heights, for the two long edges that would otherwise
-       cut a corner off a node or sit on top of a lane border */
-    return 'M'+x1+' '+y1+' C '+x1+' '+e.cy[0]+', '+x2+' '+e.cy[1]+', '+x2+' '+y2;
-  }
-  if(e.as==='r'&&e.bs==='l'){
-    const dx=Math.max(28,(x2-x1)*0.45);
-    return 'M'+x1+' '+y1+' C '+(x1+dx)+' '+y1+', '+(x2-dx)+' '+y2+', '+x2+' '+y2;
-  }
-  /* signed, so an edge that travels upward curves the right way round */
-  const s=(y2>=y1)?1:-1;
-  const dy=Math.max(22,Math.abs(y2-y1)*0.5);
-  return 'M'+x1+' '+y1+' C '+x1+' '+(y1+dy*s)+', '+x2+' '+(y2-dy*s)+', '+x2+' '+y2;
+type Family = { k: string; n: string; d: string; pts: string[]; words?: [string, string][] }
+type Source = { g: "stage" | "shared" | "build"; t: string; r: string; d: string; b: [string, string][] }
+type Month = { m: string; pub: number; arc: number }
+type Data = { FAMILIES: Family[]; SOURCES: Source[]; MONTHS: Month[] }
+
+/* ---------- the particle field ---------- */
+type RGB = readonly [number, number, number]
+const C: Record<string, RGB> = {
+  violet: [167, 139, 250],
+  amber: [232, 163, 61],
+  green: [67, 204, 147],
+  rose: [242, 96, 122],
+  cyan: [34, 211, 238],
+  slate: [120, 146, 184],
 }
 
-const svg=__el('cv');
-const gRoot=document.createElementNS(NS,'g');
-const gLanes=document.createElementNS(NS,'g');
-const gEdges=document.createElementNS(NS,'g');
-const gDots=document.createElementNS(NS,'g');
-const gNodes=document.createElementNS(NS,'g');
-const gLabels=document.createElementNS(NS,'g');
-gRoot.append(gLanes,gEdges,gDots,gLabels,gNodes);
-svg.appendChild(gRoot);
+type FieldInfo = { gates: string[]; fields: { n: string; ct: string }[]; docs: { t: string; r: string; g: number }[]; groups: string[] }
 
-function mk(tag,attrs,txt){
-  const e=document.createElementNS(NS,tag);
-  for(const k in attrs)e.setAttribute(k,attrs[k]);
-  if(txt!=null)e.textContent=txt;
-  return e;
-}
-
-/* ownership bands, drawn behind everything */
-LANES.forEach(L=>{
-  const o=OWNERS[L.own];
-  const r=mk('rect',{class:'lane','pointer-events':'none',x:L.x,y:L.y,width:L.w,height:L.h,rx:18,
-    fill:o.c,'fill-opacity':.038,stroke:o.c,'stroke-opacity':.26,'stroke-width':1,'stroke-dasharray':'7 6'});
-  gLanes.appendChild(r);
-  const lab=mk('text',{x:L.x+18,y:L.y+23,fill:o.c,'fill-opacity':.78,'pointer-events':'none',
-    'font-family':'Geist Mono, monospace','font-size':12.5,'letter-spacing':'1.5','font-weight':500},L.label);
-  gLanes.appendChild(lab);
-  /* measured, not estimated from a per-character width: that estimate was
-     calibrated for one font size and collided with the sub the moment it changed */
-  const sub=mk('text',{x:L.x+18+lab.getComputedTextLength()+18,y:L.y+23,fill:'#5f748f','pointer-events':'none',
-    'font-family':'Geist, sans-serif','font-size':13},L.sub);
-  gLanes.appendChild(sub);
-});
-
-/* edges */
-const edgeEls=[];
-EDGES.forEach((e,i)=>{
-  const d=pathFor(e);
-  const p=mk('path',{d:d,class:'edge '+(e.cls||''),id:'e'+i});
-  gEdges.appendChild(p);
-  edgeEls.push({e:e,el:p});
-  if(e.label){
-    const A=byId[e.a],B=byId[e.b];
-    const [x1,y1]=anchor(A,e.as),[x2,y2]=anchor(B,e.bs);
-    const g=mk('g',{class:'elabel'});
-    const mx=e.lx??(x1+x2)/2, my=e.ly??(y1+y2)/2 - (e.as==='r'?11:0);
-    const t=mk('text',{x:mx,y:my,fill:'#7d93b1','font-family':'Geist Mono, monospace','font-size':12.5,'text-anchor':'middle','letter-spacing':'.06em'},e.label);
-    g.appendChild(t); g.dataset.a=e.a; g.dataset.b=e.b;
-    gLabels.appendChild(g);
+function startField(fx: HTMLCanvasElement, getScene: () => string, getClip: () => [number, number], signal: AbortSignal, info: FieldInfo) {
+  const ctx = fx.getContext("2d")
+  if (!ctx) return
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  /* one dot per ten candidates: 1,140 found, 172 validated, 70 published */
+  const N = 1140
+  const NP = 70
+  const NV = 172
+  let seed = 11
+  const rnd = () => {
+    seed = (seed * 16807) % 2147483647
+    return (seed - 1) / 2147483646
   }
-  /* flowing dots */
-  if(!REDUCED && e.flow>0){
-    for(let k=0;k<e.flow;k++){
-      const c=mk('circle',{r:(e.tone==='violet'?2.1:2.6),class:'dot '+(e.tone||'')});
-      const am=mk('animateMotion',{dur:(e.tone==='violet'?3.2:4.4)+'s',repeatCount:'indefinite',begin:(k*(e.tone==='violet'?0.42:0.62))+'s'});
-      const mp=mk('mpath',{href:'#e'+i});
-      mp.setAttributeNS('http://www.w3.org/1999/xlink','href','#e'+i);
-      am.appendChild(mp);
-      c.appendChild(am); gDots.appendChild(c);
+  const P = Array.from({ length: N }, () => ({ x: 0, y: 0, a: 0, r: 1, c: [167, 139, 250], u: rnd(), v: rnd(), w: rnd(), q: rnd() }))
+  const o = { x: 0, y: 0, a: 0, r: 1, c: C.violet, sq: false }
+  let W = 0
+  let Hh = 0
+  let top = 0
+  let mobile = false
+  let V = { x: 0, y: 0, w: 0, h: 0 }
+  let snap = true
+  let scene = ""
+  let sceneAt = 0
+  let raf = 0
+  let lastMs = 0
+
+  const size = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    W = window.innerWidth
+    Hh = window.innerHeight
+    fx.width = Math.round(W * dpr)
+    fx.height = Math.round(Hh * dpr)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    /* the app header plus this page's chapter bar */
+    top = (document.getElementById("atlas-chrome")?.offsetHeight ?? 0) + 42
+    mobile = W < 900
+    V = mobile
+      ? { x: W * 0.07, y: top + 22, w: W * 0.86, h: Hh * 0.32 }
+      : { x: W * 0.55, y: top + (Hh - top) * 0.1, w: W * 0.38, h: (Hh - top) * 0.74 }
+    snap = true
+  }
+
+  const grid = () => {
+    const cols = mobile ? 22 : 14
+    const cell = Math.min((V.w * 0.94) / cols, mobile ? 13 : 23)
+    return { cols, cell, gx: V.x + (V.w - cols * cell) / 2, gy: V.y + V.h * 0.03, rows: Math.ceil(NV / cols) }
+  }
+  const blocks = () => {
+    const pc = Math.min((V.w * 0.44) / 10, mobile ? 14 : 25)
+    const ac = Math.min((V.w * 0.44) / 12, mobile ? 10 : 17)
+    return { pc, ac, px: V.x + V.w - pc * 10, ax: V.x, y: V.y + V.h * 0.05 }
+  }
+
+  const gateAt = (k: number) => 0.13 + 0.17 * k
+  const recLayout = () => {
+    const lw = mobile ? 158 : 164
+    return { x0: V.x + lw, w: V.w - lw, rh: Math.min(V.h / Math.max(1, info.fields.length), 36) }
+  }
+  /* where the check has got to: 10s for a record that passes, 10s for one that fails */
+  const recState = (t: number) => {
+    const R = info.fields.length
+    const step = 0.4
+    const second = t % 20 >= 10
+    const tt = t % 10
+    const failRow = Math.max(0, info.fields.findIndex((f) => f.n === "company_id"))
+    const stop = second ? failRow + 1 : R
+    const done = tt >= stop * step
+    return {
+      row: Math.min(stop, Math.floor(tt / step)),
+      frac: (tt % step) / step,
+      done,
+      fail: second ? failRow : -1,
+      drop: Math.max(0, tt - stop * step - 2.2),
+      rest: tt > 9.3,
     }
   }
-});
-
-/* nodes */
-const nodeEls={};
-NODES.forEach(n=>{
-  const g=mk('g',{class:'node '+n.kind,tabindex:'0',role:'button','aria-label':n.title});
-  const box=mk('rect',{class:'box',x:n.x,y:n.y,width:n.w,height:n.h,rx:n.kind==='step'?13:11});
-  if(n.tint){box.setAttribute('stroke',n.tint);box.setAttribute('stroke-opacity','.6');}
-  g.appendChild(box);
-  if(n.eyebrow){
-    g.appendChild(mk('text',{x:n.x+18,y:n.y+28,fill:n.accent,'font-family':'Geist Mono, monospace','font-size':12,'letter-spacing':'1.7'},n.eyebrow));
-    g.appendChild(mk('text',{x:n.x+18,y:n.y+58,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':23,'font-weight':600},n.title));
-    g.appendChild(mk('text',{x:n.x+18,y:n.y+81,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':14.5},n.line));
-  } else if(n.kind==='know'){
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+26,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+45,fill:'#7d93b1','font-family':'Geist, sans-serif','font-size':13.5},n.line));
-  } else {
-    /* the app's own mark sits beside the title, so the dataset reads as the product */
-    const tx=n.logo?n.x+46:n.x+16;
-    if(n.logo)g.appendChild(mk('image',{href:n.logo,x:n.x+16,y:n.y+12,width:24,height:24}));
-    g.appendChild(mk('text',{x:tx,y:n.y+30,fill:'#e6edf7','font-family':'Geist, sans-serif','font-size':18,'font-weight':600},n.title));
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+50,fill:'#8ba0bd','font-family':'Geist, sans-serif','font-size':14},n.role||''));
-    g.appendChild(mk('text',{x:n.x+16,y:n.y+67,fill:'#5f748f','font-family':'Geist, sans-serif','font-size':13.5},n.line||''));
+  /* 0 flowing on the primary tool, 1 silent, 2 flowing on the fallback */
+  const resPhase = (t: number) => {
+    const c = t % 13
+    return c < 4 ? 0 : c < 7 ? 1 : 2
   }
-  g.addEventListener('click',ev=>{ev.stopPropagation();select(n.id);});
-  g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(n.id);}});
-  g.addEventListener('mouseenter',()=>{if(!selected)highlight(n.id);});
-  g.addEventListener('mouseleave',()=>{if(!selected)clearHL();});
-  gNodes.appendChild(g);
-  nodeEls[n.id]=g;
-});
-
-/* highlight */
-function neighbours(id){
-  const s=new Set([id]);
-  EDGES.forEach(e=>{if(e.a===id)s.add(e.b);if(e.b===id)s.add(e.a);});
-  return s;
-}
-function highlight(id){
-  const keep=neighbours(id);
-  NODES.forEach(n=>nodeEls[n.id].classList.toggle('dim',!keep.has(n.id)));
-  edgeEls.forEach(o=>{
-    const on=(o.e.a===id||o.e.b===id);
-    o.el.classList.toggle('hot',on);
-    o.el.classList.toggle('dim',!on);
-  });
-  [...gLabels.children].forEach(l=>l.classList.toggle('dim',!(l.dataset.a===id||l.dataset.b===id)));
-}
-function clearHL(){
-  NODES.forEach(n=>nodeEls[n.id].classList.remove('dim'));
-  edgeEls.forEach(o=>o.el.classList.remove('hot','dim'));
-  [...gLabels.children].forEach(l=>l.classList.remove('dim'));
-}
-
-/* panel */
-let selected=null;
-const panel=__el('cvPanel');
-function select(id){
-  const n=byId[id];
-  selected=id;
-  Object.keys(nodeEls).forEach(k=>nodeEls[k].classList.toggle('sel',k===id));
-  highlight(id);
-  __el('cvRole').textContent=n.role||n.eyebrow||'Node';
-  __el('cvTitle').textContent=n.title;
-  const body=__el('cvBody');
-  const o=n.own?OWNERS[n.own]:null;
-  body.innerHTML=(o?'<div style="display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:'+o.c+';border:1px solid '+o.c+';border-radius:999px;padding:3px 10px;margin-bottom:13px;opacity:.85">'+o.name+'</div>':'')+
-    '<p style="font-size:15.4px;line-height:1.64;color:var(--text)">'+n.panel.lead+'</p>'+
-    n.panel.secs.map(function(s){return '<div><h4>'+s[0]+'</h4><p>'+s[1]+'</p></div>';}).join('');
-  if(n.go){
-    const b=document.createElement('button');
-    b.className='deep'; b.textContent='Read the full stage →';
-    b.addEventListener('click',()=>go(n.go));
-    body.appendChild(b);
+  const knowLayout = () => {
+    const rows = info.docs.length + (mobile ? 0 : info.groups.length)
+    const rh = V.h / Math.max(1, rows)
+    const ys: number[] = []
+    const heads: number[] = []
+    let r = 0
+    info.docs.forEach((d, i) => {
+      if (!mobile && (i === 0 || info.docs[i - 1].g !== d.g)) heads[d.g] = V.y + (r++ + 0.5) * rh
+      ys.push(V.y + (r++ + 0.5) * rh)
+    })
+    return { ys, heads, rad: Math.min(9, rh * 0.3) }
   }
-  panel.classList.add('on');
-}
-function deselect(){
-  selected=null; panel.classList.remove('on');
-  Object.keys(nodeEls).forEach(k=>nodeEls[k].classList.remove('sel'));
-  clearHL();
-}
-__el('cvClose').addEventListener('click',deselect);
-svg.addEventListener('click',()=>{if(moved){moved=false;return;} if(selected)deselect();});
 
-/* pan + zoom */
-let view={x:0,y:0,k:1};
-function apply(){gRoot.setAttribute('transform','translate('+view.x+','+view.y+') scale('+view.k+')');}
-function fit(){
-  const r=svg.getBoundingClientRect();
-  const kw=r.width/WORLD.w, kh=r.height/WORLD.h;
-  /* On a phone the frame is far narrower than the diagram, so fitting the width
-     draws every node at about a fifth of its size and nothing can be read. When
-     the width is that much the tighter constraint, fill the height instead and
-     let the reader pan sideways \u2014 the whole vertical structure still fits, and
-     the labels stay legible. */
-  const narrow=kw<kh*0.72;
-  const k=(narrow?kh:Math.min(kw,kh))*0.95;
-  view.k=k;
-  view.x=narrow?12:(r.width-WORLD.w*k)/2;
-  view.y=(r.height-WORLD.h*k)/2;
-  apply();
-}
-let drag=null,moved=false;
-svg.addEventListener('pointerdown',e=>{
-  drag={sx:e.clientX,sy:e.clientY,vx:view.x,vy:view.y,id:e.pointerId};
-  moved=false;
-});
-svg.addEventListener('pointermove',e=>{
-  if(!drag)return;
-  const dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
-  /* only take over the pointer once this is clearly a drag, so a plain
-     click still reaches the node underneath it */
-  if(!moved){
-    if(Math.abs(dx)+Math.abs(dy)<5)return;
-    moved=true;
-    try{svg.setPointerCapture(drag.id);}catch(err){}
-    svg.classList.add('dragging');
+  const target = (i: number, p: (typeof P)[number], sc: string, t: number) => {
+    const g = i < NP ? 0 : i < NV ? 1 : 2
+    o.sq = false
+    if (sc === "cloud" || sc === "dust") {
+      o.x = W * (0.02 + 0.96 * p.u) + Math.sin(t * 0.21 + p.q * 6.283) * 16
+      o.y = top + (Hh - top) * p.v + Math.cos(t * 0.17 + p.w * 6.283) * 16
+      o.a = sc === "cloud" ? 0.2 + 0.62 * p.w : 0.06 + 0.12 * p.w
+      o.r = 0.7 + 1.5 * p.q
+      o.c = C.violet
+      return
+    }
+    if (sc === "bar") {
+      /* five tests in a row: a candidate that fails one falls out there, and only
+         what clears all five comes out the far side */
+      const f = (p.u + t * 0.05 * (0.6 + 0.5 * p.q)) % 1
+      const edge = Math.min(1, f * 12, (1 - f) * 12)
+      const by = V.y + V.h * 0.3 + (p.v - 0.5) * V.h * 0.2
+      o.x = V.x + f * V.w
+      o.y = by
+      o.r = 1.2 + 0.9 * p.q
+      const failAt = gateAt(i % 5)
+      if (g === 2 && f > failAt) {
+        const d = f - failAt
+        o.y = by + V.h * 0.12 + Math.sqrt(d) * V.h * 0.95
+        o.a = Math.max(0, 0.85 - d * 1.9)
+        o.c = C.rose
+      } else {
+        o.a = (g === 2 ? 0.7 : 0.95) * edge
+        o.c = f > gateAt(4) ? C.green : C.violet
+        if (g !== 2) o.r = 2.1
+      }
+      return
+    }
+    if (sc === "rules") {
+      /* one record, field by field: each row is a field being checked against its
+         limit. The first record clears all of them; the second fails one and is dropped */
+      const R = Math.max(1, info.fields.length)
+      const L = recLayout()
+      const row = i % R
+      const k = Math.floor(i / R)
+      const per = Math.ceil(N / R)
+      const s = recState(t)
+      o.sq = true
+      o.r = mobile ? 1 : 1.5
+      o.x = L.x0 + ((k + 0.5) / per) * L.w
+      o.y = V.y + (row + 0.5) * L.rh
+      if (s.done) {
+        o.a = s.fail < 0 ? 0.9 : row === s.fail ? 1 : 0.1
+        o.c = s.fail < 0 ? C.green : row === s.fail ? C.rose : C.slate
+        if (s.fail >= 0 && s.drop > 0) {
+          o.y += s.drop * s.drop * 90
+          o.a *= Math.max(0, 1 - s.drop * 0.9)
+        }
+      } else if (row < s.row || (row === s.row && (k + 0.5) / per < s.frac)) {
+        o.a = 0.85
+        o.c = C.cyan
+      } else {
+        o.a = 0.22
+        o.c = C.slate
+      }
+      return
+    }
+    if (sc === "res") {
+      /* the incident that shaped the rules: a tool goes quiet without an error,
+         the silence is treated as a failure, and the run moves to another tool */
+      const ph = resPhase(t)
+      const f = (p.u + t * 0.06 * (0.6 + 0.5 * p.q)) % 1
+      const edge = Math.min(1, f * 12, (1 - f) * 12)
+      o.x = V.x + f * V.w
+      o.r = 1.1 + 1.1 * p.q
+      if (ph === 2) {
+        o.y = V.y + V.h * 0.66 + (p.v - 0.5) * V.h * 0.13
+        o.a = 0.8 * edge
+        o.c = C.cyan
+      } else {
+        o.y = V.y + V.h * 0.26 + (p.v - 0.5) * V.h * 0.13
+        o.a = ph === 0 ? 0.75 * edge : 0.03
+        o.c = C.violet
+      }
+      return
+    }
+    if (sc === "know") {
+      /* thirteen documents, each owning one kind of decision; they light in turn */
+      const D = info.docs.length || 1
+      const d = i % D
+      const K = knowLayout()
+      const on = d === Math.floor(t / 1.0) % D
+      const ang = p.v * 6.283 + t * (0.25 + 0.4 * p.q) * (d % 2 ? 1 : -1)
+      const rr = Math.sqrt(p.u) * (on ? K.rad * 1.5 : K.rad)
+      o.x = V.x + K.rad * 1.6 + Math.cos(ang) * rr
+      o.y = K.ys[d] + Math.sin(ang) * rr
+      o.a = on ? 0.95 : 0.32
+      o.r = on ? 1.3 : 0.9
+      o.c = [C.cyan, C.green, C.violet][info.docs[d]?.g ?? 0]
+      return
+    }
+    if (sc === "s1") {
+      const f = (p.u + t * 0.035 * (0.5 + p.q)) % 1
+      o.x = V.x + f * V.w
+      o.y = V.y + V.h * (0.2 + 0.3 * (i % 3)) + (p.v - 0.5) * V.h * 0.15 + Math.sin(t * 1.3 + p.w * 9) * 2
+      o.a = Math.sin(Math.PI * f) * 0.85
+      o.r = 1 + 1.2 * p.q
+      o.c = C.violet
+      return
+    }
+    if (sc === "globe") {
+      const j = (i * 397) % N
+      const phi = Math.acos(1 - (2 * (j + 0.5)) / N)
+      const th = Math.PI * (1 + Math.sqrt(5)) * j + t * 0.16
+      const R = mobile ? V.h * 0.52 : Math.min(V.w, V.h) * 0.52
+      const y = Math.cos(phi)
+      const z = Math.sin(phi) * Math.sin(th)
+      const y2 = y * 0.93 - z * 0.37
+      const d = (y * 0.37 + z * 0.93 + 1) / 2
+      o.x = V.x + V.w / 2 + Math.sin(phi) * Math.cos(th) * R
+      o.y = (mobile ? V.y + V.h / 2 : top + (Hh - top) / 2) + y2 * R
+      if (g === 0) {
+        o.a = 0.2 + 0.8 * d
+        o.r = 1.5 + 2 * d
+        o.c = C.green
+      } else {
+        o.a = 0.05 + 0.32 * d
+        o.r = 0.7 + 0.8 * d
+        o.c = C.slate
+      }
+      return
+    }
+    if (g === 2) {
+      /* the discard pile: most of what a day finds */
+      const hh = Math.pow(Math.sin(Math.PI * p.u), 0.7) * V.h * 0.24
+      o.x = V.x + V.w * 0.58 * p.u
+      o.y = V.y + V.h - p.v * hh
+      o.a = sc === "s2" ? 0.62 : sc === "review" ? 0.1 : 0.2
+      o.r = 1.2
+      o.c = C.rose
+      return
+    }
+    if (sc === "s2") {
+      o.x = V.x + V.w * (0.7 + 0.28 * p.u) + Math.sin(t * 0.8 + p.q * 6) * 3
+      o.y = V.y + V.h * (0.08 + 0.5 * p.v) + Math.cos(t * 0.7 + p.w * 6) * 3
+      o.a = 0.95
+      o.r = 2.3
+      o.c = C.amber
+      return
+    }
+    o.sq = true
+    if (sc === "review") {
+      const b = blocks()
+      if (g === 0) {
+        o.x = b.px + ((i % 10) + 0.5) * b.pc
+        o.y = b.y + (Math.floor(i / 10) + 0.5) * b.pc
+        o.a = 1
+        o.r = b.pc * 0.33
+        o.c = C.green
+      } else {
+        const k = i - NP
+        o.x = b.ax + ((k % 12) + 0.5) * b.ac
+        o.y = b.y + (Math.floor(k / 12) + 0.5) * b.ac
+        o.a = 0.4
+        o.r = b.ac * 0.3
+        o.c = C.rose
+      }
+      return
+    }
+    const gr = grid()
+    o.x = gr.gx + ((i % gr.cols) + 0.5) * gr.cell
+    o.y = gr.gy + (Math.floor(i / gr.cols) + 0.5) * gr.cell
+    o.r = gr.cell * 0.3
+    if (sc === "s4") {
+      const sx = gr.gx + ((t * 0.22) % 1.25) * gr.cols * gr.cell
+      const near = Math.abs(o.x - sx) < gr.cell * 1.2
+      o.a = near ? 1 : 0.5
+      o.c = near ? C.cyan : C.green
+    } else {
+      o.a = 0.9
+      o.c = C.green
+    }
   }
-  view.x=drag.vx+dx; view.y=drag.vy+dy; apply();
-});
-['pointerup','pointercancel'].forEach(t=>svg.addEventListener(t,()=>{
-  drag=null; svg.classList.remove('dragging');
-}));
-svg.addEventListener('wheel',e=>{
-  e.preventDefault();
-  const r=svg.getBoundingClientRect();
-  const mx=e.clientX-r.left,my=e.clientY-r.top;
-  const f=e.deltaY<0?1.12:1/1.12;
-  const nk=Math.max(0.35,Math.min(2.6,view.k*f));
-  const ratio=nk/view.k;
-  view.x=mx-(mx-view.x)*ratio;
-  view.y=my-(my-view.y)*ratio;
-  view.k=nk; apply();
-},{passive:false});
-function zoomBy(f){
-  const r=svg.getBoundingClientRect(), mx=r.width/2, my=r.height/2;
-  const nk=Math.max(0.35,Math.min(2.6,view.k*f)), ratio=nk/view.k;
-  view.x=mx-(mx-view.x)*ratio; view.y=my-(my-view.y)*ratio; view.k=nk; apply();
+
+  const label = (text: string, x: number, y: number, c: RGB, a: number, align: CanvasTextAlign = "left") => {
+    ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a.toFixed(3)})`
+    ctx.textAlign = align
+    ctx.fillText(text, x, y)
+  }
+  const extras = (sc: string, t: number, a: number) => {
+    ctx.font = '500 11px "Geist Mono", ui-monospace, Menlo, monospace'
+    if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "1.6px"
+    const mono = (px = 11) => {
+      ctx.font = `500 ${px}px "Geist Mono", ui-monospace, Menlo, monospace`
+      if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "1.4px"
+    }
+    const sans = (px: number, w = 500) => {
+      ctx.font = `${w} ${px}px "Geist", system-ui, sans-serif`
+      if ("letterSpacing" in ctx) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px"
+    }
+    if (sc === "bar") {
+      const y1 = V.y + V.h * 0.14
+      const y2 = V.y + V.h * 0.46
+      mono(mobile ? 10 : 11)
+      info.gates.slice(0, 5).forEach((gname, k) => {
+        const x = V.x + gateAt(k) * V.w
+        ctx.strokeStyle = `rgba(232,163,61,${(a * 0.6).toFixed(3)})`
+        ctx.setLineDash([3, 5])
+        ctx.beginPath()
+        ctx.moveTo(x, y1)
+        ctx.lineTo(x, y2)
+        ctx.stroke()
+        ctx.setLineDash([])
+        label("0" + (k + 1), x, y1 - 9, C.amber, a, "center")
+        ctx.save()
+        ctx.translate(x + 4, y2 + 12)
+        ctx.rotate(Math.PI / 2)
+        label(gname, 0, 0, C.amber, a * 0.95)
+        ctx.restore()
+      })
+      label("QUALIFIES", V.x + V.w, V.y + V.h * 0.035, C.green, a, "right")
+      label("REJECTED, WITH A REASON", V.x + V.w, V.y + V.h + (mobile ? 22 : -2), C.rose, a, "right")
+    } else if (sc === "rules") {
+      const L = recLayout()
+      const s = recState(t)
+      const R = info.fields.length
+      mono(mobile ? 10 : 11)
+      info.fields.forEach((f, r) => {
+        const y = V.y + (r + 0.5) * L.rh + 4
+        const failed = s.done && r === s.fail
+        const passed = s.fail < 0 ? s.done || r < s.row : r < s.row && r !== s.fail
+        const fade = s.done && s.fail >= 0 && !failed ? 0.3 : 1
+        label(f.n.toUpperCase(), V.x, y, failed ? C.rose : s.done && s.fail < 0 ? C.green : passed ? C.cyan : C.slate, a * fade * (passed || failed || r === s.row ? 1 : 0.6))
+      })
+      const by = V.y + R * L.rh + 26
+      if (!s.rest) {
+        if (!s.done) label("CHECKING FIELD " + String(Math.min(R, s.row + 1)).padStart(2, "0") + " / " + R, L.x0, by, C.slate, a)
+        else if (s.fail < 0) label("ADMITTED \u00b7 STATUS PENDING", L.x0, by, C.green, a)
+        else label("REJECTED \u00b7 " + info.fields[s.fail].n.toUpperCase() + ": " + info.fields[s.fail].ct.toUpperCase(), L.x0, by, C.rose, a)
+      }
+    } else if (sc === "res") {
+      const ph = resPhase(t)
+      const c = t % 13
+      const yp = V.y + V.h * 0.26
+      const yf = V.y + V.h * 0.66
+      const hh = V.h * 0.1
+      const flagged = ph === 1 && c > 5.4
+      mono(mobile ? 10 : 11)
+      ctx.lineWidth = 1
+      ctx.setLineDash([3, 5])
+      ctx.strokeStyle = flagged ? `rgba(242,96,122,${(a * 0.9).toFixed(3)})` : `rgba(120,146,184,${(a * 0.35).toFixed(3)})`
+      ctx.strokeRect(V.x, yp - hh, V.w, hh * 2)
+      ctx.strokeStyle = ph === 2 ? `rgba(34,211,238,${(a * 0.7).toFixed(3)})` : `rgba(120,146,184,${(a * 0.25).toFixed(3)})`
+      ctx.strokeRect(V.x, yf - hh, V.w, hh * 2)
+      ctx.setLineDash([])
+      label("PRIMARY SEARCH TOOL", V.x, yp - hh - 10, flagged ? C.rose : C.violet, a)
+      label("FALLBACK TOOL", V.x, yf - hh - 10, ph === 2 ? C.cyan : C.slate, a * (ph === 2 ? 1 : 0.7))
+      if (ph === 0) label("RESULTS RETURNED", V.x + V.w, yp + hh + 18, C.violet, a * 0.9, "right")
+      else if (ph === 1 && !flagged) label("0 RESULTS \u00b7 NO ERROR", V.x + V.w, yp + hh + 18, C.slate, a, "right")
+      else if (flagged) label("EMPTY \u2192 TREATED AS A FAILURE", V.x + V.w, yp + hh + 18, C.rose, a, "right")
+      else {
+        label("EMPTY \u2192 TREATED AS A FAILURE", V.x + V.w, yp + hh + 18, C.rose, a * 0.6, "right")
+        label("SUBSTITUTION RECORDED", V.x + V.w, yf + hh + 18, C.cyan, a, "right")
+      }
+    } else if (sc === "know") {
+      const K = knowLayout()
+      const D = info.docs.length || 1
+      const onI = Math.floor(t / 1.0) % D
+      const tx = V.x + K.rad * 3.2 + 12
+      mono(10)
+      info.groups.forEach((gname, gi) => {
+        if (K.heads[gi] != null) label(gname, V.x, K.heads[gi] + 4, C.slate, a * 0.85)
+      })
+      info.docs.forEach((d, i) => {
+        const on = i === onI
+        sans(mobile ? 12 : 14, on ? 600 : 500)
+        label(d.t, tx, K.ys[i] + 5, on ? ([230, 237, 247] as RGB) : C.slate, a * (on ? 1 : 0.8))
+        if (on && !mobile) {
+          const w = ctx.measureText(d.t).width
+          mono(10)
+          if (tx + w + 16 + ctx.measureText(d.r.toUpperCase()).width < V.x + V.w + 30) label(d.r.toUpperCase(), tx + w + 16, K.ys[i] + 4, [C.cyan, C.green, C.violet][d.g], a)
+        }
+      })
+      mono(11)
+    } else if (sc === "s1") {
+      ;["PROCESS", "INDUSTRY", "GEOGRAPHY"].forEach((s, k) => label(s, V.x, V.y + V.h * (0.2 + 0.3 * k) - V.h * 0.1, C.violet, a * 0.9))
+    } else if (sc === "s2") {
+      const gx = V.x + V.w * 0.64
+      ctx.strokeStyle = `rgba(232,163,61,${(a * 0.55).toFixed(3)})`
+      ctx.setLineDash([4, 6])
+      ctx.beginPath()
+      ctx.moveTo(gx, V.y)
+      ctx.lineTo(gx, V.y + V.h * 0.72)
+      ctx.stroke()
+      ctx.setLineDash([])
+      label("THE BAR", gx, V.y - 10, C.amber, a, "center")
+      label("85% DISCARDED", V.x, V.y + V.h * 0.7, C.rose, a)
+      label("15% SURVIVE", V.x + V.w, V.y + V.h * 0.66, C.amber, a, "right")
+    } else if (sc === "s3" || sc === "s4") {
+      const gr = grid()
+      const by = gr.gy + gr.rows * gr.cell + 24
+      if (sc === "s4") {
+        const sx = gr.gx + ((t * 0.22) % 1.25) * gr.cols * gr.cell
+        if (sx < gr.gx + gr.cols * gr.cell) {
+          ctx.fillStyle = `rgba(34,211,238,${(a * 0.5).toFixed(3)})`
+          ctx.fillRect(sx, gr.gy - 8, 1.5, gr.rows * gr.cell + 16)
+        }
+        label("READ, NEVER RE-JUDGED", gr.gx, by, C.cyan, a)
+      } else {
+        label("RECORDED WHOLE · AWAITING REVIEW", gr.gx, by, C.green, a)
+      }
+    } else if (sc === "review") {
+      const b = blocks()
+      label("ARCHIVED", b.ax, b.y + 9 * b.ac + 22, C.rose, a)
+      label("PUBLISHED", b.px, b.y + 7 * b.pc + 22, C.green, a)
+    }
+  }
+
+  const frame = (ms: number) => {
+    const t = reduce ? 0 : ms / 1000
+    const sc = getScene()
+    if (sc !== scene) {
+      scene = sc
+      sceneAt = ms
+    }
+    ctx.clearRect(0, 0, W, Hh)
+    /* a diagram belongs to its own chapter intro: it is cut off where the
+       full-width content above or below it begins, with a soft edge */
+    const viz = sc !== "cloud" && sc !== "dust"
+    const [ct, cb] = getClip()
+    if (viz) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.rect(0, ct, W, Math.max(0, cb - ct))
+      ctx.clip()
+    }
+    const jump = snap || reduce
+    /* time-based easing, so a throttled or slow frame rate reaches the same place */
+    const dt = Math.min(1, Math.max(0, (ms - lastMs) / 1000))
+    lastMs = ms
+    const ka = 1 - Math.exp(-dt * 5)
+    for (let i = 0; i < N; i++) {
+      const p = P[i]
+      target(i, p, sc, t)
+      if (jump) {
+        p.x = o.x
+        p.y = o.y
+        p.a = o.a
+        p.r = o.r
+        p.c[0] = o.c[0]
+        p.c[1] = o.c[1]
+        p.c[2] = o.c[2]
+      } else {
+        const k = 1 - Math.exp(-dt * (2.6 + 4 * p.q))
+        const dx = o.x - p.x
+        if ((sc === "s1" || sc === "bar" || sc === "res") && dx < -V.w * 0.5) {
+          /* the stream wraps: re-enter on the left instead of flying back across */
+          p.x = o.x
+          p.y = o.y
+          p.a = 0
+        } else {
+          p.x += dx * k
+          p.y += (o.y - p.y) * k
+        }
+        p.a += (o.a - p.a) * ka
+        p.r += (o.r - p.r) * ka
+        p.c[0] += (o.c[0] - p.c[0]) * ka
+        p.c[1] += (o.c[1] - p.c[1]) * ka
+        p.c[2] += (o.c[2] - p.c[2]) * ka
+      }
+      if (p.a < 0.012) continue
+      ctx.fillStyle = `rgba(${p.c[0] | 0},${p.c[1] | 0},${p.c[2] | 0},${p.a.toFixed(3)})`
+      if (o.sq) {
+        ctx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2)
+      } else {
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, 6.2832)
+        ctx.fill()
+      }
+    }
+    snap = false
+    extras(sc, t, reduce ? 1 : Math.max(0, Math.min(1, (ms - sceneAt - 500) / 600)))
+    if (viz) {
+      ctx.globalCompositeOperation = "destination-out"
+      const soft = (y0: number, y1: number) => {
+        const gr = ctx.createLinearGradient(0, y0, 0, y1)
+        gr.addColorStop(0, "rgba(0,0,0,1)")
+        gr.addColorStop(1, "rgba(0,0,0,0)")
+        ctx.fillStyle = gr
+        ctx.fillRect(0, Math.min(y0, y1), W, Math.abs(y1 - y0))
+      }
+      if (ct > top + 1) soft(ct, ct + 48)
+      if (cb < Hh - 1) soft(cb, cb - 48)
+      ctx.globalCompositeOperation = "source-over"
+      ctx.restore()
+    }
+    raf = requestAnimationFrame(frame)
+  }
+
+  size()
+  window.addEventListener("resize", size, { signal })
+  signal.addEventListener("abort", () => cancelAnimationFrame(raf))
+  raf = requestAnimationFrame(frame)
 }
-__el('cvIn').addEventListener('click',()=>zoomBy(1.2));
-__el('cvOut').addEventListener('click',()=>zoomBy(1/1.2));
-__el('cvFit').addEventListener('click',()=>{deselect();fit();});
-window.addEventListener('resize',()=>fit());
-fit();
-setTimeout(fit,60);
 
-
-})();
-
-
-/* ---------- rejection families ---------- */
-const FAMILIES=[
-  {k:'Not an article',n:'Wrong kind of page',
-   d:'The link never had a chance of being a case study. Category and search pages, pricing and product pages, paper repositories, social posts, and pages whose fetched text turns out to be navigation, cookie banners or raw markup rather than writing.',
-   words:[['Vendor guide','guide · tutorial · how to choose · what is · introduction to · getting started · complete guide'],['Research report','white paper · benchmark report · market report · industry report · survey'],['Self-promotion','our platform · our solution · how [vendor] uses its own product']],
-   pts:['Caught as early as possible, since reading these costs time and yields nothing',
-        'A page that returns mostly interface furniture is treated the same as an empty page',
-        'Academic repositories are excluded outright: a paper is research, not a deployment']},
-  {k:'Not a deployment',n:'Announcement, not operation',
-   d:'The single largest family. The article is about something a company said, plans, or launched, rather than something it runs. It shares nearly all of its vocabulary with a genuine case study, which is why this judgment cannot be made from a search snippet.',
-   words:[['News announcement','announces · brings · partners with · collaboration with · launches new · joins forces']],
-   pts:['Future tense, partnership language, and "will enable" are the tells',
-        'A press release with no measured outcome fails even when the deployment is real',
-        'Government strategies and initiatives are excluded as a category']},
-  {k:'Not specific',n:'No process, no number',
-   d:'Something is happening, but the article never says what changed or by how much. This family includes the headcount announcements &mdash; large, well-sourced, and empty of operational content &mdash; along with generic capability descriptions and market commentary.',
-   words:[['Roundup / statistics','benchmark · statistics · top 10 · top 5 · ranking · comparison · vs. · versus · trends 2026'],['Generic study','study shows · research finds · survey finds · report reveals']],
-   pts:['"Thousands of employees now use an assistant" describes access, not a workflow',
-        'A named process plus a measured result is the minimum bar for specificity',
-        'Roundups, statistics posts and trend pieces fail here even when accurate']},
-  {k:'Not a company',n:'Nobody identifiable',
-   d:'The deployment may be entirely real, but the article never names who did it, or names something that is not a business entity. These are dropped rather than recorded with a gap, because the atlas is fundamentally a map of who.',
-   pts:['"A leading European insurer" is not a company name',
-        'Consortiums, alliances, initiatives and project names are not companies',
-        'Inferring a plausible name is the one thing the validator must never do']},
-  {k:'Not in vocabulary',n:'Fails a controlled field',
-   d:'The case is real but cannot be recorded correctly &mdash; usually an industry that is not on the canonical list, or a location that cannot be resolved. Rather than record an approximation, the case is rejected and can be recovered later.',
-   pts:['An invented industry value would break every industry view in the product',
-        'Location is mandatory because the product is, literally, a globe',
-        'This family is small, and each one is a candidate worth revisiting by hand']}
-];
-const rexNav=__el('rexNav'), rexPanel=__el('rexPanel');
-function renderFamily(i){
-  const f=FAMILIES[i];
-  [...rexNav.children].forEach((c,j)=>c.setAttribute('aria-selected',String(j===i)));
-  rexPanel.innerHTML='<h3 style="font-size:19.5px;margin:0;letter-spacing:-.018em">'+f.n+'</h3>'+
-    '<p style="font-size:15.4px;line-height:1.66;color:var(--muted)">'+f.d+'</p>'+
-    '<ul class="list tight">'+f.pts.map(p=>'<li>'+p+'</li>').join('')+'</ul>'+
-    (f.words?'<div class="rexw">'+f.words.map(w=>'<div><span>'+w[0]+'</span><i>'+w[1]+'</i></div>').join('')+'</div>':'');
+/* ---------- incidents: each card plays its own failure, then its fix ---------- */
+type MiniDraw = (c: CanvasRenderingContext2D, w: number, h: number, t: number, fixed: boolean) => string
+const rgba = (c: RGB, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`
+const mDot = (c: CanvasRenderingContext2D, x: number, y: number, r: number, fill: string) => {
+  c.fillStyle = fill
+  c.beginPath()
+  c.arc(x, y, r, 0, 6.2832)
+  c.fill()
 }
-FAMILIES.forEach((f,i)=>{
-  const b=document.createElement('button');
-  b.className='rex-b'; b.setAttribute('aria-selected',String(i===0));
-  b.innerHTML='<span>'+f.k+'</span><em>'+f.n+'</em>';
-  b.addEventListener('click',()=>renderFamily(i));
-  rexNav.appendChild(b);
-});
-renderFamily(0);
-
-/* ---------- knowledge sources ---------- */
-const SOURCES=[
- {g:'stage',t:'Pipeline orchestration',r:'Decides the shape of a run',
-  d:'Defines that a day is four stages in a fixed order sharing one identity, that a missing result becomes an empty result rather than a halt, and that the report is sent under all circumstances.',
-  b:[['Decides','The order of the stages, what happens when one produces nothing, and the guarantee that the day always ends in a message.'],
-     ['Explicitly does not decide','Anything about searching, judging, recording or formatting. It owns the choreography and nothing else.'],
-     ['Read by','The scheduled daily run, which invokes it and nothing below it directly.']]},
- {g:'stage',t:'Search definition',r:'Decides what gets asked',
-  d:'Owns the query design: the three layers, the daily rotation, the shape a query must have, which tool answers which layer, and when to give up on a query.',
-  b:[['Decides','Which questions today asks, how tools are chosen and substituted, and which links are discarded before anyone reads them.'],
-     ['Explicitly does not decide','Whether any candidate is a real use case. It is written to be mechanically followable so that it cannot start improvising.'],
-     ['Consults','The accumulated learnings record, the source list, and the environment notes, before it asks anything.']]},
- {g:'stage',t:'Validation definition',r:'Decides what is real',
-  d:'The largest and most contested document in the system. It holds the acceptance bar, the rejection families, the translation discipline, and the requirement that mechanical checks run over its own output.',
-  b:[['Decides','Whether a candidate is a deployment, whether its company is identifiable, whether its facts are extractable, and how it is rendered in English.'],
-     ['Explicitly does not decide','Anything about storage. It produces a judgment and hands it on.'],
-     ['Defers to','The shared data standard for field-level rules, and the industry vocabulary for classification.'],
-     ['Notable property','It carries a running list of sources judged permanently unusable, so the same bad article cannot be reconsidered every week.']]},
- {g:'stage',t:'Persistence definition',r:'Decides what already exists',
-  d:'Owns identity and nothing else: whether an article has been recorded before, what a case must resolve before it can be stored, and what state it arrives in.',
-  b:[['Decides','Duplicate detection, what a case must resolve before it is written, and the reviewed-or-not state it arrives in.'],
-     ['Explicitly does not decide','Quality. By the time this runs, quality has been settled and is not revisited.'],
-     ['Defers to','The shared data standard for every field it writes, including which fields may never be empty.']]},
- {g:'stage',t:'Reporting definition',r:'Decides what gets said',
-  d:'Owns the daily message: its structure, its wording on an empty day, the backlog thresholds, and the rule that the run is only archived once the message lands.',
-  b:[['Decides','How the day is summarised, when the review backlog is escalated from a note to a warning, and what a zero day is told.'],
-     ['Explicitly does not decide','Anything it reports. It is strictly downstream and re-derives nothing.'],
-     ['Consults','The learnings record, so its observations are written against history rather than a single day.']]},
- {g:'shared',t:'Data standard',r:'Defines what a record must be',
-  d:'The shared contract both the validator and the persistence stage answer to. It defines every field a use case carries, which of them may never be empty, and what the three record states mean throughout the product.',
-  b:[['Decides','Field-level requirements, the meaning of unreviewed, published and retired, geographic standardisation, and minimum content standards.'],
-     ['Why it is shared','Two stages write against the same schema. Keeping the rules in one place is what stops them drifting apart, which is exactly how a dataset develops inconsistencies that are only visible years later.'],
-     ['Notable rule','Coordinates must be genuinely looked up. Placeholder values are prohibited, because on a globe a placeholder is not a missing value &mdash; it is a visible point in the wrong place.']]},
- {g:'shared',t:'Industry vocabulary',r:'Defines the permitted values',
-  d:'A single closed list of permitted industry values, and the sole authority for that field. The product generates its own copy from it rather than maintaining a parallel one.',
-  b:[['Decides','Every value the industry field may take, plus two explicitly permitted non-standard entries for organisations that fit no commercial category.'],
-     ['Design property','The generation step verifies the count and refuses to write if it is wrong, so a malformed edit fails loudly rather than shipping a silently truncated vocabulary.'],
-     ['Classification rule','A case takes the industry of the organisation deploying it, not of the AI itself. A hospital using computer vision is healthcare.']]},
- {g:'shared',t:'Learnings record',r:'Remembers what has not worked',
-  d:'The pipeline’s memory. Running analysis of which queries produce nothing, which tools outperform which, and which quality problems keep recurring.',
-  b:[['Decides','Nothing directly &mdash; it has no authority. But it is the input to almost every rule change, and every stage of the run reads it.'],
-     ['Typical content','Multi-day comparisons showing one search tool converting roughly ten times better than another, named queries with long zero streaks, and structural problems such as an entire language path being broken by malformed responses.'],
-     ['Why it exists','Without it, the same unproductive query gets rediscovered and re-added every few months.']]},
- {g:'shared',t:'Source list',r:'Remembers where not to look',
-  d:'The catalogue of publications worth searching, annotated with the ones that have stopped working and why.',
-  b:[['Decides','Which parts of the web are worth the pipeline’s attention.'],
-     ['Maintenance pattern','A dead source is annotated in place with the date and the reason rather than deleted, so the history of why it was dropped survives &mdash; a domain blocked for a temporary outage is a different case from one whose DNS no longer resolves.']]},
- {g:'shared',t:'Run history',r:'Records what actually happened',
-  d:'One entry per completed day, written only after the report is confirmed delivered. The pipeline’s own evidence base.',
-  b:[['Decides','Nothing. It is the measurement layer that makes every other decision reviewable.'],
-     ['Why delivery-gated','An entry means a day that finished and was communicated. A run that produced results but failed to report leaves a gap, which is the honest record of what the maintainer experienced.'],
-     ['What it enables','Every claim on this page about survival rates, tool performance and rejection patterns is read from this record.']]},
- {g:'build',t:'Product specification',r:'Defines what the product is',
-  d:'The description of the atlas as a product rather than as a pipeline: what it shows, who it is for, and which surfaces exist. Every decision about what to build is measured against it.',
-  b:[['Decides','What the product contains, what each view is for, and what is deliberately out of scope.'],
-     ['Explicitly does not decide','Anything about how a case gets found or judged. It describes the destination, not the route.'],
-     ['Read by','Whoever is building a surface, before they decide what it should do.']]},
- {g:'build',t:'Codebase notes',r:'Decides what is safe to change',
-  d:'The standing reference for the application side: which tables back which pages, which data functions are cached and which are not, how the routes map, and the failure modes this code has produced that returned valid output and raised nothing.',
-  b:[['Decides','Where to look before changing anything, and which past mistakes not to repeat.'],
-     ['Explicitly does not decide','The data standard. It records how the app reads the data, not what the data must be.'],
-     ['Notable property','It is kept current as a rule: when a read contradicts it, the file is corrected in the same session.']]},
- {g:'build',t:'Cache runbook',r:'Decides how a change reaches readers',
-  d:'The procedure for purging cached data and the map of which tag covers which surface. Without it a corrected record can stay invisible for a day, or a purge can cost far more than it needed to.',
-  b:[['Decides','Which tag to purge for a given change, and in what order.'],
-     ['Explicitly does not decide','Whether the change itself was right.'],
-     ['Read by','Anyone who has just written to the database and needs the site to agree.']]}
-];
-function srcCard(s){
-  const el=document.createElement('button');
-  el.className='src';
-  el.innerHTML='<span class="in"><span class="sr">'+s.r+'</span><span class="st">'+s.t+'</span><span class="sd">'+s.d+'</span></span><span class="arrow">&rarr;</span>';
-  el.addEventListener('click',()=>openDrawer(s));
-  return el;
+const mLane = (c: CanvasRenderingContext2D, x0: number, x1: number, y: number, col = "rgba(120,146,184,.3)") => {
+  c.strokeStyle = col
+  c.lineWidth = 1
+  c.setLineDash([2, 4])
+  c.beginPath()
+  c.moveTo(x0, y)
+  c.lineTo(x1, y)
+  c.stroke()
+  c.setLineDash([])
 }
-SOURCES.filter(s=>s.g==='stage').forEach(s=>__el('srcStages').appendChild(srcCard(s)));
-SOURCES.filter(s=>s.g==='shared').forEach(s=>__el('srcShared').appendChild(srcCard(s)));
-SOURCES.filter(s=>s.g==='build').forEach(s=>__el('srcBuild').appendChild(srcCard(s)));
-
-const drawer=__el('drawer'), scrim=__el('scrim');
-function openDrawer(s){
-  __el('drawerTitle').textContent=s.t;
-  __el('drawerRole').textContent=s.r;
-  __el('drawerBody').innerHTML=
-    '<p style="margin:0;color:var(--muted);font-size:15.4px;line-height:1.66">'+s.d+'</p>'+
-    s.b.map(function(p){return '<div class="card" style="padding:15px 16px"><h3>'+p[0]+'</h3><div style="font-size:14.8px;color:var(--text);line-height:1.64">'+p[1]+'</div></div>';}).join('');
-  drawer.classList.add('on'); scrim.classList.add('on');
-  __el('drawerX').focus();
+const mStream = (c: CanvasRenderingContext2D, w: number, y: number, t: number, n: number, col: RGB, alpha = 1, x0 = 0) => {
+  for (let k = 0; k < n; k++) {
+    const f = (t * 0.3 + k / n) % 1
+    mDot(c, x0 + f * (w - x0), y + (((k * 7) % 3) - 1) * 2.5, 2.2, rgba(col, alpha * Math.min(1, f * 8, (1 - f) * 8)))
+  }
 }
-function closeDrawer(){drawer.classList.remove('on');scrim.classList.remove('on');}
-__el('drawerX').addEventListener('click',closeDrawer);
-scrim.addEventListener('click',closeDrawer);
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+const MINI: MiniDraw[] = [
+  /* the same fixed queries, finding only what is already on record */
+  (c, w, h, t, fixed) => {
+    const wall = w * 0.74
+    c.fillStyle = "rgba(120,146,184,.4)"
+    c.fillRect(wall, 4, 1.5, h - 8)
+    for (let k = 0; k < 10; k++) {
+      const p = t * 0.3 + k / 10
+      const f = p % 1
+      const y = h / 2 + (fixed ? ((k * 7 + Math.floor(p) * 13) % 5) - 2 : (k % 3) - 1) * 7
+      const in_ = f * w > wall
+      mDot(c, f * w, y, 2.4, in_ ? rgba(fixed ? C.green : C.slate, fixed ? 0.95 : 0.4) : rgba(C.violet, Math.min(1, f * 8)))
+    }
+    return fixed ? "QUERIES ROTATE DAILY" : "ALL ALREADY ON RECORD"
+  },
+  /* a tool that goes quiet without an error */
+  (c, w, h, t, fixed) => {
+    const y1 = h / 2 - 10
+    const y2 = h / 2 + 10
+    mLane(c, 0, w, y1)
+    mLane(c, 0, w, y2, fixed ? rgba(C.cyan, 0.5) : undefined)
+    if (fixed) mStream(c, w, y2, t, 9, C.cyan)
+    else mStream(c, w, y1, t, 9, C.violet, Math.max(0, 1 - (t % 5) / 1.6))
+    return fixed ? "EMPTY \u2192 FALLBACK TOOL" : "0 RESULTS \u00b7 NO ERROR"
+  },
+  /* three tools, only the first ever reached */
+  (c, w, h, t, fixed) => {
+    c.font = '500 10px "Geist Mono", ui-monospace, monospace'
+    ;[0, 1, 2].forEach((k) => {
+      const y = h / 2 + (k - 1) * 16
+      c.fillStyle = rgba(C.slate, 0.9)
+      c.fillText(String(k + 1), 0, y + 3.5)
+      mLane(c, 14, w, y)
+      if (k === 0 || fixed) mStream(c, w, y, t + k * 0.37, k === 2 ? 9 : 6, k === 2 ? C.green : C.violet, 1, 14)
+    })
+    return fixed ? "EVERY TOOL IN USE" : "TOOL 3 \u00b7 NEVER CALLED"
+  },
+  /* untranslated records passing as translated ones */
+  (c, w, h, t, fixed) => {
+    const gate = w * 0.58
+    if (fixed) {
+      c.fillStyle = rgba(C.cyan, 0.8)
+      c.fillRect(gate, 4, 1.5, h - 8)
+    }
+    for (let k = 0; k < 10; k++) {
+      const f = (t * 0.22 + k / 10) % 1
+      const bad = k % 4 === 1
+      const x = f * w
+      let y = h / 2
+      let a = Math.min(1, f * 8, (1 - f) * 8)
+      if (bad && fixed && x > gate) {
+        y += (x - gate) * 0.9
+        a *= Math.max(0, 1 - (x - gate) / 40)
+      }
+      if (bad) {
+        c.strokeStyle = rgba(C.rose, a)
+        c.lineWidth = 1.5
+        c.strokeRect(x - 4, y - 4, 8, 8)
+      } else {
+        c.fillStyle = rgba(C.green, a * 0.9)
+        c.fillRect(x - 4, y - 4, 8, 8)
+      }
+    }
+    return fixed ? "CHECKED BEFORE WRITING" : "UNTRANSLATED \u00b7 WRITTEN ANYWAY"
+  },
+  /* seventeen vendor pages among a day's records */
+  (c, w, h, t, fixed) => {
+    const cols = 16
+    const cell = Math.min(11, w / cols)
+    const shown = fixed ? 17 : Math.min(17, Math.floor((t % 8) * 5))
+    for (let k = 0; k < 48; k++) {
+      const x = (k % cols) * cell
+      const y = h / 2 - cell * 1.5 + Math.floor(k / cols) * cell
+      const vendor = (k * 11) % 48 < 17
+      if (vendor && fixed) {
+        c.strokeStyle = rgba(C.rose, 0.35)
+        c.lineWidth = 1
+        c.strokeRect(x + 1.5, y + 1.5, cell - 5, cell - 5)
+      } else {
+        c.fillStyle = vendor && (k * 11) % 48 < shown ? rgba(C.rose, 0.95) : rgba(C.green, 0.8)
+        c.fillRect(x + 1, y + 1, cell - 4, cell - 4)
+      }
+    }
+    return fixed ? "17 SCREENED OUT" : shown + " VENDOR PAGES RECORDED"
+  },
+  /* a count that stopped at the first page */
+  (c, w, h, t, fixed) => {
+    const cols = 18
+    const cell = Math.min(12, w / cols)
+    const page = 9
+    const head = fixed ? Math.min(36, Math.floor((t % 6) * 14)) : Math.min(page, Math.floor((t % 6) * 6))
+    for (let k = 0; k < 36; k++) {
+      const x = (k % cols) * cell + cell / 2
+      const y = h / 2 - cell / 2 + Math.floor(k / cols) * cell
+      mDot(c, x, y, 2.6, k < head ? rgba(fixed ? C.green : C.amber, 0.95) : rgba(C.slate, 0.3))
+    }
+    if (!fixed) {
+      c.strokeStyle = rgba(C.amber, 0.7)
+      c.lineWidth = 1
+      c.strokeRect(0.5, h / 2 - cell - 1, page * cell, cell + 2)
+    }
+    return fixed ? "COUNTED AT THE SOURCE" : "COUNT STOPPED AT PAGE ONE"
+  },
+]
 
-/* ---------- results chart ---------- */
-const RUNS=[
- {d:'n1',c:41,v:11,i:6},{d:'n2',c:41,v:36,i:17},{d:'n3',c:51,v:9,i:6},{d:'n4',c:70,v:28,i:25},
- {d:'n5',c:59,v:0,i:0},{d:'n6',c:89,v:6,i:6},{d:'n7',c:89,v:4,i:1},{d:'n8',c:64,v:15,i:13},
- {d:'n9',c:65,v:9,i:8},{d:'n10',c:63,v:6,i:4},{d:'n11',c:60,v:3,i:3},{d:'n12',c:60,v:40,i:36},
- {d:'n13',c:58,v:3,i:2},{d:'n14',c:49,v:4,i:4}
-];
-(function(){
-  const svg=__el('chart'); if(!svg)return;
-  const W=900,H=300,L=46,R=16,T=18,B=48;
-  const iw=W-L-R, ih=H-T-B, max=90, ticks=[0,30,60,90];
-  const NS='http://www.w3.org/2000/svg';
-  const add=(n,a,txt)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;};
-  ticks.forEach(t=>{
-    const y=T+ih-(t/max)*ih;
-    add('line',{x1:L,x2:L+iw,y1:y,y2:y,stroke:'#152540','stroke-width':1});
-    add('text',{x:L-10,y:y+4,fill:'#5f748f','font-size':12,'font-family':'Geist Mono, monospace','text-anchor':'end'},t);
-  });
-  const band=iw/RUNS.length, bw=Math.min(10,band/4.2), gap=2.6;
-  RUNS.forEach((r,i)=>{
-    const cx=L+band*i+band/2;
-    [[r.c,'#a78bfa'],[r.v,'#e8a33d'],[r.i,'#43cc93']].forEach((pair,j)=>{
-      const h=(pair[0]/max)*ih;
-      const x=cx-(bw*1.5+gap)+j*(bw+gap);
-      add('rect',{x:x,y:T+ih-h,width:bw,height:Math.max(h,1),rx:2,fill:pair[1],opacity:.92});
-    });
-    add('text',{x:cx,y:H-B+19,fill:'#5f748f','font-size':9.5,'font-family':'Geist Mono, monospace','text-anchor':'middle'},'day '+(i+1));
-  });
-  add('line',{x1:L,x2:L+iw,y1:T+ih,y2:T+ih,stroke:'#1e3050','stroke-width':1});
-})();
+function startIncidents(root: HTMLElement, signal: AbortSignal, still: boolean) {
+  const grid = root.querySelector<HTMLElement>(".mx-inc")
+  if (!grid) return
+  const cards = Array.from(grid.querySelectorAll<HTMLElement>("article"))
+  const began: number[] = cards.map(() => -1)
+  const timers: number[] = []
+  const paint = (i: number, now: number) => {
+    const cv = cards[i].querySelector("canvas")
+    const c = cv?.getContext("2d")
+    if (!cv || !c) return
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const w = cv.clientWidth
+    const h = cv.clientHeight
+    if (cv.width !== Math.round(w * dpr)) {
+      cv.width = Math.round(w * dpr)
+      cv.height = Math.round(h * dpr)
+    }
+    c.setTransform(dpr, 0, 0, dpr, 0, 0)
+    c.clearRect(0, 0, w, h)
+    if (began[i] < 0) return
+    const fixed = cards[i].dataset.s === "4"
+    const text = (MINI[i] || MINI[0])(c, w, h - 18, still ? 3 : (now - began[i]) / 1000, fixed)
+    c.font = '500 10px "Geist Mono", ui-monospace, monospace'
+    if ("letterSpacing" in c) (c as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "1.2px"
+    c.fillStyle = rgba(fixed ? C.cyan : C.rose, 0.95)
+    c.fillText(text, 0, h - 3)
+    if ("letterSpacing" in c) (c as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px"
+  }
+  const play = (i: number) => {
+    began[i] = performance.now()
+    cards[i].dataset.s = "1"
+    ;[1300, 2600, 3500].forEach((ms, k) => timers.push(window.setTimeout(() => { cards[i].dataset.s = String(k + 2) }, ms)))
+  }
+  if (still) {
+    cards.forEach((card, i) => {
+      card.dataset.s = "4"
+      began[i] = 0
+      paint(i, 0)
+    })
+    return
+  }
+  let visible = false
+  let raf = 0
+  let queued = 0
+  const loop = (now: number) => {
+    if (visible) cards.forEach((_, i) => paint(i, now))
+    raf = requestAnimationFrame(loop)
+  }
+  const io = new IntersectionObserver((es) => es.forEach((e) => { visible = e.isIntersecting }), { threshold: 0 })
+  io.observe(grid)
+  /* each card starts when it is actually on screen; cards that arrive together take turns */
+  const cio = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return
+    cio.unobserve(e.target)
+    const i = cards.indexOf(e.target as HTMLElement)
+    const wait = Math.max(0, queued - performance.now())
+    queued = performance.now() + wait + 1500
+    timers.push(window.setTimeout(() => play(i), wait))
+  }), { threshold: 0.3 })
+  cards.forEach((card) => cio.observe(card))
+  cards.forEach((card, i) => card.addEventListener("mouseenter", () => { if (card.dataset.s === "4") play(i) }, { signal }))
+  raf = requestAnimationFrame(loop)
+  signal.addEventListener("abort", () => {
+    cancelAnimationFrame(raf)
+    io.disconnect()
+    cio.disconnect()
+    timers.forEach((id) => window.clearTimeout(id))
+  })
+}
 
-/* ---------- monthly ingest, April to September, split by what review decided ---------- */
-const MONTHS=[
- {m:'April',    pub:227, arc:152},
- {m:'May',      pub:89,  arc:2},
- {m:'June',     pub:188, arc:283},
- {m:'July',     pub:39,  arc:133},
- {m:'August',   pub:49,  arc:238},
- {m:'September',pub:15,  arc:145}
-];
-(function(){
-  const svg=__el('monthly'); if(!svg)return;
-  const W=900,H=320,L=52,R=18,T=20,B=54;
-  const iw=W-L-R, ih=H-T-B, max=500, ticks=[0,125,250,375,500];
-  const NS='http://www.w3.org/2000/svg';
-  const add=(n,a,t)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;svg.appendChild(e);return e;};
-  ticks.forEach(t=>{
-    const y=T+ih-(t/max)*ih;
-    add('line',{x1:L,x2:L+iw,y1:y,y2:y,stroke:'#152540','stroke-width':1});
-    add('text',{x:L-11,y:y+4,fill:'#5f748f','font-size':12,'font-family':'Geist Mono, monospace','text-anchor':'end'},t);
-  });
-  const band=iw/MONTHS.length, bw=Math.min(64,band*0.46);
-  MONTHS.forEach((r,i)=>{
-    const cx=L+band*i+band/2, tot=r.pub+r.arc, base=T+ih;
-    const hp=(r.pub/max)*ih, ha=(r.arc/max)*ih;
-    /* published sits on the axis, archived stacks above it, so the green band is
-       what survived review and the height is still the month's intake */
-    add('rect',{x:cx-bw/2,y:base-hp,width:bw,height:Math.max(hp,1),fill:'#43cc93',opacity:.92});
-    add('rect',{x:cx-bw/2,y:base-hp-ha,width:bw,height:Math.max(ha,1),fill:'#f2607a',opacity:.86});
-    add('text',{x:cx,y:base-hp-ha-9,fill:'#c3d2e6','font-size':14,'font-family':'Geist Mono, monospace','font-weight':600,'text-anchor':'middle'},tot);
-    add('text',{x:cx,y:H-B+21,fill:'#8ba0bd','font-size':13,'font-family':'Geist, sans-serif','text-anchor':'middle'},r.m);
-  });
-  add('line',{x1:L,x2:L+iw,y1:T+ih,y2:T+ih,stroke:'#1e3050','stroke-width':1});
-  add('text',{x:L,y:14,fill:'#5f748f','font-size':11,'font-family':'Geist Mono, monospace','letter-spacing':'1.4'},'USE CASES CREATED PER MONTH, 2026');
-})();`
+function start(root: HTMLElement): () => void {
+  const ac = new AbortController()
+  const { signal } = ac
+  const data = new Function(DATA_JS)() as Data
+  const $ = <E extends HTMLElement = HTMLElement>(s: string) => root.querySelector<E>(s)
+  const $$ = (s: string) => Array.from(root.querySelectorAll<HTMLElement>(s))
+  const go = (id: string) => $("#sec-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" })
+
+  /* chapters: dots, progress, and which scene the field is in */
+  const chapters = $$("[data-nav]")
+  const scenes = $$("[data-scene]")
+  const dots = $(".mx-bar-l") as HTMLElement
+  const barN = $(".mx-bar-n b") as HTMLElement
+  ;($(".mx-bar-n span") as HTMLElement).textContent = "/ " + String(chapters.length).padStart(2, "0")
+  dots.innerHTML = chapters
+    .map((c, i) => `<button data-i="${i}" style="--sc:${c.style.getPropertyValue("--sc") || "var(--cyan)"}">${c.dataset.nav}</button>`)
+    .join("")
+  let curCh = -1
+  dots.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest("button")
+    if (b) chapters[Number(b.dataset.i)].scrollIntoView({ behavior: "smooth", block: "start" })
+  }, { signal })
+  let scene = "cloud"
+  const hud = $(".mx-hud") as HTMLElement
+  const bar = $(".mx-prog i") as HTMLElement
+  const HUD: Record<string, string> = { cloud: "", dust: "", s1: "found", s2: "val", s3: "val", s4: "val", review: "pub", globe: "pub" }
+  let clip: [number, number] = [0, 100000]
+  const fulls = $$(".mx-body, #sec-map, .mx-prin, .mx-hero")
+  const onScroll = () => {
+    let ct = 0
+    let cb = window.innerHeight
+    fulls.forEach((el) => {
+      const fr = el.getBoundingClientRect()
+      if (fr.bottom <= 0 || fr.top >= window.innerHeight) return
+      if (fr.top < window.innerHeight * 0.5) ct = Math.max(ct, fr.bottom)
+      else cb = Math.min(cb, fr.top)
+    })
+    clip = [ct, cb]
+    const line = window.innerHeight * 0.58
+    let cur = 0
+    chapters.forEach((c, i) => {
+      if (c.getBoundingClientRect().top <= line) cur = i
+    })
+    let sc = "cloud"
+    scenes.forEach((c) => {
+      if (c.getBoundingClientRect().top <= line) sc = c.dataset.scene || sc
+    })
+    scene = sc
+    if (cur !== curCh) {
+      curCh = cur
+      barN.textContent = String(cur + 1).padStart(2, "0")
+      Array.from(dots.children).forEach((d, i) => {
+        d.toggleAttribute("aria-current", i === cur)
+        d.classList.toggle("done", i < cur)
+      })
+      /* the list scrolls sideways on narrow screens; keep the current chapter in view */
+      const b = dots.children[cur] as HTMLElement
+      dots.scrollTo({ left: Math.max(0, b.offsetLeft - (dots.clientWidth - b.offsetWidth) / 2), behavior: "smooth" })
+    }
+    hud.dataset.on = HUD[scene] || ""
+    const r = root.getBoundingClientRect()
+    bar.style.width = Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - window.innerHeight))) * 100 + "%"
+  }
+  const setChrome = () => root.style.setProperty("--chrome", (document.getElementById("atlas-chrome")?.offsetHeight ?? 0) + "px")
+  setChrome()
+  window.addEventListener("resize", setChrome, { signal })
+  window.addEventListener("scroll", onScroll, { passive: true, signal })
+  window.addEventListener("resize", onScroll, { signal })
+  onScroll()
+
+  startField($<HTMLCanvasElement>(".mx-fx") as HTMLCanvasElement, () => scene, () => clip, signal, {
+    gates: $$(".mx-qual li b").map((b) => (b.textContent || "").trim().toUpperCase()),
+    fields: $$("#mxRec .rr:not(.j)").map((r) => ({ n: r.querySelector(".nm")?.textContent || "", ct: r.querySelector(".ct")?.textContent || "" })),
+    docs: (["stage", "shared", "build"] as const).flatMap((g, gi) => data.SOURCES.filter((s) => s.g === g).map((s) => ({ t: s.t, r: s.r, g: gi }))),
+    groups: $$(".mx-know .kg > .mx-k").map((k) => (k.firstChild?.textContent || "").trim().toUpperCase()),
+  })
+
+  /* blocks rise into place as they are reached, and figures count up once */
+  const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  if (!still && "IntersectionObserver" in window) {
+    const count = (b: HTMLElement) => {
+      const m = (b.textContent || "").match(/^(\D*)([\d,]+)(\D*)$/)
+      if (!m) return
+      const end = Number(m[2].replace(/,/g, ""))
+      if (!end) return
+      const t0 = performance.now()
+      const step = (now: number) => {
+        const f = Math.min(1, (now - t0) / 1100)
+        b.textContent = m[1] + Math.round(end * (1 - Math.pow(1 - f, 3))).toLocaleString("en-US") + m[3]
+        if (f < 1 && !signal.aborted) requestAnimationFrame(step)
+      }
+      requestAnimationFrame(step)
+    }
+    const io = new IntersectionObserver(
+      (es) =>
+        es.forEach((e) => {
+          if (!e.isIntersecting) return
+          const el = e.target as HTMLElement
+          io.unobserve(el)
+          el.classList.add("in")
+          if (el.matches(".mx-figs > div, .mx-fun > div")) el.querySelectorAll<HTMLElement>("b").forEach(count)
+          if (el.matches(".mx-months")) el.querySelectorAll<HTMLElement>(".tot").forEach(count)
+        }),
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+    )
+    $$(
+      ".mx-sub, .mx-chh-c > *, .mx-two > *, .mx-wrap > .mx-p, .mx-qual li, .mx-fam, .mx-dims .dim, .mx-embed, .mx-rec, .mx-states .st, .mx-states .fork, .mx-stand > div, .mx-know .kg, .mx-prin-g article, .mx-months, .mx-figs > div, .mx-fun > div, .mx-duty, .mx-gate-g > div, .mx-decs details, .mx-close, .mx-stage h2, .mx-stage .mx-lede, .mx-num",
+    ).forEach((el) => {
+      const sibs = el.parentElement ? Array.from(el.parentElement.children).filter((c) => c.tagName === el.tagName) : []
+      el.style.setProperty("--d", Math.min(sibs.indexOf(el), 7) * 70 + "ms")
+      el.classList.add("rv")
+      io.observe(el)
+    })
+    signal.addEventListener("abort", () => io.disconnect())
+  }
+
+  /* rejection families */
+  const famT = $("#mxFamT") as HTMLElement
+  const famP = $("#mxFamP") as HTMLElement
+  let famAt = 0
+  const showFam = (i: number) => {
+    famAt = i
+    const f = data.FAMILIES[i]
+    Array.from(famT.children).forEach((c, j) => c.setAttribute("aria-selected", String(j === i)))
+    const tab = famT.children[i] as HTMLElement | undefined
+    if (tab && famT.scrollWidth > famT.clientWidth + 4) famT.scrollTo({ left: Math.max(0, tab.offsetLeft - (famT.clientWidth - tab.offsetWidth) / 2), behavior: "smooth" })
+    famP.innerHTML = `<h4>${f.n}</h4><p>${f.d}</p><ul>${f.pts.map((p) => `<li>${p}</li>`).join("")}</ul>${
+      f.words ? `<div class="words">${f.words.map((w) => `<div><span>${w[0]}</span><i>${w[1]}</i></div>`).join("")}</div>` : ""
+    }`
+  }
+  famT.innerHTML = data.FAMILIES.map((f, i) => `<button role="tab" data-i="${i}"><i>0${i + 1}</i>${f.k}</button>`).join("")
+  famT.addEventListener("click", (e) => {
+    const b = (e.target as HTMLElement).closest("button")
+    if (b) showFam(Number(b.dataset.i))
+  }, { signal })
+  showFam(0)
+  /* the panel keeps the height of its longest family, so stepping through them moves nothing below */
+  const fitFam = () => {
+    const keep = famAt
+    famP.style.minHeight = ""
+    /* stacked on a phone, where tabs change only by tap, a fixed height would just leave gaps */
+    if (window.innerWidth < 900) return
+    let tall = 0
+    data.FAMILIES.forEach((_, i) => {
+      showFam(i)
+      tall = Math.max(tall, famP.offsetHeight)
+    })
+    famP.style.minHeight = tall + "px"
+    showFam(keep)
+  }
+  fitFam()
+  window.addEventListener("resize", fitFam, { signal })
+  document.fonts?.ready.then(() => { if (!signal.aborted) fitFam() })
+
+  /* scroll-led emphasis: as a block travels up the screen its parts are picked
+     out one at a time, left to right, and stay lit once passed */
+  let famManual = false
+  famT.addEventListener("click", () => { famManual = true }, { signal })
+  const seqs: { el: HTMLElement; items: HTMLElement[]; step?: (i: number) => void; at: number }[] = []
+  const addSeq = (el: HTMLElement | null, sel: string, step?: (i: number) => void) => {
+    if (!el) return
+    const items = Array.from(el.querySelectorAll<HTMLElement>(sel))
+    if (!items.length) return
+    if (!step) {
+      el.classList.add("sq")
+      items.forEach((it) => it.classList.add("sq-i"))
+    }
+    seqs.push({ el, items, step, at: -2 })
+  }
+  addSeq($(".mx-fam"), ".mx-fam-t button", (i) => { if (!famManual) showFam(i) })
+  addSeq($(".mx-dims"), ".dim")
+  addSeq($("#sec-bar .triage"), ".tbar, .tcol, .taudit")
+  /* Nothing is held in place: the block scrolls with the page, and its parts change left to
+     right over the stretch in which it is on screen - from a little over half of it being
+     visible until its top edge reaches the chapter bar. */
+  const stickTop = () => (document.getElementById("atlas-chrome")?.offsetHeight ?? 0) + 62
+  const onSeq = () => {
+    const vh = window.innerHeight
+    seqs.forEach((s) => {
+      const n = s.items.length
+      const r = s.el.getBoundingClientRect()
+      if (r.bottom < 0 || r.top > vh) {
+        if (s.step) famManual = false
+        return
+      }
+      let at: number
+      /* on a phone the tabs change only by tap, whatever height the current family happens to be */
+      if (s.step && window.innerWidth < 900) return
+      if (r.height > vh * 0.7) {
+        /* taller than the screen (stacked on a phone): tabs change only by tap, and a stacked
+           list lights up as each part passes */
+        if (s.step) return
+        const prog = (vh * 0.78 - r.top) / (r.height + vh * 0.2)
+        at = prog >= 1 ? n : Math.floor(prog * n)
+      } else {
+        /* start once a little over half the block is on screen, end just before it meets the bar */
+        const from = Math.min(vh * 0.8, vh - r.height * 0.55)
+        const to = stickTop() + 10
+        at = Math.floor(((from - r.top) / Math.max(1, from - to)) * n)
+      }
+      at = Math.max(0, Math.min(s.step ? n - 1 : n, at))
+      /* act only when the part actually changes: re-rendering on every scroll event is what flickered */
+      if (at === s.at) return
+      s.at = at
+      if (s.step) {
+        s.step(at)
+        return
+      }
+      s.el.classList.toggle("sq-live", at < n)
+      s.items.forEach((it, i) => {
+        it.classList.toggle("sq-on", i < at)
+        it.classList.toggle("sq-now", i === at)
+      })
+    })
+  }
+  window.addEventListener("scroll", onSeq, { passive: true, signal })
+  window.addEventListener("resize", onSeq, { signal })
+  document.fonts?.ready.then(() => { if (!signal.aborted) onSeq() })
+  onSeq()
+
+  /* the record inspector */
+  const rec = $("#mxRec") as HTMLElement
+  const rule = $("#mxRule") as HTMLElement
+  const showRule = (b: HTMLElement) => {
+    rec.querySelectorAll(".rr").forEach((x) => x.setAttribute("aria-expanded", String(x === b)))
+    rule.innerHTML = `<div class="nm">${b.querySelector(".nm")?.outerHTML ?? ""}${b.querySelector(".ct")?.outerHTML ?? ""}</div><p>${b.querySelector(".rw")?.innerHTML ?? ""}</p>`
+  }
+  const pick = (e: Event) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>(".rr")
+    if (b) showRule(b)
+  }
+  rec.addEventListener("click", pick, { signal })
+  rec.addEventListener("mouseover", pick, { signal })
+  rec.addEventListener("focusin", pick, { signal })
+  showRule(rec.querySelector(".rr") as HTMLElement)
+  if (!still) {
+    const rrs = Array.from(rec.querySelectorAll<HTMLElement>(".rr"))
+    let held = false
+    let seen = false
+    rec.addEventListener("mouseenter", () => { held = true }, { signal })
+    rec.addEventListener("mouseleave", () => { held = false }, { signal })
+    /* a tap has no "leave", so it holds until the panel scrolls away */
+    rec.addEventListener("touchstart", () => { held = true }, { signal, passive: true })
+    const rio = new IntersectionObserver((es) => es.forEach((e) => {
+      seen = e.isIntersecting
+      if (!seen && window.matchMedia("(hover: none)").matches) held = false
+    }), { threshold: 0.25 })
+    rio.observe(rec)
+    const tick = window.setInterval(() => {
+      /* on a phone the rule opens inside the list, so advancing by itself would keep moving the page */
+      if (!seen || held || document.hidden || window.innerWidth < 900) return
+      const at = rrs.findIndex((x) => x.getAttribute("aria-expanded") === "true")
+      showRule(rrs[(at + 1) % rrs.length])
+    }, 1000)
+    signal.addEventListener("abort", () => { window.clearInterval(tick); rio.disconnect() })
+  }
+
+  startIncidents(root, signal, still)
+
+  /* the production map engine, unchanged except that a plain scroll stays with the page */
+  const map = $("#mxMap") as HTMLElement
+  try {
+    new Function(
+      "ROOT",
+      "__el",
+      "go",
+      CANVAS_JS.replace("svg.addEventListener('wheel',e=>{\n  e.preventDefault();", "svg.addEventListener('wheel',e=>{\n  if(!(e.ctrlKey||e.metaKey))return;\n  e.preventDefault();")
+        /* on a phone the map fills the screen: a vertical swipe has to scroll the page */
+        .replace("  const narrow=kw<kh*0.72;", "  const narrow=kw<kh*0.72;\n  svg.__narrow=narrow;")
+        .replace("  view.x=drag.vx+dx; view.y=drag.vy+dy; apply();", "  view.x=drag.vx+dx; if(!svg.__narrow)view.y=drag.vy+dy; apply();"),
+    )(map, (id: string) => map.querySelector("#" + id), go)
+  } catch (err) {
+    console.error("methodology: map failed to start", err)
+  }
+
+  return () => {
+    ac.abort()
+    /* behaviour adds nodes and classes; put the markup back as it was served so a second
+       mount (Strict Mode in development) starts from the same document */
+    root.innerHTML = MARKUP
+  }
+}
 
 export function MethodologyBody() {
   const rootRef = useRef<HTMLDivElement>(null)
-  const started = useRef(false)
 
   useEffect(() => {
-    const root = rootRef.current
-    // Strict Mode runs effects twice in development; the behaviour appends SVG
-    // nodes and list items, so a second pass would double everything it draws.
-    if (!root || started.current) return
-    started.current = true
-    try {
-      new Function("ROOT", "__el", BEHAVIOUR)(root, (id: string) =>
-        root.querySelector<HTMLElement>(`#${id}`),
-      )
-    } catch (err) {
-      console.error("methodology: behaviour failed to start", err)
-    }
+    if (!rootRef.current) return
+    return start(rootRef.current)
   }, [])
 
-  return <div className="mth" ref={rootRef} dangerouslySetInnerHTML={{ __html: MARKUP }} />
+  return <div className="mx" ref={rootRef} dangerouslySetInnerHTML={{ __html: MARKUP }} />
 }

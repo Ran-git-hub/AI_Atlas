@@ -33,7 +33,7 @@ export const metadata = pageMetadata({
   // thumbnail. Google reads the same dates for article rich results.
   type: "article",
   publishedTime: "2026-09-14T00:00:00.000Z",
-  modifiedTime: "2026-09-15T00:00:00.000Z",
+  modifiedTime: "2026-11-14T00:00:00.000Z",
 })
 
 /**

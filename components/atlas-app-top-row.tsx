@@ -22,7 +22,7 @@ export function AtlasAppTopRow({
     >
       <div className="hidden min-w-0 atlas-header:block" aria-hidden="true" />
       <div className="flex min-w-0 max-w-full flex-row flex-wrap items-center gap-x-3 gap-y-2 overflow-visible overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] atlas-header:justify-center [&::-webkit-scrollbar]:hidden">
-        <div className="min-w-0 shrink-0 pr-[2.875rem] atlas-header:pr-0">
+        <div className="min-w-0 max-w-full shrink-0 pr-[2.875rem] atlas-header:pr-0">
           <AtlasSiteBrandStrip />
         </div>
         <div className="flex min-w-0 basis-full justify-center atlas-header:min-w-fit atlas-header:basis-auto">

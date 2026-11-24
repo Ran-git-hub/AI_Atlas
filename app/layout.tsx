@@ -10,7 +10,7 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'AI Atlas - Daily updates on real-world AI Signals and deployments worldwide',
+  title: 'AI Atlas - Daily updates on real-world AI Signals and Use Cases worldwide',
   description: 'Explore leading AI applications worldwide and discover how artificial intelligence is transforming the world',
   generator: 'v0.app',
   metadataBase: new URL('https://ai-atlas.app'),
@@ -19,12 +19,12 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://ai-atlas.app',
     siteName: 'AI Atlas',
-    title: 'AI Atlas — Real-world AI Signals and deployments worldwide',
+    title: 'AI Atlas — Real-world AI Signals and Use Cases worldwide',
     description: 'Explore leading AI applications worldwide and discover how artificial intelligence is transforming the world',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AI Atlas — Real-world AI Signals and deployments worldwide',
+    title: 'AI Atlas — Real-world AI Signals and Use Cases worldwide',
     description: 'Explore leading AI applications worldwide and discover how artificial intelligence is transforming the world',
   },
   alternates: {

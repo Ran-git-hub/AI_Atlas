@@ -61,7 +61,7 @@ export function ShareRow({
       url,
       "",
       "—",
-      "Shared from AI Atlas — real-world AI Signals and deployments worldwide",
+      "Shared from AI Atlas — real-world AI Signals and Use Cases worldwide",
       SITE_HOME,
     ]
       .filter((line) => line !== null)

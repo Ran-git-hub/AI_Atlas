@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils"
 
 export const ATLAS_SITE_TAGLINE =
-  "Daily updates on real-world AI Signals and deployments worldwide." as const
+  "Daily updates on real-world AI Signals and Use Cases worldwide." as const
 
 export function AtlasSiteTagline({ className }: { className?: string }) {
   return (

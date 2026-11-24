@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-const DEFAULT_SHARE_TITLE = "AI Atlas — real-world AI Signals and deployments worldwide"
+const DEFAULT_SHARE_TITLE = "AI Atlas — real-world AI Signals and Use Cases worldwide"
 
 /**
  * Footer link columns, in the shape aiusecasehub.com uses: a brand block

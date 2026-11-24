@@ -1307,7 +1307,7 @@ export function UseCasesTable({
     <div className="text-[#f5f5f5]">
       <div>
         <h1 className="sr-only">
-          AI Atlas - Daily updates on real-world AI Signals and deployments worldwide
+          AI Atlas - Daily updates on real-world AI Signals and Use Cases worldwide
         </h1>
         <AtlasAppTopRow activeView="use-cases" />
       </div>

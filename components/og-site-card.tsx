@@ -152,7 +152,7 @@ export function OgSiteCard({ height }: { height: number }) {
           }}
         >
           <span style={{ whiteSpace: "nowrap" }}>Real-world AI Signals</span>
-          <span style={{ whiteSpace: "nowrap" }}>and deployments worldwide</span>
+          <span style={{ whiteSpace: "nowrap" }}>and Use Cases worldwide</span>
         </div>
 
         <div

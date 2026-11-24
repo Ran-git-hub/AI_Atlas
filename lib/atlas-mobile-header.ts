@@ -7,5 +7,10 @@ function mobileHeaderTwoLines(s: string, needle: string): readonly [string, stri
   return [s.slice(0, i), s.slice(i + 1)] as const
 }
 
-/** Two lines for compact header below `lg` (break before “ AI ”). */
-export const ATLAS_TAGLINE_MOBILE_LINES = mobileHeaderTwoLines(ATLAS_SITE_TAGLINE, " AI ")
+/** Two lines for compact header below `lg` (break before “ AI ”). On the
+    narrowest phones a line wraps again, and a plain hyphen would split
+    "real-world" in two, so it is drawn as a non-breaking hyphen (U+2011). */
+export const ATLAS_TAGLINE_MOBILE_LINES = mobileHeaderTwoLines(
+  ATLAS_SITE_TAGLINE.replaceAll("-", "\u2011"),
+  " AI ",
+)

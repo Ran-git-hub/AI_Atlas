@@ -174,7 +174,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: "18px", color: "#6b7d8e" }}>ai-atlas.app</span>
           <span style={{ fontSize: "18px", color: "#4a5b6a" }}>
-            Real-world AI deployments worldwide
+            Real-world AI Signals and Use Cases worldwide
           </span>
         </div>
       </div>

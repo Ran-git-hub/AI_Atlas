@@ -139,8 +139,8 @@ export function OgSiteCard({ height }: { height: number }) {
           flex: 1,
         }}
       >
-        {/* Two explicit lines rather than a wrapped paragraph, so the break
-            always falls after "Real-world" whatever the rendering width. */}
+        {/* Explicit lines rather than a wrapped paragraph, so the breaks fall
+            in the same place whatever the rendering width. */}
         <div
           style={{
             display: "flex",
@@ -151,8 +151,8 @@ export function OgSiteCard({ height }: { height: number }) {
             letterSpacing: "-0.03em",
           }}
         >
-          <span style={{ whiteSpace: "nowrap" }}>Real-world</span>
-          <span style={{ whiteSpace: "nowrap" }}>AI deployments worldwide</span>
+          <span style={{ whiteSpace: "nowrap" }}>Real-world AI Signals</span>
+          <span style={{ whiteSpace: "nowrap" }}>and Use Cases worldwide</span>
         </div>
 
         <div
